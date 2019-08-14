@@ -9,7 +9,7 @@ namespace ecfw {
 	> using event_signal = proto::signal<void(const Event&)>;
 	
 	using event_receiver = proto::receiver;
-	using event_connection = proto::connection;
-	using scoped_event_connection = proto::scoped_connection;
+	using event_subscription = proto::connection;
+	using scoped_event_subscription = proto::scoped_connection;
 
 }
