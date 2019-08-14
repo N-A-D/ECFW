@@ -23,11 +23,11 @@ namespace ecfw {
 
 		template <
 			class T
-		> class type_identity { using type = T; };
+		> struct type_identity { using type = T; };
 
 		template <
 			class It
-		> using type_identity_t = typename type_identity<T>::type;
+		> using type_identity_t = typename type_identity<It>::type;
 
 	}
 }
