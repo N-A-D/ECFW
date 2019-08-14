@@ -1,6 +1,6 @@
 #pragma once
 
-#include "traits.hpp"
+#include <ecfw/entity/traits.hpp>
 #include <ancillary/container/flat_set.hpp>
 
 namespace ecfw {
