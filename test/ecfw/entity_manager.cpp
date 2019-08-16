@@ -201,31 +201,41 @@ TEST(EntityManagerTests, SequentialIterationTests) {
 
 	ASSERT_FALSE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp0>(entity); }));
 
-	manager.entities_with<Comp0>([](Comp0& comp) {
+	size_t count = 0;
+	manager.entities_with<Comp0>([&count](Comp0& comp) {
 		comp.value = true;
+		++count;
 	});
-
+	ASSERT_EQ(count, (manager.num_entities_with<Comp0>()));
 	ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp0>(entity); }));
 
 	ASSERT_FALSE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp1>(entity); }));
-
-	manager.entities_with<Comp1>([](Comp1& comp) {
+	count = 0;
+	manager.entities_with<Comp1>([&count](Comp1& comp) {
 		comp.value = true;
+		++count;
 	});
-
+	ASSERT_EQ(count, (manager.num_entities_with<Comp1>()));
 	ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp1>(entity); }));
 
 	ASSERT_FALSE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp2>(entity); }));
-
-	manager.entities_with<Comp2>([](Comp2& comp) {
+	count = 0;
+	manager.entities_with<Comp2>([&count](Comp2& comp) {
 		comp.value = true;
+		++count;
 	});
-
+	ASSERT_EQ(count, (manager.num_entities_with<Comp2>()));
 	ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp2>(entity); }));
+
+	manager.entities_with<Comp0, Comp1, Comp2>([&manager](auto e, auto& c0, auto& c1, auto& c2) {
+		ASSERT_TRUE(manager.component<Comp0>(e));
+		ASSERT_TRUE(manager.component<Comp1>(e));
+		ASSERT_TRUE(manager.component<Comp2>(e));
+	});
 
 }
 
-TEST(EntityManagerTests, ParallelIteratorTests) {
+TEST(EntityManagerTests, ParallelIterationTests) {
 	EntityManager manager;
 
 	std::vector<Entity> entities(N);
@@ -233,27 +243,38 @@ TEST(EntityManagerTests, ParallelIteratorTests) {
 
 	ASSERT_FALSE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp0>(entity); }));
 
-	manager.entities_with<Comp0>(std::execution::par, [](Comp0& comp) {
+	size_t count = 0;
+	manager.entities_with<Comp0>(std::execution::par, [&count](Comp0& comp) {
 		comp.value = true;
+		++count;
 	});
-
+	ASSERT_EQ(count, (manager.num_entities_with<Comp0>()));
 	ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp0>(entity); }));
 
 	ASSERT_FALSE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp1>(entity); }));
-
-	manager.entities_with<Comp1>(std::execution::par, [](Comp1& comp) {
+	count = 0;
+	manager.entities_with<Comp1>(std::execution::par, [&count](Comp1& comp) {
 		comp.value = true;
+		++count;
 	});
-
+	ASSERT_EQ(count, (manager.num_entities_with<Comp1>()));
 	ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp1>(entity); }));
 
 	ASSERT_FALSE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp2>(entity); }));
-
-	manager.entities_with<Comp2>(std::execution::par, [](Comp2& comp) {
+	count = 0;
+	manager.entities_with<Comp2>(std::execution::par, [&count](Comp2& comp) {
 		comp.value = true;
+		++count;
+	});
+	ASSERT_EQ(count, (manager.num_entities_with<Comp2>()));
+	ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp2>(entity); }));
+
+	manager.entities_with<Comp0, Comp1, Comp2>([&manager](auto e, auto& c0, auto& c1, auto& c2) { 
+		ASSERT_TRUE(manager.component<Comp0>(e));
+		ASSERT_TRUE(manager.component<Comp1>(e));
+		ASSERT_TRUE(manager.component<Comp2>(e));
 	});
 
-	ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp2>(entity); }));
 }
 
 TEST(EntityManagerTests, EventSubscriptionTests) {
