@@ -24,6 +24,7 @@ endmacro()
 
 package_add_test(event_dispatcher_tests event_dispatcher.cpp)
 package_add_test(default_storage_tests default_storage.cpp)
+package_add_test(entity_manager_tests entity_manager.cpp)
 package_add_test(entity_traits_tests entity_traits.cpp)
 package_add_test(type_traits_test type_traits.cpp)
 package_add_test(type_list_tests type_list.cpp)
