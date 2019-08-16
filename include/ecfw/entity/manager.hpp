@@ -319,10 +319,14 @@ namespace ecfw {
 		> void remove(entity_type e) {
 			assert(has<Cs...>(e));
 			auto idx = traits_type::index(e);
-			(m_event_dispatcher(component_removed<entity_type, Cs>{ e, component<Cs>(e) }), ...);
+			(disable_component(meta::index_of_v<Cs, comp_list>, e), ...);
+			(m_event_dispatcher(
+				component_removed<entity_type, Cs>{ 
+					e, std::get<underlying_storage_t<Cs>>(m_comp_pools).get(idx) 
+				}),
+			...);
 			(std::get<underlying_storage_t<Cs>>(m_comp_pools).destroy(idx), ...);
 			(degroup_entity_using(meta::index_of_v<Cs, comp_list>, e), ...);
-			(disable_component(meta::index_of_v<Cs, comp_list>, e), ...);
 			assert(!has<Cs...>(e));
 		}
 

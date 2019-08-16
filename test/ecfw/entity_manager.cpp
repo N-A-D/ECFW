@@ -35,13 +35,13 @@ struct EntityEventReceiver : ecfw::event_receiver {
 	void entity_created(const EntityCreatedEvent& e) const { ASSERT_TRUE(m_manager.valid(e.entity)); }
 	void entity_destroyed(const EntityDestroyedEvent& e) { ASSERT_FALSE(m_manager.valid(e.entity)); }
 
-	void comp0_added(const Comp0AddedEvent& e) { ASSERT_TRUE(e.component); }
-	void comp1_added(const Comp1AddedEvent& e) const { ASSERT_TRUE(e.component); }
-	void comp2_added(const Comp2AddedEvent& e) const { ASSERT_TRUE(e.component); }
+	void comp0_added(const Comp0AddedEvent& e) { ASSERT_TRUE(e.component && m_manager.has<Comp0>(e.entity)); }
+	void comp1_added(const Comp1AddedEvent& e) const { ASSERT_TRUE(e.component && m_manager.has<Comp1>(e.entity)); }
+	void comp2_added(const Comp2AddedEvent& e) const { ASSERT_TRUE(e.component && m_manager.has<Comp2>(e.entity)); }
 
-	void comp0_removed(const Comp0RemovedEvent& e) { ASSERT_TRUE(e.component); }
-	void comp1_removed(const Comp1RemovedEvent& e) const { ASSERT_TRUE(e.component); }
-	void comp2_removed(const Comp2RemovedEvent& e) const { ASSERT_TRUE(e.component); }
+	void comp0_removed(const Comp0RemovedEvent& e) { ASSERT_TRUE(e.component && !m_manager.has<Comp0>(e.entity)); }
+	void comp1_removed(const Comp1RemovedEvent& e) const { ASSERT_TRUE(e.component && !m_manager.has<Comp1>(e.entity)); }
+	void comp2_removed(const Comp2RemovedEvent& e) const { ASSERT_TRUE(e.component && !m_manager.has<Comp2>(e.entity)); }
 
 	EntityEventReceiver(EntityManager& manager)
 		: m_manager(manager) {}
