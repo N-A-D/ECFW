@@ -7,3 +7,6 @@
 [submodule "extern/proto"]
 	path = extern/proto
 	url = https://github.com/N-A-D/proto.git
+[submodule "extern/google/benchmark"]
+	path = extern/google/benchmark
+	url = https://github.com/google/benchmark.git
