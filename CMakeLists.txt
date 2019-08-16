@@ -25,14 +25,14 @@ target_link_libraries(${PROJECT_NAME} INTERFACE ancillary)
 add_subdirectory(extern/proto)
 target_link_libraries(${PROJECT_NAME} INTERFACE proto)
 
-option(BUILD_ECFW_TESTS "Build ECFW tests" ON)
+option(BUILD_ECFW_TESTS "Build ECFW tests" OFF)
 
 if (BUILD_ECFW_TESTS)
 	enable_testing()
 	add_subdirectory(test)
 endif()
 
-option(BUILD_ECFW_BENCHMARKS "Build ECFW benchmakrs" ON)
+option(BUILD_ECFW_BENCHMARKS "Build ECFW benchmarks" OFF)
 
 if (BUILD_ECFW_BENCHMARKS)
 	add_subdirectory(benchmark)
