@@ -138,6 +138,16 @@ namespace ecfw {
 
 	public:
 
+		entity_manager() = default;
+
+		entity_manager(size_t count)
+			: entity_manager()
+		{
+			m_entities.reserve(count);
+			m_comp_masks.reserve(count);
+			reserve<Ts...>(count);
+		}
+
 		template <
 			class... Cs
 		> entity_type create() {
@@ -230,8 +240,7 @@ namespace ecfw {
 
 		void destroy(entity_type e) {
 			assert(valid(e));
-			if (!m_recycle_list.contains(e))
-				m_recycle_list.emplace(e);
+			m_recycle_list.emplace(e);
 			assert(valid(e));
 		}
 
