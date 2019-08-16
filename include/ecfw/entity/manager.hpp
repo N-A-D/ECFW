@@ -134,7 +134,6 @@ namespace ecfw {
 			m_entities[idx] = traits_type::recycle(e);
 			m_comp_masks[idx].reset();
 			m_free_list.push(idx);
-			m_event_dispatcher(entity_destroyed<entity_type>{ e });
 		}
 
 	public:
@@ -401,8 +400,10 @@ namespace ecfw {
 			auto it = m_recycle_list.end();
 			while (it > m_recycle_list.begin()) {
 				--it;
-				recycle_entity(*it);
+				auto e = *it;
+				recycle_entity(e);
 				it = m_recycle_list.erase(it);
+				m_event_dispatcher(entity_destroyed<entity_type>{ e });
 			}
 		}
 

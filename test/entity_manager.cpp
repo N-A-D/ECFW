@@ -262,7 +262,7 @@ TEST(EntityManagerTests, EventSubscriptionTests) {
 	EntityEventReceiver receiver(manager);
 
 	manager.events().subscribe<EntityCreatedEvent>(&receiver, &EntityEventReceiver::entity_created);
-	// ADD EntityDestroyed Reception here
+	manager.events().subscribe<EntityDestroyedEvent>(&receiver, &EntityEventReceiver::entity_destroyed);
 	manager.events().subscribe<Comp0AddedEvent>(&receiver, &EntityEventReceiver::comp0_added);
 	manager.events().subscribe<Comp1AddedEvent>(&receiver, &EntityEventReceiver::comp1_added);
 	manager.events().subscribe<Comp2AddedEvent>(&receiver, &EntityEventReceiver::comp2_added);
