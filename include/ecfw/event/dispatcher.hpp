@@ -31,21 +31,19 @@ namespace ecfw {
 		template <
 			class Event,
 			class Receiver
-		> event_subscription
-			subscribe(Receiver* receiver, void(Receiver::*func)(const Event&)) {
+		> void subscribe(Receiver* receiver, void(Receiver::*func)(const Event&)) {
 			static_assert(std::is_base_of_v<event_receiver, Receiver>, 
 				"Receiver types must inherit from ecfw::event_receiver");
-			return signal<Event>().connect(receiver, func);
+			signal<Event>().connect(receiver, func);
 		}
 
 		template <
 			class Event,
 			class Receiver
-		> event_subscription
-			subscribe(Receiver* receiver, void(Receiver::*func)(const Event&) const) {
+		> void subscribe(Receiver* receiver, void(Receiver::*func)(const Event&) const) {
 			static_assert(std::is_base_of_v<event_receiver, Receiver>,
 				"Receiver types must inherit from ecfw::event_receiver");
-			return signal<Event>().connect(receiver, func);
+			signal<Event>().connect(receiver, func);
 		}
 
 		template <
