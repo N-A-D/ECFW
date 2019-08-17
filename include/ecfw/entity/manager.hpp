@@ -345,6 +345,8 @@ namespace ecfw {
 			(group_id.set(meta::index_of_v<Cs, comp_list>), ...);
 
 			const group_type& group = group_entities_matching(group_id);
+			assert(group.size() == num_entities_with<Cs...>());
+
 			for (auto e : group) {
 				auto idx = traits_type::index(e);
 				if constexpr (std::is_invocable_v<Transform, Cs&...>)
@@ -367,6 +369,8 @@ namespace ecfw {
 			(group_id.set(meta::index_of_v<Cs, comp_list>), ...);
 
 			const group_type& group = group_entities_matching(group_id);
+			assert(group.size() == num_entities_with<Cs...>());
+
 			std::for_each(std::forward<ExecPolicy>(policy),
 				group.begin(), group.end(), [this, &func](auto e) {
 				auto idx = traits_type::index(e);
@@ -390,7 +394,7 @@ namespace ecfw {
 
 		bool valid(entity_type e) const {
 			auto idx = traits_type::index(e);
-			return m_entities[idx] == e || m_recycle_list.contains(e);
+			return m_entities[idx] == e;
 		}
 
 		size_t num_entities() const {
