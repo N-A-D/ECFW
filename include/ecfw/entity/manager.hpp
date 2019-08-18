@@ -102,7 +102,7 @@ namespace ecfw {
 				for (size_t i = 0; i != m_entities.size(); ++i) {
 					const comp_mask& mask = m_comp_masks[i];
 					if ((mask & id) == id) // entity owns the components
-						group.emplace_hint(group.end(), m_entities[i]);
+						group.insert(m_entities[i]);
 				}
 				auto ret = m_groups.emplace_hint(it, id, group);
 				return ret->second;
@@ -113,7 +113,7 @@ namespace ecfw {
 			const comp_mask& mask = m_comp_masks[traits_type::index(e)];
 			for (auto&[id, group] : m_groups)
 				if (id.test(cpos) && (mask & id) == id)
-					group.emplace(e);
+					group.insert(e);
 		}
 		
 		void degroup_entity_using(size_t cpos, entity_type e) {
@@ -240,7 +240,7 @@ namespace ecfw {
 
 		void destroy(entity_type e) {
 			assert(valid(e));
-			m_recycle_list.emplace(e);
+			m_recycle_list.insert(e);
 			assert(valid(e));
 		}
 
@@ -414,14 +414,11 @@ namespace ecfw {
 		}
 
 		void update() {
-			auto it = m_recycle_list.end();
-			while (it > m_recycle_list.begin()) {
-				--it;
-				auto e = *it;
-				recycle_entity(e);
-				it = m_recycle_list.erase(it);
-				m_event_dispatcher(entity_destroyed<entity_type>{ e });
+			for (auto it = m_recycle_list.begin(); it != m_recycle_list.end(); ++it) {
+				recycle_entity(*it);
+				m_event_dispatcher(entity_destroyed<entity_type>{ *it });
 			}
+			m_recycle_list.clear();
 		}
 
 		void reset() {
