@@ -1,6 +1,3 @@
-[submodule "extern/ancillary"]
-	path = extern/ancillary
-	url = https://github.com/N-A-D/ancillary.git
 [submodule "extern/googletest"]
 	path = extern/googletest
 	url = https://github.com/google/googletest.git
