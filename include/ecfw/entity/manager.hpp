@@ -65,12 +65,6 @@ namespace ecfw {
 
 		// INTERNAL IMPLEMENTATION 
 
-		template <
-			class... Cs
-		> std::tuple<underlying_storage_t<Cs>&...> storage_as_tuple() {
-			return std::forward_as_tuple(underlying_storage_t<Cs>(m_comp_pools)...);
-		}
-
 		void enable_component(size_t cpos, entity_type e) {
 			m_comp_masks[traits_type::index(e)].set(cpos);
 		}
