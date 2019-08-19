@@ -23,7 +23,7 @@ namespace ecfw {
 	template <
 		class Entity,
 		class... Ts
-	> class entity_manager<Entity, type_list<Ts...>> {
+	> class entity_manager<Entity, type_list<Ts...>> : public detail::noncopyable {
 
 		static_assert(meta::is_unique_v<type_list<Ts...>>, "Duplicate component type(s)!");
 		static_assert(std::conjunction_v
@@ -345,7 +345,6 @@ namespace ecfw {
 			(group_id.set(meta::index_of_v<Cs, comp_list>), ...);
 
 			const group_type& group = group_entities_matching(group_id);
-			assert(group.size() == num_entities_with<Cs...>());
 
 			for (auto e : group) {
 				auto idx = traits_type::index(e);
@@ -369,7 +368,6 @@ namespace ecfw {
 			(group_id.set(meta::index_of_v<Cs, comp_list>), ...);
 
 			const group_type& group = group_entities_matching(group_id);
-			assert(group.size() == num_entities_with<Cs...>());
 
 			std::for_each(std::forward<ExecPolicy>(policy),
 				group.begin(), group.end(), [this, func](auto e) {
