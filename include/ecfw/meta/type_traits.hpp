@@ -21,13 +21,5 @@ namespace ecfw {
 			class It
 		> constexpr bool is_iterator_v = is_iterator<It>::value;
 
-		template <
-			class T
-		> struct type_identity { using type = T; };
-
-		template <
-			class It
-		> using type_identity_t = typename type_identity<It>::type;
-
 	}
 }
