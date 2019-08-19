@@ -4,6 +4,7 @@
 #include <execution>
 #include <algorithm>
 #include <functional>
+#include <unordered_map>
 #include <ecfw/entity/group.hpp>
 #include <ecfw/entity/events.hpp>
 #include <ecfw/component/mask.hpp>
@@ -11,7 +12,6 @@
 #include <ecfw/meta/type_list.hpp>
 #include <ecfw/meta/type_traits.hpp>
 #include <ecfw/event/dispatcher.hpp>
-#include <ancillary/container/flat_map.hpp>
 
 namespace ecfw {
 
@@ -61,7 +61,7 @@ namespace ecfw {
 		std::vector<comp_mask> m_comp_masks;
 		std::stack<size_t, std::vector<size_t>> m_free_list;
 		std::tuple<underlying_storage_t<Ts>...> m_comp_pools;
-		ancillary::flat_map<comp_mask, group_type> m_groups;
+		std::unordered_map<comp_mask, group_type> m_groups;
 		event_dispatcher_type m_event_dispatcher;
 
 		// INTERNAL IMPLEMENTATION 
@@ -104,8 +104,8 @@ namespace ecfw {
 					if ((mask & id) == id) // entity owns the components
 						group.insert(m_entities[i]);
 				}
-				auto ret = m_groups.emplace_hint(it, id, group);
-				return ret->second;
+				auto ret = m_groups.emplace(id, group);
+				return ret.first->second;
 			}
 		}
 
@@ -372,7 +372,7 @@ namespace ecfw {
 			assert(group.size() == num_entities_with<Cs...>());
 
 			std::for_each(std::forward<ExecPolicy>(policy),
-				group.begin(), group.end(), [this, &func](auto e) {
+				group.begin(), group.end(), [this, func](auto e) {
 				auto idx = traits_type::index(e);
 				func(std::get<underlying_storage_t<Cs>>(m_comp_pools).get(idx)...);
 			});

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <ancillary/container/bitset.hpp>
+#include <bitset>
 
 namespace ecfw {
 	namespace detail {
 		
 		template <
 			class... Cs
-		> using comp_mask = ancillary::bitset<sizeof...(Cs)>;
+		> using comp_mask = std::bitset<sizeof...(Cs)>;
 
 	}
 }

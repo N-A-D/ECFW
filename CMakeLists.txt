@@ -19,9 +19,6 @@ target_include_directories(
 		$<INSTALL_INTERFACE:include>
 )
 
-add_subdirectory(extern/ancillary)
-target_link_libraries(${PROJECT_NAME} INTERFACE ancillary)
-
 add_subdirectory(extern/proto)
 target_link_libraries(${PROJECT_NAME} INTERFACE proto)
 
