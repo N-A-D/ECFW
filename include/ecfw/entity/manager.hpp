@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stack>
-#include <execution>
 #include <algorithm>
 #include <functional>
 #include <unordered_map>
@@ -66,6 +65,12 @@ namespace ecfw {
 
 		// INTERNAL IMPLEMENTATION 
 
+		template <
+			class... Cs
+		> std::tuple<underlying_storage_t<Cs>&...> storage_as_tuple() {
+			return std::forward_as_tuple(underlying_storage_t<Cs>(m_comp_pools)...);
+		}
+
 		void enable_component(size_t cpos, entity_type e) {
 			m_comp_masks[traits_type::index(e)].set(cpos);
 		}
@@ -91,6 +96,10 @@ namespace ecfw {
 			auto idx = traits_type::index(e);
 			const comp_mask& mask = m_comp_masks[idx];
 			(try_remove_component<Ts>(mask.test(meta::index_of_v<Ts, comp_list>), idx), ...);
+		}
+
+		bool has_group_matching(const comp_mask& id) {
+			return m_groups.find(id) != m_groups.end();
 		}
 
 		const group_type& group_entities_matching(const comp_mask& id) {
@@ -339,8 +348,7 @@ namespace ecfw {
 			static_assert(std::disjunction_v<
 				std::is_invocable<Transform, Cs&...>,
 				std::is_invocable<Transform, entity_type, Cs&...>
-			>);
-			
+			>, "Incorrect transformation type!");
 			comp_mask group_id;
 			(group_id.set(meta::index_of_v<Cs, comp_list>), ...);
 
@@ -353,27 +361,6 @@ namespace ecfw {
 				else
 					func(e, std::get<underlying_storage_t<Cs>>(m_comp_pools).get(idx)...);
 			}
-		}
-
-		template <
-			class... Cs,
-			class ExecPolicy,
-			class Transform
-		> void entities_with(ExecPolicy&& policy, Transform func) {
-			static_assert(meta::is_unique_v<type_list<Cs...>>);
-			static_assert(meta::is_subset_v<type_list<Cs...>, comp_list>);
-			static_assert(std::is_invocable_v<Transform, Cs&...>);
-
-			comp_mask group_id;
-			(group_id.set(meta::index_of_v<Cs, comp_list>), ...);
-
-			const group_type& group = group_entities_matching(group_id);
-
-			std::for_each(std::forward<ExecPolicy>(policy),
-				group.begin(), group.end(), [this, func](auto e) {
-				auto idx = traits_type::index(e);
-				func(std::get<underlying_storage_t<Cs>>(m_comp_pools).get(idx)...);
-			});
 		}
 
 		template <

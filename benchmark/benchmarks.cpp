@@ -489,19 +489,4 @@ static void BM_SequentialIteration(benchmark::State& state) {
 
 BENCHMARK(BM_SequentialIteration);
 
-static void BM_ParallelIteration(benchmark::State& state) {
-	EntityManager manager;
-	manager.create<Position, Direction>(entity_count);
-	manager.entities_with<Position, Direction>([](auto&, auto&) {});
-	for (auto _ : state) {
-		manager.entities_with<Position, Direction>(std::execution::par, 
-		[](auto& pos, auto& dir) {
-			pos.x += dir.x * 1.337f;
-			pos.y += dir.y * 1.337f;
-		});
-	}
-}
-
-BENCHMARK(BM_ParallelIteration);
-
 BENCHMARK_MAIN();
