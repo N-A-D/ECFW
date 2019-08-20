@@ -43,7 +43,11 @@ it can contain. Each entity contains two numbers, an index
 and a version. The index is used only for component retrieval, 
 whereas the version is used for identifying stale/deceased entities.
 
-*Insert table summary or entity types*
+| Entity Type | Max entities (also max index) | Max version |
+| ----------- | --------------------------- | ---------- |
+| std::uint16_t | 4095 (2 ^ 12 - 1) |  15 (2 ^ 4 - 1) |
+| std::uint32_t | 1048575 (2 ^ 20 - 1) |  4095 (2 ^ 12 - 1) |
+| std::uint64_t | 4294967295 (2 ^ 32 - 1) |  4294967295 (2 ^ 32 - 1) |
 
 The framework provides various functions for creating entities.
 Example:
