@@ -138,7 +138,7 @@ Example:
     manager.create<RigidBody, Render, AI>(10'000);
 
     // Iterates over all entities with RigidBody, Render, and AI components
-    manager.entities_with([](RigidBody& body, Render& render, AI& ai){ /* Logic */ });
+    manager.entities_with<RigidBody, Render, AI>([](RigidBody& body, Render& render, AI& ai){ /* Logic */ });
 ```
 
 #### Components
@@ -201,7 +201,7 @@ Example:
 ```
 
 To assign components to an entity, use the `ecfw::entity_manager::assign` 
-member.
+member.   
 Example:
 ```cpp
     struct Position {
@@ -224,7 +224,8 @@ Example:
 ```
 
 To fetch an entity's component, use the `ecfw::entity_manager::component` 
-member.
+member.   
+Example:
 ```cpp
     struct Position {
         Position()
@@ -248,7 +249,7 @@ member.
 ```
 
 To remove components from an entity, use the `ecfw::entity_manager::remove`
-member.
+member.   
 Example:
 ```cpp
     struct Position {
