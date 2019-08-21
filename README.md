@@ -138,7 +138,7 @@ Example:
     manager.create<RigidBody, Render, AI>(10'000);
 
     // Iterates over all entities with RigidBody, Render, and AI components
-    manager.entities_with([](RigidBody& body, Render& render, AI& ai){ /* Logic */ });
+    manager.entities_with<RigidBody, Render, AI>([](RigidBody& body, Render& render, AI& ai){ /* Logic */ });
 ```
 
 #### Components
