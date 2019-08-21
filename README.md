@@ -64,7 +64,8 @@ Example:
     auto e0 = manager.create();
 
     // Create a single entity with a given list of components
-    // Note that the supplied types must have also been given as a template arg
+    // Any supplied types must be a subset of the types given 
+    // as a list to the entity_manager type
     // Note also that each type must be default constructible
     auto e1 = manager.create<RigidBody, Render, AI>();
 
