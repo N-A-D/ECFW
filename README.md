@@ -22,7 +22,7 @@ The library depends on [proto](https://github.com/N-A-D/proto) a signal and slot
 - [Template metaprogramming.](https://en.wikipedia.org/wiki/Template_metaprogramming)
 
 #### Entities
-Entities are created from an `ecfw::entity_manager`.   
+Entities are unsigned integers created from an `ecfw::entity_manager`.   
 Two template parameters are required to create an `ecfw::entity_manager`:
 1. An entity type (one of `std::uint16_t`, `std::uint32_t`, `std::uint64_t`)
 2. A unqiue `ecfw::type_list` of component types.   
@@ -38,10 +38,12 @@ Example:
     Entity e = manager.create();
 ```
 
-Each entity type defines an implicit maximum on the number of entities 
-it can contain. Each entity contains two numbers, an index
-and a version. The index is used only for component retrieval, 
-whereas the version is used for identifying stale/deceased entities.
+Each entity type defines an explicit maximum number of entities 
+any entity manager can create. Each entity identifier contains two numbers, 
+an index and a version. The index is used for component retrieval in a
+background component database, whereas the version discriminates between
+live/deceased entities.
+
 
 | Entity Type | Max entities (also max index) | Max version |
 | ----------- | --------------------------- | ---------- |
@@ -49,7 +51,7 @@ whereas the version is used for identifying stale/deceased entities.
 | std::uint32_t | 1048575 (2 ^ 20 - 1) |  4095 (2 ^ 12 - 1) |
 | std::uint64_t | 4294967295 (2 ^ 32 - 1) |  4294967295 (2 ^ 32 - 1) |
 
-The framework provides various functions for creating entities.
+To create entities, invoke any one of the `ecfw::entity_manger::create` member functions.
 Example:
 ```cpp
     using Entity = std::uint32_t;    
@@ -79,16 +81,27 @@ Example:
 
     // Create entities with a given list of components and store them in a container
     manager.create<RigidBody, Render, AI>(entities.begin(), entities.end());
+```
 
+To clone an entity and its components, use any of the `ecfw::entity_manager::clone` member functions.
+```cpp
+    using Entity = std::uint32_t;    
+    using CompList = ecfw::type_list<RigidBody, Render, AI>;
+    using EntityManager = ecfw::entity_manager<Entity, CompList>;
+
+    EntityManager manager;
+
+    auto prototype = manager.create<RigidBody, Render, AI>();
+    
     // Clone an existing entity
     // To clone an entity, you must provide at least one component to copy from the base entity
-    auto clone0 = manager.clone<Render, AI>(e1);
+    auto clone0 = manager.clone<Render, AI>(prototype);
 
     // Make N many clones of an entity
-    manager.clone<Render, AI>(e1, 10'000);
+    manager.clone<Render, AI>(prototype, 10'000);
 
     // Make N many clones an store them in a container
-    manage.clone<Render, AI>(e1, entities.begin(), entities.end());
+    manage.clone<Render, AI>(prototype, entities.begin(), entities.end());
 ```
 
 For entity destruction, **ecfw** provides the `ecfw::entity_manager::destroy` members.
@@ -110,6 +123,22 @@ Example:
     // Destroy a container of entities
     manager.create(entities.begin(), entities.end());
     manager.destroy(entities.begin(), entities.end());
+```
+
+To iterate over a set of entities that each possess a specific set of components, an `ecfw::entity_manager`
+provides the `ecfw::entity_manager::entities_with` member function.
+Example:
+```cpp
+    using Entity = std::uint32_t;    
+    using CompList = ecfw::type_list<RigidBody, Render, AI>;
+    using EntityManager = ecfw::entity_manager<Entity, CompList>;
+
+    EntityManager manager;
+
+    manager.create<RigidBody, Render, AI>(10'000);
+
+    // Iterates over all entities with RigidBody, Render, and AI components
+    manager.entities_with([](RigidBody& body, Render& render, AI& ai){ /* Logic */ });
 ```
 
 #### Components
@@ -155,17 +184,17 @@ Example:
     > class AlternativeStorage {
     public:
 
-        C& get(size_t entity);
-        const C& get(size_t index) const;
+        C& get(size_t);
+        const C& get(size_t) const;
         
         bool empty() const;
         size_t size() const;
-        void reserve();
+        void reserve(size_t);
 
         template <class... Args>
-        C& construct(size_t index, Args&&... args);
+        C& construct(size_t, Args&&...);
 
-        destroy(size_t index);
+        destroy(size_t);
     
         void clear();        
     };
