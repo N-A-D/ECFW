@@ -106,18 +106,17 @@ BENCHMARK(BM_EntityCreation10Components);
 
 static void BM_EntityDestruction(benchmark::State& state) {
 	EntityManager manager(entity_count);
-	// Create some entity groups to guage the time to remove entities from internal caches
-	manager.entities_with<Position>([](auto&) {});
-	manager.entities_with<Direction>([](auto&) {});
-	manager.entities_with<Position, Direction>([](auto&, auto&) {});
-	manager.entities_with<Comp0>([](auto&) {});
-	manager.entities_with<Comp1>([](auto&) {});
-	manager.entities_with<Comp2>([](auto&) {});
-	manager.entities_with<Comp3>([](auto&) {});
-	manager.entities_with<Comp4>([](auto&) {});
-	manager.entities_with<Comp5>([](auto&) {});
-	manager.entities_with<Comp6>([](auto&) {});
-	manager.entities_with<Comp7>([](auto&) {});
+	manager.group_entites_with<Position>();
+	manager.group_entites_with<Direction>();
+	manager.group_entites_with<Position, Direction>();
+	manager.group_entites_with<Comp0>();
+	manager.group_entites_with<Comp1>();
+	manager.group_entites_with<Comp2>();
+	manager.group_entites_with<Comp3>();
+	manager.group_entites_with<Comp4>();
+	manager.group_entites_with<Comp5>();
+	manager.group_entites_with<Comp6>();
+	manager.group_entites_with<Comp7>();
 	std::vector<Entity> entities(entity_count);
 	for (auto _ : state) {
 		state.PauseTiming();
@@ -193,17 +192,10 @@ BENCHMARK(BM_Assigning10Components);
 
 static void BM_Assigning3ComponentsWithExistingCaches(benchmark::State& state) {
 	EntityManager manager(entity_count);
-	manager.entities_with<Position>([](auto&) {});
-	manager.entities_with<Direction>([](auto&) {});
-	manager.entities_with<Position, Direction>([](auto&, auto&) {});
-	manager.entities_with<Comp0>([](auto&) {});
-	manager.entities_with<Comp1>([](auto&) {});
-	manager.entities_with<Comp2>([](auto&) {});
-	manager.entities_with<Comp3>([](auto&) {});
-	manager.entities_with<Comp4>([](auto&) {});
-	manager.entities_with<Comp5>([](auto&) {});
-	manager.entities_with<Comp6>([](auto&) {});
-	manager.entities_with<Comp7>([](auto&) {});
+	manager.group_entites_with<Position>();
+	manager.group_entites_with<Direction>();
+	manager.group_entites_with<Position, Direction>();
+	manager.group_entites_with<Comp0>();
 	for (auto _ : state) {
 		Entity e = manager.create();
 		manager.assign<Position>(e, 1.337f, 1.337f);
@@ -216,17 +208,12 @@ BENCHMARK(BM_Assigning3ComponentsWithExistingCaches);
 
 static void BM_Assigning5ComponentsWithExistingCaches(benchmark::State& state) {
 	EntityManager manager(entity_count);
-	manager.entities_with<Position>([](auto&) {});
-	manager.entities_with<Direction>([](auto&) {});
-	manager.entities_with<Position, Direction>([](auto&, auto&) {});
-	manager.entities_with<Comp0>([](auto&) {});
-	manager.entities_with<Comp1>([](auto&) {});
-	manager.entities_with<Comp2>([](auto&) {});
-	manager.entities_with<Comp3>([](auto&) {});
-	manager.entities_with<Comp4>([](auto&) {});
-	manager.entities_with<Comp5>([](auto&) {});
-	manager.entities_with<Comp6>([](auto&) {});
-	manager.entities_with<Comp7>([](auto&) {});
+	manager.group_entites_with<Position>();
+	manager.group_entites_with<Direction>();
+	manager.group_entites_with<Position, Direction>();
+	manager.group_entites_with<Comp0>();
+	manager.group_entites_with<Comp1>();
+	manager.group_entites_with<Comp2>();
 	for (auto _ : state) {
 		Entity e = manager.create();
 		manager.assign<Position>(e, 1.337f, 1.337f);
@@ -241,17 +228,14 @@ BENCHMARK(BM_Assigning5ComponentsWithExistingCaches);
 
 static void BM_Assigning7ComponentsWithExistingCaches(benchmark::State& state) {
 	EntityManager manager(entity_count);
-	manager.entities_with<Position>([](auto&) {});
-	manager.entities_with<Direction>([](auto&) {});
-	manager.entities_with<Position, Direction>([](auto&, auto&) {});
-	manager.entities_with<Comp0>([](auto&) {});
-	manager.entities_with<Comp1>([](auto&) {});
-	manager.entities_with<Comp2>([](auto&) {});
-	manager.entities_with<Comp3>([](auto&) {});
-	manager.entities_with<Comp4>([](auto&) {});
-	manager.entities_with<Comp5>([](auto&) {});
-	manager.entities_with<Comp6>([](auto&) {});
-	manager.entities_with<Comp7>([](auto&) {});
+	manager.group_entites_with<Position>();
+	manager.group_entites_with<Direction>();
+	manager.group_entites_with<Position, Direction>();
+	manager.group_entites_with<Comp0>();
+	manager.group_entites_with<Comp1>();
+	manager.group_entites_with<Comp2>();
+	manager.group_entites_with<Comp3>();
+	manager.group_entites_with<Comp4>();
 	for (auto _ : state) {
 		Entity e = manager.create();
 		manager.assign<Position>(e, 1.337f, 1.337f);
@@ -268,17 +252,17 @@ BENCHMARK(BM_Assigning7ComponentsWithExistingCaches);
 
 static void BM_Assigning10ComponentsWithExistingCaches(benchmark::State& state) {
 	EntityManager manager(entity_count);
-	manager.entities_with<Position>([](auto&) {});
-	manager.entities_with<Direction>([](auto&) {});
-	manager.entities_with<Position, Direction>([](auto&, auto&) {});
-	manager.entities_with<Comp0>([](auto&) {});
-	manager.entities_with<Comp1>([](auto&) {});
-	manager.entities_with<Comp2>([](auto&) {});
-	manager.entities_with<Comp3>([](auto&) {});
-	manager.entities_with<Comp4>([](auto&) {});
-	manager.entities_with<Comp5>([](auto&) {});
-	manager.entities_with<Comp6>([](auto&) {});
-	manager.entities_with<Comp7>([](auto&) {});
+	manager.group_entites_with<Position>();
+	manager.group_entites_with<Direction>();
+	manager.group_entites_with<Position, Direction>();
+	manager.group_entites_with<Comp0>();
+	manager.group_entites_with<Comp1>();
+	manager.group_entites_with<Comp2>();
+	manager.group_entites_with<Comp3>();
+	manager.group_entites_with<Comp4>();
+	manager.group_entites_with<Comp5>();
+	manager.group_entites_with<Comp6>();
+	manager.group_entites_with<Comp7>();
 	for (auto _ : state) {
 		Entity e = manager.create();
 		manager.assign<Position>(e, 1.337f, 1.337f);
@@ -371,6 +355,10 @@ BENCHMARK(BM_Removing10Components);
 
 static void BM_Removing3ComponentsWithExistingCaches(benchmark::State& state) {
 	EntityManager manager(entity_count);
+	manager.group_entites_with<Position>();
+	manager.group_entites_with<Direction>();
+	manager.group_entites_with<Position, Direction>();
+	manager.group_entites_with<Comp0>();
 	for (auto _ : state) {
 		state.PauseTiming();
 		Entity e = manager.create();
@@ -386,17 +374,12 @@ BENCHMARK(BM_Removing3ComponentsWithExistingCaches);
 
 static void BM_Removing5ComponentsWithExistingCaches(benchmark::State& state) {
 	EntityManager manager(entity_count);
-	manager.entities_with<Position>([](auto&) {});
-	manager.entities_with<Direction>([](auto&) {});
-	manager.entities_with<Position, Direction>([](auto&, auto&) {});
-	manager.entities_with<Comp0>([](auto&) {});
-	manager.entities_with<Comp1>([](auto&) {});
-	manager.entities_with<Comp2>([](auto&) {});
-	manager.entities_with<Comp3>([](auto&) {});
-	manager.entities_with<Comp4>([](auto&) {});
-	manager.entities_with<Comp5>([](auto&) {});
-	manager.entities_with<Comp6>([](auto&) {});
-	manager.entities_with<Comp7>([](auto&) {});
+	manager.group_entites_with<Position>();
+	manager.group_entites_with<Direction>();
+	manager.group_entites_with<Position, Direction>();
+	manager.group_entites_with<Comp0>();
+	manager.group_entites_with<Comp1>();
+	manager.group_entites_with<Comp2>();
 	for (auto _ : state) {
 		state.PauseTiming();
 		Entity e = manager.create();
@@ -414,17 +397,14 @@ BENCHMARK(BM_Removing5ComponentsWithExistingCaches);
 
 static void BM_Removing7ComponentsWithExistingCaches(benchmark::State& state) {
 	EntityManager manager(entity_count);
-	manager.entities_with<Position>([](auto&) {});
-	manager.entities_with<Direction>([](auto&) {});
-	manager.entities_with<Position, Direction>([](auto&, auto&) {});
-	manager.entities_with<Comp0>([](auto&) {});
-	manager.entities_with<Comp1>([](auto&) {});
-	manager.entities_with<Comp2>([](auto&) {});
-	manager.entities_with<Comp3>([](auto&) {});
-	manager.entities_with<Comp4>([](auto&) {});
-	manager.entities_with<Comp5>([](auto&) {});
-	manager.entities_with<Comp6>([](auto&) {});
-	manager.entities_with<Comp7>([](auto&) {});
+	manager.group_entites_with<Position>();
+	manager.group_entites_with<Direction>();
+	manager.group_entites_with<Position, Direction>();
+	manager.group_entites_with<Comp0>();
+	manager.group_entites_with<Comp1>();
+	manager.group_entites_with<Comp2>();
+	manager.group_entites_with<Comp3>();
+	manager.group_entites_with<Comp4>();
 	for (auto _ : state) {
 		state.PauseTiming();
 		Entity e = manager.create();
@@ -444,17 +424,17 @@ BENCHMARK(BM_Removing7ComponentsWithExistingCaches);
 
 static void BM_Removing10ComponentsWithExistingCaches(benchmark::State& state) {
 	EntityManager manager(entity_count);
-	manager.entities_with<Position>([](auto&) {});
-	manager.entities_with<Direction>([](auto&) {});
-	manager.entities_with<Position, Direction>([](auto&, auto&) {});
-	manager.entities_with<Comp0>([](auto&) {});
-	manager.entities_with<Comp1>([](auto&) {});
-	manager.entities_with<Comp2>([](auto&) {});
-	manager.entities_with<Comp3>([](auto&) {});
-	manager.entities_with<Comp4>([](auto&) {});
-	manager.entities_with<Comp5>([](auto&) {});
-	manager.entities_with<Comp6>([](auto&) {});
-	manager.entities_with<Comp7>([](auto&) {});
+	manager.group_entites_with<Position>();
+	manager.group_entites_with<Direction>();
+	manager.group_entites_with<Position, Direction>();
+	manager.group_entites_with<Comp0>();
+	manager.group_entites_with<Comp1>();
+	manager.group_entites_with<Comp2>();
+	manager.group_entites_with<Comp3>();
+	manager.group_entites_with<Comp4>();
+	manager.group_entites_with<Comp5>();
+	manager.group_entites_with<Comp6>();
+	manager.group_entites_with<Comp7>();
 	for (auto _ : state) {
 		state.PauseTiming();
 		Entity e = manager.create();
