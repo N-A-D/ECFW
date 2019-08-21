@@ -458,7 +458,7 @@ BENCHMARK(BM_Removing10ComponentsWithExistingCaches);
 static void BM_SequentialIteration(benchmark::State& state) {
 	EntityManager manager;
 	manager.create<Position, Direction>(entity_count);
-	manager.entities_with<Position, Direction>([](auto&, auto&) {});
+	manager.group_entites_with<Position, Direction>();
 	for (auto _ : state) {
 		manager.entities_with<Position, Direction>([](auto& pos, auto& dir) {
 			pos.x += dir.x * 1.337f;
