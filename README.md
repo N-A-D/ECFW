@@ -181,7 +181,7 @@ Example:
 ```cpp
     template <
         class Component,
-        class Allocator // optional
+        class Allocator // optional; Not used by the library directly
     > class AlternativeStorage {
     public:
 
