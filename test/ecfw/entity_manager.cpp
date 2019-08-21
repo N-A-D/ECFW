@@ -144,6 +144,22 @@ TEST(EntityManagerTests, EntityReuseTests) {
 	ASSERT_EQ(manager.num_reusable_entities(), 0);
 }
 
+TEST(EntityManagerTests, EntityGroupingTests) {
+	EntityManager manager;
+
+	ASSERT_FALSE((manager.is_grouping_entities_with<Comp0, Comp1>()));
+	manager.group_entites_with<Comp0, Comp1>();
+	ASSERT_TRUE((manager.is_grouping_entities_with<Comp0, Comp1>()));
+
+	ASSERT_FALSE((manager.is_grouping_entities_with<Comp0, Comp2>()));
+	manager.entities_with<Comp0, Comp2>([](Comp0&, Comp2&) {});
+	ASSERT_TRUE((manager.is_grouping_entities_with<Comp0, Comp2>()));
+
+	manager.reset();
+	ASSERT_FALSE((manager.is_grouping_entities_with<Comp0, Comp1>()));
+	ASSERT_FALSE((manager.is_grouping_entities_with<Comp0, Comp2>()));
+}
+
 TEST(EntityManagerTests, ComponentAddingTests) {
 	EntityManager manager;
 
@@ -206,7 +222,7 @@ TEST(EntityManagerTests, SequentialIterationTests) {
 		comp.value = true;
 		++count;
 	});
-
+	ASSERT_TRUE((manager.is_grouping_entities_with<Comp0>()));
 	ASSERT_EQ(count, (manager.num_entities_with<Comp0>()));
 	ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp0>(entity); }));
 
@@ -216,6 +232,7 @@ TEST(EntityManagerTests, SequentialIterationTests) {
 		comp.value = true;
 		++count;
 	});
+	ASSERT_TRUE((manager.is_grouping_entities_with<Comp1>()));
 	ASSERT_EQ(count, (manager.num_entities_with<Comp1>()));
 	ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp1>(entity); }));
 
@@ -225,6 +242,7 @@ TEST(EntityManagerTests, SequentialIterationTests) {
 		comp.value = true;
 		++count;
 	});
+	ASSERT_TRUE((manager.is_grouping_entities_with<Comp2>()));
 	ASSERT_EQ(count, (manager.num_entities_with<Comp2>()));
 	ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [&manager](auto entity) { return manager.component<Comp2>(entity); }));
 

@@ -92,8 +92,12 @@ namespace ecfw {
 			(try_remove_component<Ts>(mask.test(meta::index_of_v<Ts, comp_list>), idx), ...);
 		}
 
-		bool has_group_matching(const comp_mask& id) {
-			return m_groups.find(id) != m_groups.end();
+		template <
+			class... Cs
+		> comp_mask make_group_id() const {
+			comp_mask group_id;
+			(group_id.set(meta::index_of_v<Cs, comp_list>), ...);
+			return group_id;
 		}
 
 		const group_type& group_entities_matching(const comp_mask& id) {
@@ -334,6 +338,18 @@ namespace ecfw {
 		}
 
 		template <
+			class... Cs
+		> void group_entites_with() {
+			group_entities_matching(make_group_id<Cs...>());
+		}
+
+		template <
+			class... Cs
+		> bool is_grouping_entities_with() const {
+			return m_groups.find(make_group_id<Cs...>()) != m_groups.end();
+		}
+
+		template <
 			class... Cs,
 			class Transform
 		> void entities_with(Transform func) {
@@ -343,12 +359,8 @@ namespace ecfw {
 				std::is_invocable<Transform, Cs&...>,
 				std::is_invocable<Transform, entity_type, Cs&...>
 			>, "Incorrect transformation type!");
-			comp_mask group_id;
-			(group_id.set(meta::index_of_v<Cs, comp_list>), ...);
-
-			const group_type& group = group_entities_matching(group_id);
-
-			for (auto e : group) {
+			const group_type& group = group_entities_matching(make_group_id<Cs...>());
+			for (entity_type e : group) {
 				auto idx = traits_type::index(e);
 				if constexpr (std::is_invocable_v<Transform, Cs&...>)
 					func(std::get<underlying_storage_t<Cs>>(m_comp_pools).get(idx)...);
