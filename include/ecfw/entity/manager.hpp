@@ -361,11 +361,10 @@ namespace ecfw {
 			>, "Incorrect transformation type!");
 			const group_type& group = group_entities_matching(make_group_id<Cs...>());
 			for (entity_type e : group) {
-				auto idx = traits_type::index(e);
 				if constexpr (std::is_invocable_v<Transform, Cs&...>)
-					func(std::get<underlying_storage_t<Cs>>(m_comp_pools).get(idx)...);
+					func(component<Cs>(e)...);
 				else
-					func(e, std::get<underlying_storage_t<Cs>>(m_comp_pools).get(idx)...);
+					func(e, component<Cs>(e)...);
 			}
 		}
 
