@@ -1,10 +1,10 @@
 #include <benchmark/benchmark.h>
 #include <ecfw/ecfw.hpp>
-/*
+
 #ifndef NDEBUG
 #define NDEBUG
 #endif // !NDEBUG
-*/
+
 constexpr size_t entity_count = 1'000'000;
 
 struct Position {
