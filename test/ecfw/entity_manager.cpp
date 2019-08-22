@@ -16,6 +16,74 @@ using Comp0 = Comp<0>;
 using Comp1 = Comp<1>;
 using Comp2 = Comp<2>;
 
+class Comp0Storage {
+public:
+
+	Comp0& get(size_t idx) {
+		assert(contains(idx));
+		return m_data[m_forward[idx]];
+	}
+
+	const Comp0& get(size_t idx) const {
+		assert(contains(idx));
+		return m_data[m_forward[idx]];
+	}
+
+	bool empty() const noexcept { return m_data.empty(); }
+	size_t size() const noexcept { return m_data.size(); }
+	void reserve(size_t cap) {
+		m_data.reserve(cap); 
+		m_reverse.reserve(cap); 
+	}
+
+	template <class... Args>
+	Comp0& construct(size_t idx, Args&&... args) {
+		assert(!contains(idx));
+		if (idx >= m_forward.size())
+			m_forward.resize(idx + 1, 0);
+		size_t sz = m_data.size();
+		m_data.emplace_back(std::forward<Args>(args)...);
+		m_reverse.emplace_back(idx);
+		m_forward[idx] = sz;
+		assert(contains(idx));
+		return m_data.back();
+	}
+
+	void destroy(size_t idx) {
+		assert(contains(idx));
+		std::swap(m_data[m_forward[idx]], m_data.back());
+		m_reverse[m_forward[idx]] = m_reverse.back();
+		m_forward[m_reverse.back()] = m_forward[idx];
+		m_data.pop_back();
+		m_reverse.pop_back();
+		assert(!contains(idx));
+	}
+
+	void clear() {
+		m_data.clear();
+		m_reverse.clear();
+	}
+
+private:
+
+	bool contains(size_t idx) const {
+		return idx < m_forward.size()
+			&& m_forward[idx] < m_reverse.size()
+			&& m_reverse[m_forward[idx]] == idx;
+	}
+
+	std::vector<Comp0> m_data;
+	std::vector<size_t> m_reverse;
+	std::vector<size_t> m_forward;
+};
+
+namespace ecfw {
+	template <>
+	struct underlying_storage<Comp0> {
+		using type = Comp0Storage;
+	};
+}
+
 using Entity = std::uint32_t;
 using CompList = ecfw::type_list<Comp0, Comp1, Comp2>;
 using EntityManager = ecfw::entity_manager<Entity, CompList>;
@@ -191,22 +259,20 @@ TEST(EntityManagerTests, CompoonentRemovedTests) {
 TEST(EntityManagerTests, ComponentStorageTests) {
 	EntityManager manager;
 
-	manager.create<Comp0>(N);
+	manager.create<Comp2>(N);
 	manager.create<Comp1>(N / 2);
+	manager.create<Comp0>(N / 4);
+
+	ASSERT_EQ(manager.size<Comp2>(), N);
+	ASSERT_EQ(manager.size<Comp1>(), N + N / 2); // Vector storage; N components unused
+	ASSERT_EQ(manager.size<Comp0>(), N / 4); // Alternate storage does not waste components
+
+	manager.reset();
 
 	ASSERT_TRUE(manager.empty<Comp2>());
-	ASSERT_EQ(manager.size<Comp0>(), N);
-	// Default storage is a vector, therefore there are 
-	// N unused components
-	ASSERT_EQ(manager.size<Comp1>(), N + N / 2);
+	ASSERT_TRUE(manager.empty<Comp1>());
+	ASSERT_TRUE(manager.empty<Comp0>());
 
-	manager.reserve<Comp0>(2 * N);
-	manager.reserve<Comp1>(2 * N);
-	manager.reserve<Comp2>(2 * N);
-
-	ASSERT_TRUE(manager.empty<Comp2>());
-	ASSERT_EQ(manager.size<Comp0>(), N);
-	ASSERT_EQ(manager.size<Comp1>(), N + N / 2);
 }
 
 TEST(EntityManagerTests, SequentialIterationTests) {
