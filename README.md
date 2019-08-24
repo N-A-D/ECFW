@@ -17,9 +17,10 @@ design techniques to enable efficient usage of CPU resources.
 The library depends on [proto](https://github.com/N-A-D/proto) a signal and slots library.
 
 ### Learning objectives
-- [Data oriented design techniques.](https://en.wikipedia.org/wiki/Data-oriented_design)
-- [Prototype pattern.](https://en.wikipedia.org/wiki/Prototype_pattern)
-- [Template metaprogramming.](https://en.wikipedia.org/wiki/Template_metaprogramming)
+- [Data oriented design techniques](https://en.wikipedia.org/wiki/Data-oriented_design)
+- [Prototype pattern](https://en.wikipedia.org/wiki/Prototype_pattern)
+- [Factory method pattern](https://en.wikipedia.org/wiki/Factory_method_pattern)
+- [Template metaprogramming](https://en.wikipedia.org/wiki/Template_metaprogramming)
 
 #### Entities
 Entities are unsigned integers created from an `ecfw::entity_manager`.   
