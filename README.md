@@ -193,10 +193,7 @@ namespace ecfw {
 
 **NOTE:** Any alternative storage container must satisfy the following interface:
 ```cpp
-template <
-    class Component,
-    class Allocator // optional; Not used by the library directly
-> class AlternativeStorage {
+class AlternativeStorage {
 public:
 
     C& get(size_t);
