@@ -19,12 +19,19 @@ design techniques to enable efficient usage of CPU resources.
 - [Factory method pattern](https://en.wikipedia.org/wiki/Factory_method_pattern)
 - [Template metaprogramming](https://en.wikipedia.org/wiki/Template_metaprogramming)
 
-#### Requirements
+### Requirements
 1. A C++17 compliant compiler
 1. CMake 3.8 or later.
 
-#### Dependencies
+### Dependencies
 The library depends on [proto](https://github.com/N-A-D/proto) a signal and slots library.
+
+### Installation
+You can add **ecfw** in your root CMake project:
+```CMake
+    add_subdirectory(extern/ecfw)
+    target_link_libraries(${PROJECT_NAME} ecfw)
+```
 
 #### Entities
 Entities are unsigned integers created from an `ecfw::entity_manager`.   
