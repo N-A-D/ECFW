@@ -3,8 +3,8 @@
 ### Overview
 A header only C++17 entity component system implementation.
 
-Entity component systems are object creation frameworks that
-follow the composition over inheritance principle that allows
+Entity component systems are object factories that
+follow composition over inheritance which that allows
 greater flexibility in defining objects. Every entity is 
 composed of one or more components that each add unique behaviour.
 At runtime, an entity can change its own behaviour by adding
