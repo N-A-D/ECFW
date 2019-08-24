@@ -33,6 +33,8 @@ You can add **ecfw** in your root CMake project:
     target_link_libraries(${PROJECT_NAME} ecfw)
 ```
 
+### Usage
+
 #### Entities
 Entities are unsigned integers created from an `ecfw::entity_manager`.   
 Two template parameters are required to create an `ecfw::entity_manager`:
