@@ -13,14 +13,18 @@ or removing components.
 Entity component systems are often combined with data-oriented
 design techniques to enable efficient usage of CPU resources. 
 
-### Dependencies
-The library depends on [proto](https://github.com/N-A-D/proto) a signal and slots library.
-
 ### Learning objectives
 - [Data oriented design techniques](https://en.wikipedia.org/wiki/Data-oriented_design)
 - [Prototype pattern](https://en.wikipedia.org/wiki/Prototype_pattern)
 - [Factory method pattern](https://en.wikipedia.org/wiki/Factory_method_pattern)
 - [Template metaprogramming](https://en.wikipedia.org/wiki/Template_metaprogramming)
+
+#### Requirements
+1. A C++17 compliant compiler
+1. CMake 3.8 or later.
+
+#### Dependencies
+The library depends on [proto](https://github.com/N-A-D/proto) a signal and slots library.
 
 #### Entities
 Entities are unsigned integers created from an `ecfw::entity_manager`.   
