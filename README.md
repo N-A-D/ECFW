@@ -24,7 +24,7 @@ design techniques to enable efficient usage of CPU resources.
 1. CMake 3.8 or later.
 
 ### Dependencies
-The library depends on [proto](https://github.com/N-A-D/proto) a signal and slots library.
+[proto](https://github.com/N-A-D/proto)
 
 ### Installation
 You can add **ecfw** in your root CMake project:
