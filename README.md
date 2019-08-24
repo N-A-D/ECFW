@@ -29,8 +29,8 @@ design techniques to enable efficient usage of CPU resources.
 ### Installation
 You can add **ecfw** in your root CMake project:
 ```CMake
-    add_subdirectory(extern/ecfw)
-    target_link_libraries(${PROJECT_NAME} ecfw)
+add_subdirectory(extern/ecfw)
+target_link_libraries(${PROJECT_NAME} ecfw)
 ```
 
 ### Usage
@@ -43,13 +43,13 @@ Two template parameters are required to create an `ecfw::entity_manager`:
 
 Example:
 ```cpp
-    using Entity = std::uint32_t;    
-    using CompList = ecfw::type_list<RigidBody, Render, AI>;
-    using EntityManager = ecfw::entity_manager<Entity, CompList>;
+using Entity = std::uint32_t;    
+using CompList = ecfw::type_list<RigidBody, Render, AI>;
+using EntityManager = ecfw::entity_manager<Entity, CompList>;
 
-    EntityManager manager;
-    
-    Entity e = manager.create();
+EntityManager manager;
+
+Entity e = manager.create();
 ```
 
 Each entity type defines an explicit maximum number of entities 
@@ -68,92 +68,92 @@ live/deceased entities.
 To create entities, invoke any one of the `ecfw::entity_manger::create` member functions.
 Example:
 ```cpp
-    using Entity = std::uint32_t;    
-    using CompList = ecfw::type_list<RigidBody, Render, AI>;
-    using EntityManager = ecfw::entity_manager<Entity, CompList>;
+using Entity = std::uint32_t;    
+using CompList = ecfw::type_list<RigidBody, Render, AI>;
+using EntityManager = ecfw::entity_manager<Entity, CompList>;
 
-    EntityManager manager;
-    
-    // Create a single entity with no components
-    auto e0 = manager.create();
+EntityManager manager;
 
-    // Create a single entity with a given list of components
-    // Any supplied types must be a subset of the types given 
-    // as a list to the entity_manager type
-    // Note also that each type must be default constructible
-    auto e1 = manager.create<RigidBody, Render, AI>();
+// Create a single entity with no components
+auto e0 = manager.create();
 
-    // Create N many entities with no components
-    manager.create(10'000);
+// Create a single entity with a given list of components
+// Any supplied types must be a subset of the types given 
+// as a list to the entity_manager type
+// Note also that each type must be default constructible
+auto e1 = manager.create<RigidBody, Render, AI>();
 
-    // Create N many entities with a given list of components
-    manager.create<RigidBody, Render, AI>(10'000);
+// Create N many entities with no components
+manager.create(10'000);
 
-    std::vector<Entity> entities(10'000);
-    
-    // Create entities with no components and store them in a container
-    manager.create(entities.begin(), entities.end());
+// Create N many entities with a given list of components
+manager.create<RigidBody, Render, AI>(10'000);
 
-    // Create entities with a given list of components and store them in a container
-    manager.create<RigidBody, Render, AI>(entities.begin(), entities.end());
+std::vector<Entity> entities(10'000);
+
+// Create entities with no components and store them in a container
+manager.create(entities.begin(), entities.end());
+
+// Create entities with a given list of components and store them in a container
+manager.create<RigidBody, Render, AI>(entities.begin(), entities.end());
 ```
 
 To clone an entity and its components, use any of the `ecfw::entity_manager::clone` member functions.
 ```cpp
-    using Entity = std::uint32_t;    
-    using CompList = ecfw::type_list<RigidBody, Render, AI>;
-    using EntityManager = ecfw::entity_manager<Entity, CompList>;
+using Entity = std::uint32_t;    
+using CompList = ecfw::type_list<RigidBody, Render, AI>;
+using EntityManager = ecfw::entity_manager<Entity, CompList>;
 
-    EntityManager manager;
+EntityManager manager;
 
-    auto prototype = manager.create<RigidBody, Render, AI>();
-    
-    // Clone an existing entity
-    // To clone an entity, you must provide at least one component to copy from the base entity
-    auto clone0 = manager.clone<Render, AI>(prototype);
+auto prototype = manager.create<RigidBody, Render, AI>();
 
-    // Make N many clones of an entity
-    manager.clone<Render, AI>(prototype, 10'000);
+// Clone an existing entity
+// To clone an entity, you must provide at least one component to copy from the base entity
+auto clone0 = manager.clone<Render, AI>(prototype);
 
-    // Make N many clones an store them in a container
-    manage.clone<Render, AI>(prototype, entities.begin(), entities.end());
+// Make N many clones of an entity
+manager.clone<Render, AI>(prototype, 10'000);
+
+// Make N many clones an store them in a container
+manage.clone<Render, AI>(prototype, entities.begin(), entities.end());
 ```
 
 For entity destruction, **ecfw** provides the `ecfw::entity_manager::destroy` members.
 Example:
 ```cpp
-    using Entity = std::uint32_t;    
-    using CompList = ecfw::type_list<RigidBody, Render, AI>;
-    using EntityManager = ecfw::entity_manager<Entity, CompList>;
+using Entity = std::uint32_t;    
+using CompList = ecfw::type_list<RigidBody, Render, AI>;
+using EntityManager = ecfw::entity_manager<Entity, CompList>;
 
-    EntityManager manager;
+EntityManager manager;
 
-    auto e = manager.create();
-    
-    // Destroy a single entity
-    manager.destroy(e);
+auto e = manager.create();
 
-    std::vector<Entity> entities(10'000);
-    
-    // Destroy a container of entities
-    manager.create(entities.begin(), entities.end());
-    manager.destroy(entities.begin(), entities.end());
+// Destroy a single entity
+manager.destroy(e);
+
+std::vector<Entity> entities(10'000);
+
+// Destroy a container of entities
+manager.create(entities.begin(), entities.end());
+manager.destroy(entities.begin(), entities.end());
 ```
 
 To iterate over a set of entities that each possess a specific set of components, an `ecfw::entity_manager`
 provides the `ecfw::entity_manager::entities_with` member function.
 Example:
 ```cpp
-    using Entity = std::uint32_t;    
-    using CompList = ecfw::type_list<RigidBody, Render, AI>;
-    using EntityManager = ecfw::entity_manager<Entity, CompList>;
+using Entity = std::uint32_t;    
+using CompList = ecfw::type_list<RigidBody, Render, AI>;
+using EntityManager = ecfw::entity_manager<Entity, CompList>;
 
-    EntityManager manager;
+EntityManager manager;
 
-    manager.create<RigidBody, Render, AI>(10'000);
+manager.create<RigidBody, Render, AI>(10'000);
 
-    // Iterates over all entities with RigidBody, Render, and AI components
-    manager.entities_with<RigidBody, Render, AI>([](RigidBody& body, Render& render, AI& ai){ /* Logic */ });
+// Iterates over all entities with RigidBody, Render, and AI components
+manager.entities_with<RigidBody, Render, AI>([](RigidBody& body, Render& render, AI& ai){ /* Logic */ });
 ```
 
 #### Components
@@ -161,14 +161,14 @@ Each component type must provide a default constructor as well as a constructor 
 properly initializes its member variables.   
 Example:
 ```cpp
-    struct Position {
-        Position()
-            : x(0.f), y(0.f) {}
-        Position(float x, float y)
-            : x(x), y(y) {}
-        float x;
-        float y;
-    };
+struct Position {
+    Position()
+        : x(0.f), y(0.f) {}
+    Position(float x, float y)
+        : x(x), y(y) {}
+    float x;
+    float y;
+};
 ```
 
 The default component storage implementation uses `std::vector`s for each
@@ -179,113 +179,113 @@ you must provide a specialization of `ecfw::underlying_storage` with
 a member type `type` denoting the storage container.   
 Example:
 ```cpp
-    struct SomeFairlyUsedComponent {
-        // Implementation
-    };
+struct SomeFairlyUsedComponent {
+    // Implementation
+};
 
-    namespace ecfw {
-        template <>
-        struct underlying_storage<SomeFairlyUsedComponent> {
-            using type = /*Your storage container*/;
-        };
-    }
+namespace ecfw {
+    template <>
+    struct underlying_storage<SomeFairlyUsedComponent> {
+        using type = /*Your storage container*/;
+    };
+}
 ```
 
 **NOTE:** Any alternative storage container must satisfy the following interface:
 ```cpp
-    template <
-        class Component,
-        class Allocator // optional; Not used by the library directly
-    > class AlternativeStorage {
-    public:
+template <
+    class Component,
+    class Allocator // optional; Not used by the library directly
+> class AlternativeStorage {
+public:
 
-        C& get(size_t);
-        const C& get(size_t) const;
-        
-        bool empty() const;
-        size_t size() const;
-        void reserve(size_t);
+    C& get(size_t);
+    const C& get(size_t) const;
 
-        template <class... Args>
-        C& construct(size_t, Args&&...);
+    bool empty() const;
+    size_t size() const;
+    void reserve(size_t);
 
-        destroy(size_t);
-    
-        void clear();        
-    };
+    template <class... Args>
+    C& construct(size_t, Args&&...);
+
+    destroy(size_t);
+
+    void clear();        
+};
 ```
 
 To assign components to an entity, use the `ecfw::entity_manager::assign` 
 member.   
 Example:
 ```cpp
-    struct Position {
-        Position()
-            : x(0.f), y(0.f) {}
-        Position(float x, float y)
-            : x(x), y(y) {}
-        float x;
-        float y;
-    };
+struct Position {
+    Position()
+        : x(0.f), y(0.f) {}
+    Position(float x, float y)
+        : x(x), y(y) {}
+    float x;
+    float y;
+};
 
-    using Entity = std::uint32_t;    
-    using CompList = ecfw::type_list<Position>;
-    using EntityManager = ecfw::entity_manager<Entity, CompList>;
+using Entity = std::uint32_t;    
+using CompList = ecfw::type_list<Position>;
+using EntityManager = ecfw::entity_manager<Entity, CompList>;
 
-    EntityManager manager;
-    Entity e = manager.create();
+EntityManager manager;
+Entity e = manager.create();
 
-    manager.assign<Position>(e, (float)std::rand(), (float)std::rand());
+manager.assign<Position>(e, (float)std::rand(), (float)std::rand());
 ```
 
 To fetch an entity's component, use the `ecfw::entity_manager::component` 
 member.   
 Example:
 ```cpp
-    struct Position {
-        Position()
-            : x(0.f), y(0.f) {}
-        Position(float x, float y)
-            : x(x), y(y) {}
-        float x;
-        float y;
-    };
+struct Position {
+    Position()
+        : x(0.f), y(0.f) {}
+    Position(float x, float y)
+        : x(x), y(y) {}
+    float x;
+    float y;
+};
 
-    using Entity = std::uint32_t;    
-    using CompList = ecfw::type_list<Position>;
-    using EntityManager = ecfw::entity_manager<Entity, CompList>;
+using Entity = std::uint32_t;    
+using CompList = ecfw::type_list<Position>;
+using EntityManager = ecfw::entity_manager<Entity, CompList>;
 
-    EntityManager manager;
-    Entity e = manager.create();
+EntityManager manager;
+Entity e = manager.create();
 
-    manager.assign<Position>(e, (float)std::rand(), (float)std::rand());
+manager.assign<Position>(e, (float)std::rand(), (float)std::rand());
 
-    Position& position = manager.component<Position>(e);
+Position& position = manager.component<Position>(e);
 ```
 
 To remove components from an entity, use the `ecfw::entity_manager::remove`
 member.   
 Example:
 ```cpp
-    struct Position {
-        Position()
-            : x(0.f), y(0.f) {}
-        Position(float x, float y)
-            : x(x), y(y) {}
-        float x;
-        float y;
-    };
+struct Position {
+    Position()
+        : x(0.f), y(0.f) {}
+    Position(float x, float y)
+        : x(x), y(y) {}
+    float x;
+    float y;
+};
 
-    using Entity = std::uint32_t;    
-    using CompList = ecfw::type_list<Position>;
-    using EntityManager = ecfw::entity_manager<Entity, CompList>;
+using Entity = std::uint32_t;    
+using CompList = ecfw::type_list<Position>;
+using EntityManager = ecfw::entity_manager<Entity, CompList>;
 
-    EntityManager manager;
-    Entity e = manager.create();
+EntityManager manager;
+Entity e = manager.create();
 
-    manager.assign<Position>(e, (float)std::rand(), (float)std::rand());
-    
-    manager.remove<Position>(e);
+manager.assign<Position>(e, (float)std::rand(), (float)std::rand());
+
+manager.remove<Position>(e);
 ```
 
 #### Events
@@ -313,28 +313,28 @@ emissions.
 
 Example:
 ```cpp
-   using Entity = std::uint32_t;    
-   using CompList = ecfw::type_list<RigidBody, Render, AI>;
-   using EntityManager = ecfw::entity_manager<Entity, CompList>;
+using Entity = std::uint32_t;    
+using CompList = ecfw::type_list<RigidBody, Render, AI>;
+using EntityManager = ecfw::entity_manager<Entity, CompList>;
 
-   void free_function0(const entity_create<Entity>& e) {}
-   
-   struct SomeReceiver : ecfw::event_receiver {
-        void function0(const component_added<Entity, AI>& e) {}
-        void function1(const component_added<Entity, Render>& e) const {}
-        void function2(const component_removed<Entity, AI>& e) {}
-        void function3(const component_removed<Entity, Render>& e) const {}
-   };
+void free_function0(const entity_create<Entity>& e) {}
 
-   EntityManager manager;
-   
-   // The returned event_subcription object can be used to disconnect the connected funcion.
-   ecfw::event_subscription = manager.events().subscribe<entity_created<Entity>>(free_fucntion0);
-   
-   SomeReceiver reciever;
+struct SomeReceiver : ecfw::event_receiver {
+    void function0(const component_added<Entity, AI>& e) {}
+    void function1(const component_added<Entity, Render>& e) const {}
+    void function2(const component_removed<Entity, AI>& e) {}
+    void function3(const component_removed<Entity, Render>& e) const {}
+};
 
-   manager.events().subscribe<component_added<Entity, AI>>(&receiver, &SomeReceiver::function0);
-   manager.events().subscribe<component_added<Entity, Render>>(&receiver, &SomeReceiver::function1);
-   manager.events().subscribe<component_removed<Entity, AI>>(&receiver, &SomeReceiver::function2);
-   manager.events().subscribe<component_removed<Entity, Render>>(&receiver, &SomeReceiver::function3);
+EntityManager manager;
+
+// The returned event_subcription object can be used to disconnect the connected funcion.
+ecfw::event_subscription = manager.events().subscribe<entity_created<Entity>>(free_fucntion0);
+
+SomeReceiver reciever;
+
+manager.events().subscribe<component_added<Entity, AI>>(&receiver, &SomeReceiver::function0);
+manager.events().subscribe<component_added<Entity, Render>>(&receiver, &SomeReceiver::function1);
+manager.events().subscribe<component_removed<Entity, AI>>(&receiver, &SomeReceiver::function2);
+manager.events().subscribe<component_removed<Entity, Render>>(&receiver, &SomeReceiver::function3);
 ```
