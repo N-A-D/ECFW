@@ -179,20 +179,16 @@ you must provide a specialization of `ecfw::underlying_storage` with
 a member type `type` denoting the storage container.   
 Example:
 ```cpp
+// Some  component that would benefit
+// from being stored in some other way
+// than a vector
 struct SomeFairlyUsedComponent {
     // Implementation
 };
 
-namespace ecfw {
-    template <>
-    struct underlying_storage<SomeFairlyUsedComponent> {
-        using type = /*Your storage container*/;
-    };
-}
-```
-
-**NOTE:** Any alternative storage container must satisfy the following interface:
-```cpp
+// Alternative storage for the component defined above
+// Note that any alternative component storage container
+// must satisfy the following interface
 class AlternativeStorage {
 public:
 
@@ -210,6 +206,13 @@ public:
 
     void clear();        
 };
+
+namespace ecfw {
+    template <>
+    struct underlying_storage<SomeFairlyUsedComponent> {
+        using type = AlternativeStorage;
+    };
+}
 ```
 
 To assign components to an entity, use the `ecfw::entity_manager::assign` 
