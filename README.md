@@ -17,6 +17,7 @@ design techniques to enable efficient usage of CPU resources.
 - [Data oriented design techniques](https://en.wikipedia.org/wiki/Data-oriented_design)
 - [Prototype pattern](https://en.wikipedia.org/wiki/Prototype_pattern)
 - [Factory method pattern](https://en.wikipedia.org/wiki/Factory_method_pattern)
+- [Facade pattern](https://en.wikipedia.org/wiki/Facade_pattern)
 - [Template metaprogramming](https://en.wikipedia.org/wiki/Template_metaprogramming)
 
 ### Requirements
