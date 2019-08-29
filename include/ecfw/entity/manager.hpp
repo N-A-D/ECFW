@@ -370,7 +370,7 @@ namespace ecfw {
 
 		template <
 			class... Cs
-		> size_t num_entities_with() {
+		> size_t num_entities_with() const {
 			static_assert(meta::is_unique_v<type_list<Cs...>>);
 			static_assert(meta::is_subset_v<type_list<Cs...>, comp_list>);
 			return std::count_if(m_entities.begin(), m_entities.end(), [this](auto e) {
