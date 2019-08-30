@@ -262,6 +262,11 @@ target_link_libraries(${PROJECT_NAME} ecfw)
 
 **Note:** Both options are set to `OFF` be default.
 
+## Dependencies
+- [googletest](https://github.com/google/googletest): For unit tests.
+- [googlebenchmark](https://github.com/google/benchmark): For benchmarks.
+- [proto](https://github.com/N-A-D/proto): For event emissions and subscriptions.
+
 ## License
 `ecfw` is licensed under the [MIT License](https://opensource.org/licenses/MIT):   
 
