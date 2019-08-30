@@ -136,6 +136,65 @@ int main() {
 }
 ```
 
+To iterate over a subset of the entities that have a certain set of components, 
+you must invoke an `ecfw::entity_manager`s `entities_with` member function. The
+member function accepts a functor whose parameter values are component type
+references, or the entity type followed by component type references.   
+For example:
+```cpp
+using Entity = uint32_t;
+using CompList = ecfw::type_list<Position, Direction, Render>;
+using EntityManager = ecfw::entity_manager<Entity, CompList>;
+
+int main() {
+    EntityManager mgr;
+    
+    // Create some entities;
+    mgr.create<Position, Direction, Render>(10'000);
+    
+    // Iterates over all entities that have a Position component
+    // Note: the supplied functor only accepts the component reference
+    mgr.entities_with<Position>([](Position& p){});
+    
+    // Iterates over all entities that have both a Position and Direction
+    // Note: the supplied functor accepts an entity as well as the components
+    mgr.entities_with<Position, Direction>([](Entity e, Position& p, Direction& d)
+    {});
+}
+```
+
+#### Aside   
+Internally, an `ecfw::entity_manager` is a component matrix whose column
+headings are the component types you specified as a template parameter list.
+Each row in the component matrix is an *entity* and the components in that
+row are associated with the entity. Whether or not the entity actually has
+any of those components depends on whether they're assigned to it.
+
+The depth of the component matrix is two. The first layer of the matrix is
+filled with boolean values that indicate current entity-component assignments.
+The second layer of the matrix is just the component data.
+When iterating over the entities in the matrix, the boolean layer serves as
+a way to filter the entities based on the components an entity is required to
+have. It works identically to that of a spreadsheet with boolean data. You're
+filtering the columns based on `TRUE` values and then iterating the result.
+
+Each entity type is divided into two parts: an index and a version.
+The index serves as a *row index* into the component matrix (entity manager), 
+and the version discriminates between old and new indices.   
+Entity composition breakdown:   
+
+| entity type  | largest index  | largest version  |
+|---|---|---|
+| `uint16_t`  | 2^12 - 1  | 2^4 - 1  |
+| `uint32_t`  | 2^20 - 1  | 2^12 - 1  |
+| `uint64_t`  | 2^32 - 1  | 2^32 - 1  |
+
+There is a time-space tradeoff when using smaller entity types. The smaller types
+generally increase the speed of the library at the cost of using more memory. It 
+is up to you whether or not the cost is worth it at the end. I would generally
+recommend using `uint32_t` as the default entity type as it is large enough for
+almost all situations and provides good performance when iterating.
+
 ### Components
 Components are simply building blocks that come together to form a larger whole.
 They should each provide a default constructor, as well as a constructor that
