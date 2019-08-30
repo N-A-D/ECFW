@@ -404,18 +404,22 @@ namespace ecfw {
 		}
 
 		void update() {
-			for (auto it = m_recycle_list.begin(); it != m_recycle_list.end(); ++it) {
-				recycle_entity(*it);
-				m_event_dispatcher(entity_destroyed<entity_type>{ *it });
+			for (entity_type e : m_recycle_list) {
+				recycle_entity(e);
+				m_event_dispatcher(entity_destroyed<entity_type>{ e });
 			}
 			m_recycle_list.clear();
 		}
 
-		void reset() {
+		void reset(bool keep_existing_groups=false) {
 			(std::get<underlying_storage_t<Ts>>(m_comp_pools).clear(), ...);
 			while (!m_free_list.empty())
 				m_free_list.pop();
-			m_groups.clear();
+			if (keep_existing_groups)
+				for (auto&[_, group] : m_groups)
+					group.clear();
+			else
+				m_groups.clear();
 			m_comp_masks.clear();
 			m_entities.clear();
 			m_recycle_list.clear();

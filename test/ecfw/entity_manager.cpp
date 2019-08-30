@@ -212,22 +212,6 @@ TEST(EntityManagerTests, EntityReuseTests) {
 	ASSERT_EQ(manager.num_reusable_entities(), 0);
 }
 
-TEST(EntityManagerTests, EntityGroupingTests) {
-	EntityManager manager;
-
-	ASSERT_FALSE((manager.is_grouping_entities_with<Comp0, Comp1>()));
-	manager.group_entites_with<Comp0, Comp1>();
-	ASSERT_TRUE((manager.is_grouping_entities_with<Comp0, Comp1>()));
-
-	ASSERT_FALSE((manager.is_grouping_entities_with<Comp0, Comp2>()));
-	manager.entities_with<Comp0, Comp2>([](Comp0&, Comp2&) {});
-	ASSERT_TRUE((manager.is_grouping_entities_with<Comp0, Comp2>()));
-
-	manager.reset();
-	ASSERT_FALSE((manager.is_grouping_entities_with<Comp0, Comp1>()));
-	ASSERT_FALSE((manager.is_grouping_entities_with<Comp0, Comp2>()));
-}
-
 TEST(EntityManagerTests, ComponentAddingTests) {
 	EntityManager manager;
 
@@ -353,6 +337,14 @@ TEST(EntityManagerTests, EventSubscriptionTests) {
 TEST(EntityManagerTests, ManagerResetTests) {
 	EntityManager manager;
 
+	ASSERT_FALSE((manager.is_grouping_entities_with<Comp0, Comp1>()));
+	manager.group_entites_with<Comp0, Comp1>();
+	ASSERT_TRUE((manager.is_grouping_entities_with<Comp0, Comp1>()));
+
+	ASSERT_FALSE((manager.is_grouping_entities_with<Comp0, Comp2>()));
+	manager.entities_with<Comp0, Comp2>([](Comp0&, Comp2&) {});
+	ASSERT_TRUE((manager.is_grouping_entities_with<Comp0, Comp2>()));
+
 	manager.create<Comp0, Comp1, Comp2>(N);
 	ASSERT_EQ(manager.num_live_entities(), N);
 	ASSERT_EQ(manager.num_entities(), N);
@@ -362,9 +354,23 @@ TEST(EntityManagerTests, ManagerResetTests) {
 
 	manager.reset();
 
+	ASSERT_FALSE((manager.is_grouping_entities_with<Comp0, Comp1>()));
+	ASSERT_FALSE((manager.is_grouping_entities_with<Comp0, Comp2>()));
 	ASSERT_EQ(manager.num_live_entities(), 0);
 	ASSERT_EQ(manager.num_entities(), 0);
 	ASSERT_EQ(manager.size<Comp0>(), 0);
 	ASSERT_EQ(manager.size<Comp1>(), 0);
 	ASSERT_EQ(manager.size<Comp2>(), 0);
+
+	ASSERT_FALSE((manager.is_grouping_entities_with<Comp0, Comp1>()));
+	manager.group_entites_with<Comp0, Comp1>();
+	ASSERT_TRUE((manager.is_grouping_entities_with<Comp0, Comp1>()));
+
+	ASSERT_FALSE((manager.is_grouping_entities_with<Comp0, Comp2>()));
+	manager.entities_with<Comp0, Comp2>([](Comp0&, Comp2&) {});
+	ASSERT_TRUE((manager.is_grouping_entities_with<Comp0, Comp2>()));
+
+	manager.reset(true);
+	ASSERT_TRUE((manager.is_grouping_entities_with<Comp0, Comp1>()));
+	ASSERT_TRUE((manager.is_grouping_entities_with<Comp0, Comp2>()));
 }
