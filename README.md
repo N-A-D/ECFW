@@ -1,5 +1,14 @@
+``` 
+                                          ___    __  _____  __    __ 
+                                         /  _]  /  ]|     ||  |__|  |
+                                        /  [_  /  / |   __||  |  |  |
+                                       |    _]/  /  |  |_  |  |  |  |
+                                       |   [_/   \_ |   _] |  `  '  |
+                                       |     \     ||  |    \      / 
+                                       |_____|\____||__|     \_/\_/  
+                               
+```
 ## ecfw
-
 `ecfw` is a header-only C++17 entity component system.
 
 ## ECS Overview
@@ -14,14 +23,14 @@ For more information on entity component systems:
 - [Entities, components, and systems](https://medium.com/ingeniouslysimple/entities-components-and-systems-89c31464240d)
 - [ECS on Wikipedia](https://en.wikipedia.org/wiki/Entity_component_system)
 
-## Motivation
+## Learning objectives
 - [Composition over inheritance](https://en.wikipedia.org/wiki/Composition_over_inheritance)
 - [Object decomposition](https://en.wikipedia.org/wiki/Decomposition_(computer_science))
 - [Data oriented design](https://en.wikipedia.org/wiki/Data-oriented_design)
 - Design patterns
     - [Prototype](https://en.wikipedia.org/wiki/Prototype_pattern)
-    - [Facade](https://en.wikipedia.org/wiki/Facade_pattern)
-    - [Factory method](https://en.wikipedia.org/wiki/Factory_method_pattern)
+    - [Observer](https://en.wikipedia.org/wiki/Observer_pattern)
+    - [Object pool](https://en.wikipedia.org/wiki/Object_pool_pattern)
 
 ## Usage
 
@@ -99,7 +108,7 @@ int main() {
 
     // Create and store clones in an external container
     std::vector<Entity> clones(100);
-    mgr.clone<Position, Direction>(clones.begin(), clones.end());
+    mgr.clone<Position, Direction>(progenitor, clones.begin(), clones.end());
 }
 ```
 
@@ -136,6 +145,66 @@ int main() {
 }
 ```
 
+To iterate over a subset of the entities that have a certain set of components, 
+you must invoke an `ecfw::entity_manager`s `entities_with` member function. The
+member function accepts a functor whose parameter values are component type
+references, or the entity type followed by component type references.   
+For example:
+```cpp
+using Entity = uint32_t;
+using CompList = ecfw::type_list<Position, Direction, Render>;
+using EntityManager = ecfw::entity_manager<Entity, CompList>;
+
+int main() {
+    EntityManager mgr;
+    
+    // Create some entities;
+    mgr.create<Position, Direction, Render>(10'000);
+    
+    // Iterates over all entities that have a Position component
+    // Note: the supplied functor only accepts the component reference
+    mgr.entities_with<Position>([](Position& p){});
+    
+    // Iterates over all entities that have both a Position and Direction
+    // Note: the supplied functor accepts an entity as well as the components
+    mgr.entities_with<Position, Direction>([](Entity e, Position& p, Direction& d)
+    {});
+}
+```
+
+#### Aside   
+Internally, an `ecfw::entity_manager` is a component matrix whose column
+headings are the component types you specified as a template parameter list.
+Each row in the component matrix is an *entity* and the components in that
+row are associated with the entity. Whether or not the entity actually has
+any of those components depends on whether they're assigned to it.
+
+The depth of the component matrix is two. The first layer of the matrix is
+filled with boolean values that indicate current entity-component assignments.
+The second layer of the matrix is just the component data.
+When iterating over the entities in the matrix, the boolean layer serves as
+a way to filter the entities based on the components an entity is required to
+have. It works identically to that of a spreadsheet with boolean data. You're
+filtering the columns based on `TRUE` values and then iterating the result 
+(2nd layer).
+
+Each entity type is divided into two parts: an index and a version.
+The index serves as a *row index* into the component matrix (entity manager), 
+and the version discriminates between old and new indices.   
+Entity composition breakdown:   
+
+| entity type  | largest index  | largest version  |
+|---|---|---|
+| `uint16_t`  | 2^12 - 1  | 2^4 - 1  |
+| `uint32_t`  | 2^20 - 1  | 2^12 - 1  |
+| `uint64_t`  | 2^32 - 1  | 2^32 - 1  |
+
+There is a time-space tradeoff when using smaller entity types. The smaller types
+generally increase the speed of the library at the cost of using more memory. It 
+is up to you whether or not the cost is worth it at the end. I would generally
+recommend using `uint32_t` as the default entity type as it is large enough for
+almost all situations and provides good performance when iterating.
+
 ### Components
 Components are simply building blocks that come together to form a larger whole.
 They should each provide a default constructor, as well as a constructor that
@@ -156,7 +225,7 @@ struct Position {
 The default storage implementation for components uses `std::vector`s. If this
 scheme wastes too much memory, you can instead provide an alternative storage
 container on a per component basis. All that is required of you is to provide
-a template specialization of `ecfw::underlying_storage` using a member type 
+a template specialization of `ecfw::underlying_storage` with a member type 
 `type` as an alias for your storage container.   
 Example:
 ```cpp
@@ -165,7 +234,7 @@ struct AI {};
 namespace ecfw {
     template <>
     struct underlying_storage<AI> {
-        using type = your_storage_container
+        using type = <your_storage_container>
     };
 }
 ```
@@ -251,7 +320,7 @@ If you use CMake and what to use `ecfw` as a subproject, you can either clone
 the repository, or add it as a git submodule in a sub-folder within your project.
 In your *CMakeLists.txt* you just need to add the following:   
 ```CMake
-add_subdirectory(path_to_ecfw)
+add_subdirectory(<path_to_ecfw>)
 target_link_libraries(${PROJECT_NAME} ecfw)
 ```
 
@@ -261,6 +330,11 @@ target_link_libraries(${PROJECT_NAME} ecfw)
 - `BUILD_ECFW_BENCHMARKS`: Enables benchmarks to be built
 
 **Note:** Both options are set to `OFF` be default.
+
+## Dependencies
+- [googletest](https://github.com/google/googletest): For unit tests.
+- [googlebenchmark](https://github.com/google/benchmark): For benchmarks.
+- [proto](https://github.com/N-A-D/proto): For event emissions and subscriptions.
 
 ## License
 `ecfw` is licensed under the [MIT License](https://opensource.org/licenses/MIT):   
