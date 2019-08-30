@@ -99,7 +99,7 @@ int main() {
 
     // Create and store clones in an external container
     std::vector<Entity> clones(100);
-    mgr.clone<Position, Direction>(clones.begin(), clones.end());
+    mgr.clone<Position, Direction>(progenitor, clones.begin(), clones.end());
 }
 ```
 
