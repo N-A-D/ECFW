@@ -176,7 +176,8 @@ The second layer of the matrix is just the component data.
 When iterating over the entities in the matrix, the boolean layer serves as
 a way to filter the entities based on the components an entity is required to
 have. It works identically to that of a spreadsheet with boolean data. You're
-filtering the columns based on `TRUE` values and then iterating the result.
+filtering the columns based on `TRUE` values and then iterating the result 
+(2nd layer).
 
 Each entity type is divided into two parts: an index and a version.
 The index serves as a *row index* into the component matrix (entity manager), 
