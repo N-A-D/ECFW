@@ -156,7 +156,7 @@ struct Position {
 The default storage implementation for components uses `std::vector`s. If this
 scheme wastes too much memory, you can instead provide an alternative storage
 container on a per component basis. All that is required of you is to provide
-a template specialization of `ecfw::underlying_storage` using a member type 
+a template specialization of `ecfw::underlying_storage` with a member type 
 `type` as an alias for your storage container.   
 Example:
 ```cpp
@@ -165,7 +165,7 @@ struct AI {};
 namespace ecfw {
     template <>
     struct underlying_storage<AI> {
-        using type = your_storage_container
+        using type = <your_storage_container>
     };
 }
 ```
@@ -251,7 +251,7 @@ If you use CMake and what to use `ecfw` as a subproject, you can either clone
 the repository, or add it as a git submodule in a sub-folder within your project.
 In your *CMakeLists.txt* you just need to add the following:   
 ```CMake
-add_subdirectory(path_to_ecfw)
+add_subdirectory(<path_to_ecfw>)
 target_link_libraries(${PROJECT_NAME} ecfw)
 ```
 
