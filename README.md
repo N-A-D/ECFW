@@ -315,6 +315,11 @@ int main() {
 **Note:** Entity destruction events are only emitted to its receivers when
 an `entity_manager`'s `update` method is invoked.
 
+## Dependencies
+- [googletest](https://github.com/google/googletest): For unit tests.
+- [googlebenchmark](https://github.com/google/benchmark): For benchmarks.
+- [proto](https://github.com/N-A-D/proto): For event emissions and subscriptions.
+
 ## CMake integration
 If you use CMake and what to use `ecfw` as a subproject, you can either clone
 the repository, or add it as a git submodule in a sub-folder within your project.
@@ -323,6 +328,8 @@ In your *CMakeLists.txt* you just need to add the following:
 add_subdirectory(<path_to_ecfw>)
 target_link_libraries(${PROJECT_NAME} ecfw)
 ```
+**Note:** When adding the project using git submodule but sure to download the
+dependencies
 
 ## CMake build options
  The library provides the following CMake options:
@@ -330,11 +337,6 @@ target_link_libraries(${PROJECT_NAME} ecfw)
 - `BUILD_ECFW_BENCHMARKS`: Enables benchmarks to be built
 
 **Note:** Both options are set to `OFF` be default.
-
-## Dependencies
-- [googletest](https://github.com/google/googletest): For unit tests.
-- [googlebenchmark](https://github.com/google/benchmark): For benchmarks.
-- [proto](https://github.com/N-A-D/proto): For event emissions and subscriptions.
 
 ## License
 `ecfw` is licensed under the [MIT License](https://opensource.org/licenses/MIT):   
