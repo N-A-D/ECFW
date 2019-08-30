@@ -14,14 +14,14 @@ For more information on entity component systems:
 - [Entities, components, and systems](https://medium.com/ingeniouslysimple/entities-components-and-systems-89c31464240d)
 - [ECS on Wikipedia](https://en.wikipedia.org/wiki/Entity_component_system)
 
-## Motivation
+## Learning objectives
 - [Composition over inheritance](https://en.wikipedia.org/wiki/Composition_over_inheritance)
 - [Object decomposition](https://en.wikipedia.org/wiki/Decomposition_(computer_science))
 - [Data oriented design](https://en.wikipedia.org/wiki/Data-oriented_design)
 - Design patterns
     - [Prototype](https://en.wikipedia.org/wiki/Prototype_pattern)
-    - [Facade](https://en.wikipedia.org/wiki/Facade_pattern)
-    - [Factory method](https://en.wikipedia.org/wiki/Factory_method_pattern)
+    - [Observer](https://en.wikipedia.org/wiki/Observer_pattern)
+    - [Object pool](https://en.wikipedia.org/wiki/Object_pool_pattern)
 
 ## Usage
 
