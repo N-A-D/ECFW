@@ -241,10 +241,10 @@ namespace ecfw {
 
 ### Events
 The only events that matter when using an entity component system are:
-1. Entity construction events.
-2. Entity destruction events.
-3. Component assignment events.
-4. Component removal events.
+- Entity construction events.
+- Entity destruction events.
+- Component assignment events.
+- Component removal events.
 
 `ecfw` provides an event type for each of the four categories:
 ```cpp
