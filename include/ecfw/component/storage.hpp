@@ -13,28 +13,22 @@ namespace ecfw {
 	> class default_storage { // Default component storage type
 	public:
 
-		using container_type  = std::vector<Component, Allocator>;
-		using value_type      = typename container_type::value_type;
-		using size_type       = typename container_type::size_type;
-		using reference       = typename container_type::reference;
-		using const_reference = typename container_type::const_reference;
-
-		reference get(size_type index) {
+		Component& get(size_t index) {
 			assert(index < size());
 			return m_data[index];
 		}
 
-		const_reference get(size_type index) const {
+		const Component& get(size_t index) const {
 			assert(index < size());
 			return m_data[index];
 		}
 
 		bool empty() const noexcept { return m_data.empty(); }
-		size_type size() const noexcept { return m_data.size(); }
-		void reserve(size_type cap) { m_data.reserve(cap); }
+		size_t size() const noexcept { return m_data.size(); }
+		void reserve(size_t cap) { m_data.reserve(cap); }
 
 		template <class... Args>
-		reference construct(size_type index, Args&&... args) {
+		Component& construct(size_t index, Args&&... args) {
 			if (index >= size())
 				m_data.resize(index + 1, Component());
 			Component comp(std::forward<Args>(args)...);
@@ -44,14 +38,14 @@ namespace ecfw {
 				return (m_data[index] = comp);
 		}
 
-		void destroy(size_type index) {}
+		void destroy(size_t index) {}
 
 		void clear() noexcept {
 			m_data.clear();
 		}
 
 	private:
-		container_type m_data;
+		std::vector<Component, Allocator> m_data;
 	};
 
 	template <
