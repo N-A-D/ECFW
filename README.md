@@ -226,15 +226,52 @@ The default storage implementation for components uses `std::vector`s. If this
 scheme wastes too much memory, you can instead provide an alternative storage
 container on a per component basis. All that is required of you is to provide
 a template specialization of `ecfw::underlying_storage` with a member type 
-`type` as an alias for your storage container.   
+`type` as an alias for your storage container.
+
+**Note:**
+Your custom storage container must satisfy the following interface:
+```cpp
+struct CustomStorage{
+    <your_component_type>& get(size_t);
+    const <your_component_type>& get(size_t) const;
+    
+    bool empty() const;
+    size_t size() const;
+    reserve(size_t);
+
+    template <class... Args>
+    <you_component_type>& construct(size_t, Args&&...);
+
+    void destroy(size_t);
+
+    void clear();
+};
+```
+
 Example:
 ```cpp
 struct AI {};
 
+struct AIComponentStorage {
+    AI& get(size_t);
+    const AI& get(size_t) const;
+    
+    bool empty() const;
+    size_t size() const;
+    reserve(size_t);
+
+    template <class... Args>
+    AI& construct(size_t, Args&&...);
+
+    void destroy(size_t);
+
+    void clear();
+};
+
 namespace ecfw {
     template <>
     struct underlying_storage<AI> {
-        using type = <your_storage_container>
+        using type = AIComponentStorage;
     };
 }
 ```
