@@ -421,8 +421,8 @@ In your *CMakeLists.txt* you just need to add the following:
 add_subdirectory(<path_to_ecfw>)
 target_link_libraries(${PROJECT_NAME} ecfw)
 ```
-**Note:** If you're adding the project using git submodule, be sure to download
-the libraries dependencies ([proto](https://github.com/N-A-D/proto))
+**Note:** The library's implementation depends on [proto](https://github.com/N-A-D/proto). 
+Be sure to also download it!
 
 ## CMake build options
  The library provides the following CMake options:
