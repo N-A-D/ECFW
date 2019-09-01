@@ -429,7 +429,7 @@ the libraries dependencies ([proto](https://github.com/N-A-D/proto))
 - `BUILD_ECFW_TESTS`: Enables tests to be built
 - `BUILD_ECFW_BENCHMARKS`: Enables benchmarks to be built
 
-**Note:** Both options are set to `OFF` be default.
+**Note:** Both options are set to `OFF` by default.
 
 ## License
 `ecfw` is licensed under the [MIT License](https://opensource.org/licenses/MIT):   
