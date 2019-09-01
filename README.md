@@ -390,10 +390,10 @@ struct Receiver : ecfw::event_receiver {
 };
 
 // You can attach lambda functions as event receivers
-auto lambda = [](const ComponentAdded<Position>& e){}
+auto lambda = [](const ComponentAddedEvent<Position>& e){}
 
 // You can attach free functions as event receivers as well
-void free_function(const ComponentRemoved<Position>& e) {}
+void free_function(const ComponentRemovedEvent<Position>& e) {}
 
 int main() {
     EntityManager mgr;
