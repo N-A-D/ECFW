@@ -276,6 +276,40 @@ namespace ecfw {
 }
 ```
 
+The library supports assigning, removing, and fetching components using
+`ecfw::entity_manager::assign`, `ecfw::entity_manager::remove`, and
+`ecfw::entity_manager::component` member functions.   
+Here are some examples:
+```cpp
+using Entity = uint32_t;
+using CompList = ecfw::type_list<Position, Direction, Render>;
+using EntityManager = ecfw::entity_manager<Entity, CompList>;
+
+int main() {
+    EntityManager mgr;
+    
+    // Create a single entity
+    auto e = mgr.create();
+
+    // Assign the entity a Position component
+    // Note: You must supply an entity and constructor parameters for
+    // the component type.
+    mgr.assign<Position>(e, (float)std::rand(), (float)std::rand());
+
+    // Assign the entity a Direction component
+    mgr.assign<Direction>(e, (float)std::rand(), (float)std::rand());
+    
+    // Fetch the entity's Position component
+    Position& p = mgr.component<Position>(e);
+    
+    // Fetch the entity's Direction component
+    Direction& d = mgr.component<Direction>(e);
+    
+    // Remove both Position and Direction from the entity
+    mgr.remove<Position, Direction>(e);
+}
+```
+
 ### Events
 The only events that matter when using an entity component system are:
 - Entity construction events.
