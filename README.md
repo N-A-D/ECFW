@@ -225,6 +225,8 @@ Here is a complete listing of those functions and their purpose:
 | `ecfw::entity_manager::num_reusable_entities`  | Returns the number of entities the manager has recycled and will reuse when creating entities. |
 | `ecfw::entity_manager::reset`| Wipes the entity manager clean of any components, entities, and entity caches. Takes an optional `bool` parameter telling the manager whether or not its existing caches should be kept. |
 
+**Note:** `ecfw::entity_manager`s will reuse recycled entities whenever possible. If your entities are destroyed a lot then using the smaller entity types may become an issue with integer overflow.
+
 ### Components
 Components are simply building blocks that come together to form a larger whole.
 They should each provide a default constructor, as well as a constructor that
