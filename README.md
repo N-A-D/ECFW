@@ -400,8 +400,8 @@ int main() {
     Receiver receiver;
     mgr.events().subscribe<EntityCreatedEvent>(&receiver, &Receiver::function0);
     mgr.events().subscribe<EntityDestroyedEvent>(&receiver, &Receiver::function1);
-    mgr.events().subcribe<ComponentAddedEvent<Position>>(lambda);
-    mgr.events().subcribe<ComponentRemovedEvent<Position>>(free_function);
+    mgr.events().subscribe<ComponentAddedEvent<Position>>(lambda);
+    mgr.events().subscribe<ComponentRemovedEvent<Position>>(free_function);
 }
 ```
 
