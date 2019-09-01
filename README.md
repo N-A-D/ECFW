@@ -171,6 +171,9 @@ int main() {
     {});
 }
 ```
+**Note:** Whenever an `ecfw::entity_manager` is queried for the first time for
+entities with a given set of components, it internally creates a cache of entities
+satisfying the query. 
 
 #### Aside   
 Internally, an `ecfw::entity_manager` is a component matrix whose column
@@ -204,6 +207,23 @@ generally increase the speed of the library at the cost of using more memory. It
 is up to you whether or not the cost is worth it at the end. I would generally
 recommend using `uint32_t` as the default entity type as it is large enough for
 almost all situations and provides good performance when iterating.
+
+`ecfw::entity_manager`s supply additional support functions that range from 
+checking the validity of an entity to counting the number of entities it has to
+recycle on the next update step.   
+Here is a complete listing of those functions and their purpose:
+
+| Member function  | Purpose  |
+|---|---|
+| `ecfw::entity_manager::valid`  | Given an entity *e* checks if the entity is alive or deceased. |
+| `ecfw::entity_manager::group_entities_with` | Creates an internal cache within the manager containing entities with the given components. |
+| `ecfw::entity_manager::is_grouping_entities_with` | Checks if the manager has an internal cache of entities with the given set of components. |
+| `ecfw::entity_manager::num_entities`  | Returns the number of entities in the manager. |
+| `ecfw::entity_manager::num_live_entities`  | Returns the number of entities that have not been destroyed. |
+| `ecfw::entity_manager::num_entities_with` | Returns the number of live entities that have been assigned a given set of components. |
+| `ecfw::entity_manager::num_recyclable_entities`  | Returns the number of entities the manager will recycle on the next update. |
+| `ecfw::entity_manager::num_reusable_entities`  | Returns the number of entities the manager has recycled and will reuse when creating entities. |
+| `ecfw::entity_manager::reset`| Wipes the entity manager clean of any components, entities, and entity caches. Takes an optional `bool` parameter telling the manager whether or not its existing caches should be kept. |
 
 ### Components
 Components are simply building blocks that come together to form a larger whole.
