@@ -215,8 +215,8 @@ Here is a complete listing of those functions and their purpose:
 
 | Member function  | Purpose  |
 |---|---|
-| `ecfw::entity_manager::valid`  | Given an entity *e* checks if the entity is alive or deceased. |
-| `ecfw::entity_manager::group_entities_with` | Creates an internal cache within the manager containing entities with the given components. |
+| `ecfw::entity_manager::valid`  | Given an entity *e*, checks if *e* is alive or deceased. |
+| `ecfw::entity_manager::group_entities_with` | Creates an internal cache within the manager containing entities that have the specified components. |
 | `ecfw::entity_manager::is_grouping_entities_with` | Checks if the manager has an internal cache of entities with the given set of components. |
 | `ecfw::entity_manager::num_entities`  | Returns the number of entities in the manager. |
 | `ecfw::entity_manager::num_live_entities`  | Returns the number of entities that have not been destroyed. |
