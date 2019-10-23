@@ -406,7 +406,7 @@ int main() {
 ```
 
 **Note:** Entity destruction events are only emitted to its receivers when
-an `entity_manager`'s `update` method is invoked.
+an `entity_manager`s `update` method is invoked.
 
 ## Dependencies
 - [googletest](https://github.com/google/googletest): For unit tests.
