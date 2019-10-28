@@ -34,6 +34,11 @@ namespace ecfw {
 					>...
 			>, "Each component must be either copy or  move constructible!");
 
+		static_assert(std::conjunction_v
+			<
+				meta::underlying_storage_has_type_member<Ts>...
+			>, "One or more template specializations of ecfw::underlying_storage does not define a ::type member!");
+
 		using comp_list = type_list<Ts...>;
 		using comp_mask = detail::comp_mask<Ts...>;
 
