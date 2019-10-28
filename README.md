@@ -231,7 +231,7 @@ a template specialization of `ecfw::underlying_storage` with a member type
 **Note:**
 Your custom storage container must satisfy the following interface:
 ```cpp
-struct CustomStorage{
+struct CustomStorage {
     <your_component_type>& get(size_t);
     const <your_component_type>& get(size_t) const;
     
