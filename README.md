@@ -171,6 +171,9 @@ int main() {
     {});
 }
 ```
+**Note:** Whenever an `ecfw::entity_manager` is queried for the first time for
+entities with a given set of components, it internally creates a cache of entities
+satisfying the query. 
 
 #### Aside   
 Internally, an `ecfw::entity_manager` is a component matrix whose column
@@ -204,6 +207,25 @@ generally increase the speed of the library at the cost of using more memory. It
 is up to you whether or not the cost is worth it at the end. I would generally
 recommend using `uint32_t` as the default entity type as it is large enough for
 almost all situations and provides good performance when iterating.
+
+`ecfw::entity_manager`s supply additional support functions that range from 
+checking the validity of an entity to counting the number of entities it has to
+recycle on the next update step.   
+Here is a complete listing of those functions and their purpose:
+
+| Member function  | Purpose  |
+|---|---|
+| `ecfw::entity_manager::valid`  | Given an entity *e*, checks if *e* is alive or deceased. |
+| `ecfw::entity_manager::group_entities_with` | Creates an internal cache within the manager containing entities that have the specified components. |
+| `ecfw::entity_manager::is_grouping_entities_with` | Checks if the manager has an internal cache of entities with the given set of components. |
+| `ecfw::entity_manager::num_entities`  | Returns the number of entities in the manager. |
+| `ecfw::entity_manager::num_live_entities`  | Returns the number of entities that have not been destroyed. |
+| `ecfw::entity_manager::num_entities_with` | Returns the number of live entities that have been assigned a given set of components. |
+| `ecfw::entity_manager::num_recyclable_entities`  | Returns the number of entities the manager will recycle on the next update. |
+| `ecfw::entity_manager::num_reusable_entities`  | Returns the number of entities the manager has recycled and will reuse when creating entities. |
+| `ecfw::entity_manager::reset`| Wipes the entity manager clean of any components, entities, and entity caches. Takes an optional `bool` parameter telling the manager whether or not it should keep its existing caches. |
+
+**Note:** `ecfw::entity_manager`s will reuse recycled entities whenever possible. If your entities are destroyed a lot, then using the smaller entity types may become an issue with integer overflow.
 
 ### Components
 Components are simply building blocks that come together to form a larger whole.
@@ -368,23 +390,23 @@ struct Receiver : ecfw::event_receiver {
 };
 
 // You can attach lambda functions as event receivers
-auto lambda = [](const ComponentAdded<Position>& e){}
+auto lambda = [](const ComponentAddedEvent<Position>& e){}
 
 // You can attach free functions as event receivers as well
-void free_function(const ComponentRemoved<Position>& e) {}
+void free_function(const ComponentRemovedEvent<Position>& e) {}
 
 int main() {
     EntityManager mgr;
     Receiver receiver;
     mgr.events().subscribe<EntityCreatedEvent>(&receiver, &Receiver::function0);
     mgr.events().subscribe<EntityDestroyedEvent>(&receiver, &Receiver::function1);
-    mgr.events().subcribe<ComponentAddedEvent<Position>>(lambda);
-    mgr.events().subcribe<ComponentRemovedEvent<Position>>(free_function);
+    mgr.events().subscribe<ComponentAddedEvent<Position>>(lambda);
+    mgr.events().subscribe<ComponentRemovedEvent<Position>>(free_function);
 }
 ```
 
 **Note:** Entity destruction events are only emitted to its receivers when
-an `entity_manager`'s `update` method is invoked.
+an `entity_manager`s `update` method is invoked.
 
 ## Dependencies
 - [googletest](https://github.com/google/googletest): For unit tests.
@@ -399,15 +421,15 @@ In your *CMakeLists.txt* you just need to add the following:
 add_subdirectory(<path_to_ecfw>)
 target_link_libraries(${PROJECT_NAME} ecfw)
 ```
-**Note:** When adding the project using git submodule but sure to download the
-dependencies
+**Note:** The library's implementation depends on [proto](https://github.com/N-A-D/proto). 
+Be sure to also download it!
 
 ## CMake build options
  The library provides the following CMake options:
 - `BUILD_ECFW_TESTS`: Enables tests to be built
 - `BUILD_ECFW_BENCHMARKS`: Enables benchmarks to be built
 
-**Note:** Both options are set to `OFF` be default.
+**Note:** Both options are set to `OFF` by default.
 
 ## License
 `ecfw` is licensed under the [MIT License](https://opensource.org/licenses/MIT):   
