@@ -181,9 +181,9 @@ namespace ecfw {
 				e = m_entities[m_free_list.top()];
 				m_free_list.pop();
 			}
+			m_event_dispatcher(entity_created<entity_type>{ e });
 			if constexpr (sizeof...(Cs) > 0)
 				(assign<Cs>(e), ...);
-			m_event_dispatcher(entity_created<entity_type>{ e });
 			return e;
 		}
 
