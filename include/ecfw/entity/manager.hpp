@@ -36,7 +36,7 @@ namespace ecfw {
 
 		static_assert(std::conjunction_v
 			<
-				meta::underlying_storage_has_type_member<Ts>...
+				meta::has_type_member<underlying_storage<Ts>>...
 			>, "One or more template specializations of ecfw::underlying_storage does not define a ::type member!");
 
 		using comp_list = type_list<Ts...>;

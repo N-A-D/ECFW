@@ -5,29 +5,18 @@
 
 using namespace ecfw::meta;
 
-struct TestComponent0 {};
+struct has {
+	using type = void;
+};
 
-struct TestComponent1 {};
-
-template <class T>
-struct CustomStorage {};
-
-namespace ecfw {
-	template <> 
-	struct underlying_storage<TestComponent0> {}; // Does not define ::type
-
-	template <>
-	struct underlying_storage<TestComponent1> {
-		using type = CustomStorage<TestComponent1>;
-	};
-}
+struct has_not {};
 
 TEST(TypeTraitsTests, TraitTests) {
 
 	static_assert(is_iterator_v<typename std::vector<int>::iterator>);
 	static_assert(!is_iterator_v<int>);
 
-	static_assert(!underlying_storage_has_type_member_v<TestComponent0>);
-	static_assert(underlying_storage_has_type_member_v<TestComponent1>);
+	static_assert(has_type_member_v<has>);
+	static_assert(!has_type_member_v<has_not>);
 
 }

@@ -25,17 +25,17 @@ namespace ecfw {
 		template <
 			class T,
 			class = void
-		> struct underlying_storage_has_type_member
+		> struct has_type_member
 			: std::false_type {};
 
 		template <
 			class T
-		> struct underlying_storage_has_type_member<T, std::void_t<typename underlying_storage<T>::type>>
+		> struct has_type_member<T, std::void_t<typename T::type>>
 			: std::true_type {};
 
 		template <
 			class T
-		> constexpr bool underlying_storage_has_type_member_v = underlying_storage_has_type_member<T>::value;
+		> constexpr bool has_type_member_v = has_type_member<T>::value;
 
 	}
 }
