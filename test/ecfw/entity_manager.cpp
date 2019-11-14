@@ -224,6 +224,37 @@ TEST(EntityManagerTests, ComponentAddingTests) {
 	ASSERT_TRUE((manager.has<Comp0, Comp1, Comp2>(e)));
 }
 
+TEST(EntityManagerTests, ComponentReplacementTests) {
+	EntityManager manager;
+
+	Entity e = manager.create<Comp0>();
+
+	ASSERT_TRUE(manager.has<Comp0>(e));
+	ASSERT_FALSE(manager.component<Comp0>(e));
+
+	manager.assign_or_replace<Comp0>(e, true);
+	ASSERT_TRUE(manager.has<Comp0>(e));
+	ASSERT_TRUE(manager.component<Comp0>(e));
+
+
+	manager.destroy(e);
+	manager.update();
+
+	e = manager.create();
+
+	ASSERT_FALSE(manager.has<Comp0>(e));
+	
+	manager.assign_or_replace<Comp0>(e, false);
+
+	ASSERT_TRUE(manager.has<Comp0>(e));
+	ASSERT_FALSE(manager.component<Comp0>(e));
+
+	manager.assign_or_replace<Comp0>(e, true);
+
+	ASSERT_TRUE(manager.has<Comp0>(e));
+	ASSERT_TRUE(manager.component<Comp0>(e));
+}
+
 TEST(EntityManagerTests, CompoonentRemovedTests) {
 	EntityManager manager;
 

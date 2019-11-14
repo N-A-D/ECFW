@@ -313,6 +313,19 @@ namespace ecfw {
 		}
 
 		template <
+			class C, 
+			class... Args
+		> C& assign_or_replace(entity_type e, Args&&... args) {
+			if (!has<C>(e))
+				return assign<C>(e, std::forward<Args>(args)...);
+			size_t cpos = meta::index_of_v<C, comp_list>;
+			auto idx = traits_type::index(e);
+			auto& storage = std::get<underlying_storage_t<C>>(m_comp_pools);
+			storage.destroy(idx);
+			return storage.construct(idx, std::forward<Args>(args)...);
+		}
+
+		template <
 			class C
 		> C& component(entity_type e) {
 			return const_cast<C&>(
