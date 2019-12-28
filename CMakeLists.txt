@@ -34,7 +34,7 @@ set(ECFW_HEADER_FILES
 	${ECFW_HEADER_PATH}/ecfw/ecfw.hpp
 )
 
-add_custom_target(ECFW_SOURCES SOURCES ${ECFW_HEADER_FILES})
+add_custom_target(ECFW SOURCES ${ECFW_HEADER_FILES})
 
 add_subdirectory(extern/proto)
 target_link_libraries(${PROJECT_NAME} INTERFACE proto)
