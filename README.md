@@ -203,7 +203,7 @@ Entity composition breakdown:
 | `uint64_t`  | 2^32 - 1  | 2^32 - 1  |
 
 There is a time-space tradeoff when using smaller entity types. The smaller types
-generally increase the speed of the library at the cost of using more memory. It 
+generally increase the speed of the library at the cost of wasting more memory. It 
 is up to you whether or not the cost is worth it at the end. I would generally
 recommend using `uint32_t` as the default entity type as it is large enough for
 almost all situations and provides good performance when iterating.
