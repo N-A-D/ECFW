@@ -4,3 +4,6 @@
 [submodule "extern/google/googletest"]
 	path = extern/google/googletest
 	url = https://github.com/google/googletest.git
+[submodule "extern/boost/hana"]
+	path = extern/boost/hana
+	url = https://github.com/boostorg/hana.git

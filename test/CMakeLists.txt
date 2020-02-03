@@ -2,7 +2,7 @@
 
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/extern/googletest" "extern/googletest")
+add_subdirectory("${PROJECT_SOURCE_DIR}/extern/google/googletest" "extern/google/googletest")
 
 mark_as_advanced(
     BUILD_GMOCK BUILD_GTEST BUILD_SHARED_LIBS
@@ -22,10 +22,10 @@ macro(package_add_test TESTNAME)
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
 endmacro()
 
-package_add_test(event_dispatcher_tests ecfw/event_dispatcher.cpp)
-package_add_test(default_storage_tests ecfw/default_storage.cpp)
-package_add_test(entity_manager_tests ecfw/entity_manager.cpp)
-package_add_test(entity_traits_tests ecfw/entity_traits.cpp)
-package_add_test(entity_group_tests ecfw/entity_group.cpp)
-package_add_test(type_traits_test ecfw/type_traits.cpp)
-package_add_test(type_list_tests ecfw/type_list.cpp)
+#package_add_test(component_mask_tests "src/ecfw/component/mask.cpp")
+#package_add_test(component_traits_tests "src/ecfw/component/traits.cpp")
+#package_add_test(component_storage_tests "src/ecfw/component/vector.cpp")
+#package_add_test(entity_id_tests "src/ecfw/entity/entity.cpp")
+#package_add_test(entity_group_tests "src/ecfw/entity/group.cpp")
+#package_add_test(hana_index_of_tests "src/ecfw/utility/index_of.cpp")
+#package_add_test(utility_traits_tests "src/ecfw/utility/traits.cpp")

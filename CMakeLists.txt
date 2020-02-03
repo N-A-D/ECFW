@@ -1,53 +1,65 @@
 ﻿cmake_minimum_required (VERSION 3.8)
 
-project (ecfw)
-
-if (NOT CMAKE_BUILD_TYPE)
-	message(STATUS "No build type provided, default is Debug.")
-	set(CMAKE_BUILD_TYPE "Debug")
-endif()
+project (libECFW)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(ECFW_HEADER_PATH ${CMAKE_SOURCE_DIR}/include)
+set(ECFW_PATH "${PROJECT_SOURCE_DIR}")
+set(ECFW_HEADER_PATH "${ECFW_PATH}/include")
 
 add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(
-	${PROJECT_NAME} INTERFACE
-	${ECFW_HEADER_PATH}
+	${PROJECT_NAME}
+	INTERFACE
+	$<BUILD_INTERFACE:${ECFW_HEADER_PATH}>
+	$<INSTALL_INTERFACE:include>
 )
 
-set(ECFW_HEADER_FILES
-	${ECFW_HEADER_PATH}/ecfw/component/mask.hpp
-	${ECFW_HEADER_PATH}/ecfw/component/storage.hpp
-	${ECFW_HEADER_PATH}/ecfw/entity/events.hpp
-	${ECFW_HEADER_PATH}/ecfw/entity/group.hpp
-	${ECFW_HEADER_PATH}/ecfw/entity/manager.hpp
-	${ECFW_HEADER_PATH}/ecfw/entity/traits.hpp
-	${ECFW_HEADER_PATH}/ecfw/event/dispatcher.hpp
-	${ECFW_HEADER_PATH}/ecfw/event/signal.hpp
-	${ECFW_HEADER_PATH}/ecfw/meta/type_list.hpp
-	${ECFW_HEADER_PATH}/ecfw/meta/type_traits.hpp
-	${ECFW_HEADER_PATH}/ecfw/utility/noncopyable.hpp
-	${ECFW_HEADER_PATH}/ecfw/ecfw.hpp
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${PROJECT_BINARY_DIR}/libECFWConfigVersion.cmake"
+    VERSION 0.1
+    COMPATIBILITY AnyNewerVersion
 )
 
-add_custom_target(ECFW SOURCES ${ECFW_HEADER_FILES})
+install(TARGETS libECFW
+    EXPORT libECFWTargets
+    LIBRARY DESTINATION lib COMPONENT Runtime
+    ARCHIVE DESTINATION lib COMPONENT Development
+    RUNTIME DESTINATION bin COMPONENT Runtime
+    PUBLIC_HEADER DESTINATION include COMPONENT Development
+    BUNDLE DESTINATION bin COMPONENT Runtime
+)
 
-add_subdirectory(extern/proto)
-target_link_libraries(${PROJECT_NAME} INTERFACE proto)
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    "${PROJECT_SOURCE_DIR}/cmake/libECFWConfig.cmake.in"
+    "${PROJECT_BINARY_DIR}/libECFWConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/libECFW
+)
 
-option(BUILD_ECFW_TESTS "Build ECFW tests" OFF)
+install(EXPORT libECFWTargets DESTINATION lib/cmake/libECFW)
+install(FILES "${PROJECT_BINARY_DIR}/libECFWConfigVersion.cmake"
+              "${PROJECT_BINARY_DIR}/libECFWConfig.cmake"
+        DESTINATION lib/cmake/libECFW)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION include)
 
-if (BUILD_ECFW_TESTS)
-	enable_testing()
-	add_subdirectory(test)
-endif()
+set(HANA_PATH "${PROJECT_SOURCE_DIR}/extern/boost/hana")
+set(HANA_HEADER_PATH "${HANA_PATH}/include")
 
-option(BUILD_ECFW_BENCHMARKS "Build ECFW benchmarks" OFF)
+add_subdirectory(${HANA_PATH})
+target_include_directories(
+    ${PROJECT_NAME}
+    INTERFACE
+    $<BUILD_INTERFACE:${HANA_HEADER_PATH}>
+    $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(${PROJECT_NAME} INTERFACE hana)
 
-if (BUILD_ECFW_BENCHMARKS)
-	add_subdirectory(benchmark)
+option(BUILD_ECFW_TESTS ON)
+if (${BUILD_ECFW_TESTS})
+    enable_testing()
+    add_subdirectory("${PROJECT_SOURCE_DIR}/test")
 endif()
