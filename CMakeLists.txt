@@ -1,6 +1,6 @@
 ﻿cmake_minimum_required (VERSION 3.8)
 
-project (libECFW)
+project (ECFW)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -19,13 +19,13 @@ target_include_directories(
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    "${PROJECT_BINARY_DIR}/libECFWConfigVersion.cmake"
+    "${PROJECT_BINARY_DIR}/ECFWConfigVersion.cmake"
     VERSION 0.1
     COMPATIBILITY AnyNewerVersion
 )
 
-install(TARGETS libECFW
-    EXPORT libECFWTargets
+install(TARGETS ECFW
+    EXPORT ECFWTargets
     LIBRARY DESTINATION lib COMPONENT Runtime
     ARCHIVE DESTINATION lib COMPONENT Development
     RUNTIME DESTINATION bin COMPONENT Runtime
@@ -35,27 +35,21 @@ install(TARGETS libECFW
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
-    "${PROJECT_SOURCE_DIR}/cmake/libECFWConfig.cmake.in"
-    "${PROJECT_BINARY_DIR}/libECFWConfig.cmake"
-    INSTALL_DESTINATION lib/cmake/libECFW
+    "${PROJECT_SOURCE_DIR}/cmake/ECFWConfig.cmake.in"
+    "${PROJECT_BINARY_DIR}/ECFWConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/ECFW
 )
 
-install(EXPORT libECFWTargets DESTINATION lib/cmake/libECFW)
-install(FILES "${PROJECT_BINARY_DIR}/libECFWConfigVersion.cmake"
-              "${PROJECT_BINARY_DIR}/libECFWConfig.cmake"
-        DESTINATION lib/cmake/libECFW)
+install(EXPORT ECFWTargets DESTINATION lib/cmake/ECFW)
+install(FILES "${PROJECT_BINARY_DIR}/ECFWConfigVersion.cmake"
+              "${PROJECT_BINARY_DIR}/ECFWConfig.cmake"
+        DESTINATION lib/cmake/ECFW)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION include)
 
 set(HANA_PATH "${PROJECT_SOURCE_DIR}/extern/boost/hana")
 set(HANA_HEADER_PATH "${HANA_PATH}/include")
 
 add_subdirectory(${HANA_PATH})
-target_include_directories(
-    ${PROJECT_NAME}
-    INTERFACE
-    $<BUILD_INTERFACE:${HANA_HEADER_PATH}>
-    $<INSTALL_INTERFACE:include>
-)
 target_link_libraries(${PROJECT_NAME} INTERFACE hana)
 
 option(BUILD_ECFW_TESTS ON)
