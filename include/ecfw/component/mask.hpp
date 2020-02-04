@@ -4,7 +4,8 @@ namespace ecfw {
 	namespace detail {
 
 		/**
-		 * @brief Encodes the presence of types from one sequence in another.
+		 * @brief Encodes the first occurence of a sequence of types within a larger
+		 * sequence as a bitset of the same size.
 		 * 
 		 * The purpose of this function is to create compile time bitsets
 		 * for grouping entities together.
@@ -12,7 +13,7 @@ namespace ecfw {
 		 * @pre The sequence of types to encode as 'set' must be members of the
 		 * larger sequence.
 		 * 
-		 * @tparam Xs An iteraable sequence type.
+		 * @tparam Xs An iterable sequence type.
 		 * @tparam Ys An iterable sequence type.
 		 * @param xs A sequence of types whose indices make up bits in a bitset.
 		 * @param ys A sequence of types to encode as 'set'.
