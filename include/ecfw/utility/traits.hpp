@@ -1,7 +1,7 @@
 #pragma once
 
-#include <type_traits>
-#include <iterator>
+#include <type_traits> // std::void_t
+#include <iterator>    // std::iterator_traits
 
 namespace ecfw {
 	namespace detail {
