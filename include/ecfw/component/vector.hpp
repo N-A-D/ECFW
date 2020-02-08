@@ -3,8 +3,6 @@
 #include <vector>
 #include <memory>
 #include <cassert>
-#include <iterator>
-#include <type_traits>
 #include <ecfw/fwd/vector.hpp>
 
 namespace ecfw {
