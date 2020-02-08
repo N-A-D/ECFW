@@ -15,36 +15,38 @@ TEST(ComponentVectorTests, ObjectConstructionAndDestruction) {
 	std::shared_ptr<int> ptr = std::make_shared<int>(10);
 	vector_t vector{};
 
-	vector.construct(4096, ptr);
+	vector.construct(4095, ptr);
 	ASSERT_EQ(ptr.use_count(), 2);
 
-	vector.construct(768, ptr);
+	vector.construct(767, ptr);
 	ASSERT_EQ(ptr.use_count(), 3);
 
-	vector.construct(8192, ptr);
+	vector.construct(8191, ptr);
 	ASSERT_EQ(ptr.use_count(), 4);
 
 	vector.construct(12000, ptr);
 	ASSERT_EQ(ptr.use_count(), 5);
 
-	vector.construct(16384, ptr);
+	vector.construct(16383, ptr);
 	ASSERT_EQ(ptr.use_count(), 6);
+
+	ASSERT_EQ(vector.size(), 16384);
 
 	//////////////////////////////
 
 	vector.destroy(12000);
 	ASSERT_EQ(ptr.use_count(), 5);
 
-	vector.destroy(768);
+	vector.destroy(767);
 	ASSERT_EQ(ptr.use_count(), 4);
 
-	vector.destroy(8192);
+	vector.destroy(8191);
 	ASSERT_EQ(ptr.use_count(), 3);
 
-	vector.destroy(4096);
+	vector.destroy(4095);
 	ASSERT_EQ(ptr.use_count(), 2);
 
-	vector.destroy(16384);
+	vector.destroy(16383);
 	ASSERT_EQ(ptr.use_count(), 1);
 }
 
@@ -52,26 +54,28 @@ TEST(ComponentVectorTests, ObjectAccess) {
 	std::shared_ptr<int> ptr = std::make_shared<int>(10);
 	vector_t vector{};
 
-	vector.construct(4096, ptr);
+	vector.construct(4095, ptr);
 	ASSERT_EQ(ptr.use_count(), 2);
 
-	vector.construct(768, ptr);
+	vector.construct(767, ptr);
 	ASSERT_EQ(ptr.use_count(), 3);
 
-	vector.construct(8192, ptr);
+	vector.construct(8191, ptr);
 	ASSERT_EQ(ptr.use_count(), 4);
 
 	vector.construct(12000, ptr);
 	ASSERT_EQ(ptr.use_count(), 5);
 
-	vector.construct(16384, ptr);
+	vector.construct(16383, ptr);
 	ASSERT_EQ(ptr.use_count(), 6);
+
+	ASSERT_EQ(vector.size(), 16384);
 
 	//////////////////////////////
 
-	ASSERT_EQ(ptr, vector.at(8192).ptr);
-	ASSERT_EQ(ptr, vector.at(768).ptr);
-	ASSERT_EQ(ptr, vector.at(16384).ptr);
-	ASSERT_EQ(ptr, vector.at(4096).ptr);
+	ASSERT_EQ(ptr, vector.at(8191).ptr);
+	ASSERT_EQ(ptr, vector.at(767).ptr);
+	ASSERT_EQ(ptr, vector.at(16383).ptr);
+	ASSERT_EQ(ptr, vector.at(4095).ptr);
 	ASSERT_EQ(ptr, vector.at(12000).ptr);
 }
