@@ -48,7 +48,7 @@ namespace ecfw {
 			 * @return A const reference to a specific element.
 			 */
 			const_reference at(size_type pos) const {
-				return *reinterpret_cast<T*>(data(pos));
+				return *static_cast<const T*>(data(pos));
 			}
 
 			/**
@@ -68,8 +68,8 @@ namespace ecfw {
 			reference construct(size_type pos, Args&&... args) {
 				if (pos >= size())
 					accommodate(pos + 1);
-				T* comp = reinterpret_cast<T*>(data(pos));
-				::new (comp) T{std::forward<Args>(args)...};
+				T* comp = static_cast<T*>(data(pos));
+				::new (comp) T(std::forward<Args>(args)...);
 				return *comp;
 			}
 
@@ -83,7 +83,7 @@ namespace ecfw {
 			 * @param pos The index to a specific element.
 			 */
 			void destroy(size_type pos) {
-				reinterpret_cast<T*>(data(pos))->~T();
+				static_cast<T*>(data(pos))->~T();
 			}
 
 			/**
@@ -123,11 +123,11 @@ namespace ecfw {
 			 * @brief Access a specific elements raw data.
 			 * 
 			 * @param pos The index to a specific element.
-			 * @return A byte pointer to the elements data.
+			 * @return A void pointer to the elements data.
 			 */
-			byte* data(size_type pos) {
+			void* data(size_type pos) {
 				using std::as_const;
-				return const_cast<byte*>
+				return const_cast<void*>
 						(as_const(*this).data(pos));
 			}
 
@@ -135,9 +135,9 @@ namespace ecfw {
 			 * @brief Access a specific elements raw data.
 			 * 
 			 * @param pos The index to a specific element.
-			 * @return A const byte pointer to the elements data.
+			 * @return A const void pointer to the elements data.
 			 */
-			const byte* data(size_type pos) const {
+			const void* data(size_type pos) const {
 				auto page = m_pages[pos / page_size].get();
 				auto offs = (pos & (page_size - 1)) * elem_size;
 				return page + offs;
