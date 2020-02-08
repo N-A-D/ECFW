@@ -27,7 +27,7 @@ package_add_test(component_trait_tests "src/ecfw/component/traits.cpp")
 package_add_test(component_vector_tests "src/ecfw/component/vector.cpp")
 
 package_add_test(entity_id_tests "src/ecfw/entity/entity.cpp")
-#package_add_test(entity_group_tests "src/ecfw/entity/group.cpp")
+package_add_test(entity_group_tests "src/ecfw/entity/group.cpp")
 
 #package_add_test(hana_index_of_tests "src/ecfw/utility/index_of.cpp")
 package_add_test(utility_traits_tests "src/ecfw/utility/traits.cpp")

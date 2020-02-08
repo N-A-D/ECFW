@@ -49,7 +49,7 @@ namespace ecfw {
 				using std::size;
 				return v < size(m_sparse)
 					&& m_sparse[v] < m_size
-					&& m_packed[m_sparse[v]] = v;
+					&& m_packed[m_sparse[v]] == v;
 			}
 
 			/**
@@ -61,7 +61,7 @@ namespace ecfw {
 			 */
 			void insert(u32 v) {
 				using std::size;
-				if (contains(v)) {
+				if (!contains(v)) {
 					if (v >= size(m_sparse))
 						m_sparse.resize(v + 1);
 					if (m_size >= size(m_packed))
@@ -80,7 +80,7 @@ namespace ecfw {
 			 * @param v The integer to erase.
 			 */
 			void erase(u32 v) {
-				if (!contains(v)) {
+				if (contains(v)) {
 					m_packed[m_sparse[v]] = m_packed[m_size - 1];
 					m_sparse[m_packed[m_size - 1]] = m_sparse[v];
 					--m_size;
