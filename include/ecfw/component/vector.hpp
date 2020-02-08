@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vector>
-#include <memory>
-#include <cassert>
+#include <vector>  // std::vector
+#include <memory>  // std::unique_ptr
+#include <cassert> // assert
 #include <ecfw/fwd/vector.hpp>
 
 namespace ecfw {
