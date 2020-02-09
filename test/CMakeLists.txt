@@ -22,7 +22,7 @@ macro(package_add_test TESTNAME)
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
 endmacro()
 
-#package_add_test(component_mask_tests "src/ecfw/component/mask.cpp")
+package_add_test(component_mask_tests "src/ecfw/component/mask.cpp")
 package_add_test(component_trait_tests "src/ecfw/component/traits.cpp")
 package_add_test(component_vector_tests "src/ecfw/component/vector.cpp")
 

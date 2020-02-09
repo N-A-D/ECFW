@@ -1,5 +1,9 @@
 #pragma once
 
+#include <ecfw/aliases/hana.hpp>
+#include <ecfw/fwd/bitset.hpp>
+#include <ecfw/utility/index_of.hpp>
+
 namespace ecfw {
 	namespace detail {
 
@@ -20,7 +24,15 @@ namespace ecfw {
 		 * @return A bitset whose active bits indicates present types.
 		 */
 		template <typename Xs, typename Ys>
-		constexpr auto make_mask(const Xs& xs, const Ys& ys);
+		constexpr auto make_mask(const Xs& xs, const Ys& ys) {
+			auto size = decltype(hana::size(xs)){};
+			bitset<size> result;
+			auto encoder = [&](auto type) {
+				result.set(index_of(xs, type));
+			};
+			hana::for_each(ys, encoder);
+			return result;
+		}
 
 	}
 }
