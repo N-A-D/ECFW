@@ -27,10 +27,10 @@ namespace ecfw {
 		constexpr auto make_mask(const Xs& xs, const Ys& ys) {
 			auto size = decltype(hana::size(xs)){};
 			bitset<size> result;
-			auto encoder = [&](auto type) {
+			auto encode = [&](auto type) {
 				result.set(index_of(xs, type));
 			};
-			hana::for_each(ys, encoder);
+			hana::for_each(ys, encode);
 			return result;
 		}
 
