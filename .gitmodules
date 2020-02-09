@@ -7,3 +7,6 @@
 [submodule "extern/boost/hana"]
 	path = extern/boost/hana
 	url = https://github.com/boostorg/hana.git
+[submodule "extern/other/bitset2"]
+	path = extern/other/bitset2
+	url = https://github.com/N-A-D/bitset2.git
