@@ -2,7 +2,7 @@
 
 #include <ecfw/aliases/hana.hpp>
 #include <ecfw/fwd/bitset.hpp>
-#include <ecfw/utility/index_of.hpp>
+#include <ecfw/utility/algorithm.hpp>
 
 namespace ecfw {
 	namespace detail {
