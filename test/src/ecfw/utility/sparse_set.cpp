@@ -30,6 +30,7 @@ TEST(SparseSetTests, Interface) {
 
 	list = { 1, 5, 3, 4 };
 	set.erase(2);
+	ASSERT_FALSE(set.contains(2));
 	ASSERT_FALSE(set.empty());
 	ASSERT_EQ(set.size(), list.size());
 	data = set.data();
