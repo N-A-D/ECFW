@@ -315,7 +315,7 @@ namespace ecfw {
 					if (idx >= std::size(m_sparse))
 						m_sparse.resize(idx + 1);
 					if (m_size >= std::size(m_packed))
-						m_packed.resize(idx + 1);
+						m_packed.resize(m_size + 1);
 					m_sparse[idx] = m_size;
 					m_packed[m_size] = val;
 					++m_size;
