@@ -22,7 +22,7 @@ namespace ecfw {
 		public:
 
 			using container_type  = std::vector<u32>;
-			using size_type       = typename container_type::size_type;
+			using size_type       = u32;
 			using difference_type = typename container_type::difference_type;
 			using value_type      = typename container_type::value_type;
 			using reference       = typename container_type::const_reference;
@@ -311,12 +311,11 @@ namespace ecfw {
 			 */
 			void insert(value_type val) {
 				if (!contains(val)) {
-					size_type idx = static_cast<size_type>(val);
-					if (idx >= std::size(m_sparse))
-						m_sparse.resize(idx + 1);
+					if (val >= std::size(m_sparse))
+						m_sparse.resize(val + 1);
 					if (m_size >= std::size(m_packed))
 						m_packed.resize(m_size + 1);
-					m_sparse[idx] = m_size;
+					m_sparse[val] = m_size;
 					m_packed[m_size] = val;
 					++m_size;
 				}
@@ -331,9 +330,8 @@ namespace ecfw {
 			 */
 			void erase(value_type val) {
 				if (contains(val)) {
-					size_type idx = static_cast<size_type>(val);
-					m_packed[m_sparse[idx]] = m_packed[m_size - 1];
-					m_sparse[m_packed[m_size - 1]] = m_sparse[idx];
+					m_packed[m_sparse[val]] = m_packed[m_size - 1];
+					m_sparse[m_packed[m_size - 1]] = m_sparse[val];
 					--m_size;
 				}
 			}
@@ -346,10 +344,9 @@ namespace ecfw {
 			 * @return false otherwise.
 			 */
 			bool contains(value_type val) const {
-				size_type idx = static_cast<size_type>(val);
-				return idx < std::size(m_sparse)
-					&& m_sparse[idx] < size()
-					&& m_packed[m_sparse[idx]] == val;
+				return val < std::size(m_sparse)
+					&& m_sparse[val] < size()
+					&& m_packed[m_sparse[val]] == val;
 			}
 
 		private:
