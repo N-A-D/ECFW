@@ -18,7 +18,7 @@ namespace ecfw {
          * the length of the iterable sequence.
          */
         template <typename Iterable, typename T>
-        constexpr auto index_of(Iterable const& iterable, T const& element) {
+        constexpr auto index_of(const Iterable& iterable, const T& element) {
             auto size = decltype(hana::size(iterable)){};
             auto dropped = decltype(hana::size(
                 hana::drop_while(iterable, hana::not_equal.to(element))
