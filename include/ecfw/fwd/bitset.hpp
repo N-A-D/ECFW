@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstddef> // std::size_t
 #include <ecfw/aliases/bitset2.hpp>
 
 namespace ecfw {
