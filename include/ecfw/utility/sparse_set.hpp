@@ -177,18 +177,48 @@ namespace ecfw {
 				}
 			};
 
+			/**
+			 * @brief Default ctor.
+			 * 
+			 */
 			sparse_set() = default;
+
+			/**
+			 * @brief Default dtor.
+			 * 
+			 */
 			~sparse_set() = default;
 
+			/**
+			 * @brief Default copy ctor.
+			 * 
+			 */
 			sparse_set(const sparse_set&) = default;
+
+			/**
+			 * @brief Default copy assignment operator.
+			 * 
+			 * @return *this.
+			 */
 			sparse_set& operator=(const sparse_set&) = default;
 
+			/**
+			 * @brief Move constructor.
+			 * 
+			 * @param other The container to move from.
+			 */
 			sparse_set(sparse_set&& other)
 				: m_size{ std::exchange(other.m_size, 0) }
 				, m_packed{std::move(other.m_packed)}
 				, m_sparse{std::move(other.m_sparse)}
 			{}
 
+			/**
+			 * @brief Move assignment operator.
+			 * 
+			 * @param other The other container to move from.
+			 * @return *this.
+			 */
 			sparse_set& operator=(sparse_set&& other) noexcept {
 				if (std::addressof(other) != this) {
 					m_packed = std::move(other.m_packed);
