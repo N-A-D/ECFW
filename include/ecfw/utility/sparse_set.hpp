@@ -53,8 +53,7 @@ namespace ecfw {
 				 * @return A reference to the pointed-to element.
 				 */
 				reference operator*() const {
-					assert(valid() && "Invalid iterator dereference!");
-					return *m_it;
+					return *(operator->());
 				}
 				
 				/**
@@ -63,7 +62,8 @@ namespace ecfw {
 				 * @return A pointer to the pointed-to element.
 				 */
 				pointer operator->() const {
-					return &(operator*());
+					assert(valid() && "Invalid iterator dereference!");
+					return m_it;
 				}
 
 				/**
