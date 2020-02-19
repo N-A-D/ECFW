@@ -83,7 +83,12 @@ TEST(SparseSetTests, Iterator) {
 	++other;
 	ASSERT_FALSE(other == it);
 
+	auto it0 = sparse_set::iterator{};
+	auto it1 = sparse_set::iterator{};
+	ASSERT_EQ(it0, it1);
+
 	ASSERT_TRUE(std::equal(list.begin(), list.end(), set.begin(), set.end()));
 	std::vector<ecfw::u32> vector(list);
 	ASSERT_TRUE(std::equal(vector.rbegin(), vector.rend(), set.rbegin(), set.rend()));
+
 }

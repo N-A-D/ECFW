@@ -120,8 +120,7 @@ namespace ecfw {
 				 * @return false otherwise.
 				 */
 				bool operator==(const iterator& other) const noexcept {
-					assert(valid());
-					assert(compatible(other));
+					assert(compatible(other) && "Incompatible iterators!");
 					return m_it == other.m_it;
 				}
 
