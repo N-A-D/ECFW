@@ -5,6 +5,6 @@
 namespace ecfw {
 
 	template <typename... Xs>
-	using tuple = hana::tuple<hana::type<Xs>...>;
+	using tuple = hana::tuple<hana::basic_type<Xs>...>;
 	
 }
