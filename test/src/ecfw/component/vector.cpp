@@ -76,11 +76,11 @@ TEST(ComponentVectorTests, ObjectAccess) {
 
 	// Test the at function
 
-	ASSERT_EQ(ptr, vector.at(8191)->ptr);
-	ASSERT_EQ(ptr, vector.at(767)->ptr);
-	ASSERT_EQ(ptr, vector.at(16383)->ptr);
-	ASSERT_EQ(ptr, vector.at(4095)->ptr);
-	ASSERT_EQ(ptr, vector.at(12000)->ptr);
+	ASSERT_EQ(ptr, vector.at(8191).ptr);
+	ASSERT_EQ(ptr, vector.at(767).ptr);
+	ASSERT_EQ(ptr, vector.at(16383).ptr);
+	ASSERT_EQ(ptr, vector.at(4095).ptr);
+	ASSERT_EQ(ptr, vector.at(12000).ptr);
 
 	// Test destruction
 
