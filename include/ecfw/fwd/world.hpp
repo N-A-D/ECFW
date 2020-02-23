@@ -1,8 +1,10 @@
 #pragma once
 
+#include <cstddef>
+
 namespace ecfw {
 
-	template <typename CompList>
+	template <typename, std::size_t>
 	class world;
 
 }
