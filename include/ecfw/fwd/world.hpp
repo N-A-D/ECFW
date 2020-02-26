@@ -2,7 +2,10 @@
 
 namespace ecfw {
 
-	template <typename CompList>
+	template <typename, typename>
+	class view;
+
+	template <typename>
 	class world;
 
 }
