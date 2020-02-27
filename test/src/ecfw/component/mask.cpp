@@ -8,8 +8,15 @@ using namespace ecfw::detail;
 struct Stub {
 	static constexpr auto xs = ecfw::tuple<int, char, float, double>{};
 	
-	bool function() const {
+	bool function0() const {
 		if constexpr (bitset<4>(6) == make_mask(Stub::xs, tuple<char, float>{}))
+			return true;
+		else
+			return false;
+	}
+
+	bool function1(const ecfw::tuple<char, float>& x) const {
+		if constexpr (bitset<4>(6) == make_mask(Stub::xs, decltype(x){}))
 			return true;
 		else
 			return false;
@@ -24,5 +31,7 @@ TEST(ComponentMaskTests, MakeMask) {
 	else
 		ASSERT_TRUE(false);
 	Stub stub;
-	ASSERT_TRUE(stub.function());
+	ASSERT_TRUE(stub.function0());
+	auto types = tuple<char, float>{};
+	ASSERT_TRUE(stub.function1(types));
 }
