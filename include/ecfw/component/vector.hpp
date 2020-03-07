@@ -12,20 +12,20 @@ namespace ecfw {
 		class vector final {
 		public:
 
-			using value_type	  = T;
-			using size_type		  = std::size_t;
-			using reference		  = value_type&;
-			using const_reference = const value_type&;
+			using value_type	= T;
+			using size_type		= std::size_t;
+			using pointer		= value_type*;
+			using const_pointer = const value_type*;
 
 			/**
 			 * @brief Access a specific element.
 			 * 
 			 * @param pos The index of an element.
-			 * @return A reference to a specific element.
+			 * @return A pointer to a specific element.
 			 */
-			reference at(size_type pos) {
+			pointer at(size_type pos) {
 				using std::as_const;
-				return const_cast<reference>
+				return const_cast<pointer>
 						(as_const(*this).at(pos));
 			}
 
@@ -33,10 +33,10 @@ namespace ecfw {
 			 * @brief Access a specific element.
 			 * 
 			 * @param pos The index of an element.
-			 * @return A const reference to a specific element.
+			 * @return A const pointer to a specific element.
 			 */
-			const_reference at(size_type pos) const {
-				return *static_cast<const T*>(data(pos));
+			const_pointer at(size_type pos) const {
+				return static_cast<const_pointer>(data(pos));
 			}
 
 			/**
@@ -50,15 +50,15 @@ namespace ecfw {
 			 * @tparam Args Component constructor argument types.
 			 * @param pos The index to a specific element.
 			 * @param args Component constructor argument values.
-			 * @return A reference to the newly constructed element.
+			 * @return A pointer to the newly constructed element.
 			 */
 			template <typename... Args>
-			reference construct(size_type pos, Args&&... args) {
+			pointer construct(size_type pos, Args&&... args) {
 				if (pos >= size())
 					accommodate(pos + 1);
-				T* comp = static_cast<T*>(data(pos));
-				::new (comp) T(std::forward<Args>(args)...);
-				return *comp;
+				pointer comp = static_cast<pointer>(data(pos));
+				::new (comp) value_type(std::forward<Args>(args)...);
+				return comp;
 			}
 
 			/**
@@ -71,7 +71,7 @@ namespace ecfw {
 			 * @param pos The index to a specific element.
 			 */
 			void destroy(size_type pos) {
-				static_cast<T*>(data(pos))->~T();
+				static_cast<pointer>(data(pos))->~T();
 			}
 
 			/**
