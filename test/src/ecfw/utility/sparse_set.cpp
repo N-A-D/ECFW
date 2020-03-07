@@ -76,19 +76,26 @@ TEST(SparseSetTests, Iterator) {
 	ASSERT_EQ(*--it, 2);
 	ASSERT_EQ(*it--, 2);
 	ASSERT_EQ(*it, 1);
+	ASSERT_EQ(*(it += 2), 3);
+	ASSERT_EQ(*(it -= 2), 1);
+	ASSERT_EQ(*(set.begin() + 2), 3);
+	ASSERT_EQ(*(set.end() - 2), 7);
+	
+	ASSERT_LT(it, set.end());
+	ASSERT_LT(it, it + 2);
+	ASSERT_LE(it, set.begin());
+	ASSERT_LE(it, set.begin() + 3);
+	ASSERT_GT(set.end(), it);
+	ASSERT_GT(it + 2, it);
+	ASSERT_GE(it, set.begin());
+	ASSERT_GE(set.begin() + 4, it);
 
-	auto other = set.begin();
-
-	ASSERT_TRUE(other == it);
-	++other;
-	ASSERT_FALSE(other == it);
-
-	auto it0 = sparse_set::iterator{};
-	auto it1 = sparse_set::iterator{};
-	ASSERT_EQ(it0, it1);
-
-	ASSERT_TRUE(std::equal(list.begin(), list.end(), set.begin(), set.end()));
-	std::vector<ecfw::u32> vector(list);
-	ASSERT_TRUE(std::equal(vector.rbegin(), vector.rend(), set.rbegin(), set.rend()));
+	ASSERT_EQ(set.begin(), set.begin());
+	ASSERT_EQ(set.end(), set.end());
+	ASSERT_EQ(sparse_set::iterator{}, sparse_set::iterator{});
+	ASSERT_NE(set.begin() + 1, set.begin());
+	
+	ASSERT_TRUE(std::equal(std::begin(list),  std::end(list), std::begin(set), std::end(set)));
+	ASSERT_TRUE(std::equal(std::rbegin(list), std::rend(list) , std::rbegin(set), std::rend(set)));
 
 }

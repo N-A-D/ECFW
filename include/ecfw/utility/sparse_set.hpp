@@ -1,10 +1,11 @@
 #pragma once
 
-#include <vector>   // std::vector
-#include <iterator> // std::bidirectional_iterator_tag, std::data
-#include <cassert>  // assert
-#include <utility>  // std::exchange
+#include <vector>   		// std::vector
+#include <iterator> 		// std::bidirectional_iterator_tag, std::data
+#include <cassert>  		// assert
+#include <utility>  		// std::exchange
 #include <initializer_list> // std::initializer_list
+#include <algorithm> 		// std::sort
 #include <ecfw/fwd/unsigned.hpp>
 
 namespace ecfw {
@@ -29,36 +30,48 @@ namespace ecfw {
 			using pointer         = typename container_type::const_pointer;
 			
 			/**
-			 * @brief Bidirectional sparse set iterator.
+			 * @brief Random access sparse set iterator.
 			 * 
 			 */
-			class iterator {	
+			class iterator {
 			public:
 
-				using iterator_category = std::bidirectional_iterator_tag;
-				using difference_type   = sparse_set::difference_type;
-				using value_type        = sparse_set::value_type;
-				using reference         = sparse_set::reference;
-				using pointer           = sparse_set::pointer;
+				using iterator_category = std::random_access_iterator_tag;
+				using difference_type = sparse_set::difference_type;
+				using value_type = sparse_set::value_type;
+				using reference = sparse_set::reference;
+				using pointer = sparse_set::pointer;
 
 				/**
 				 * @brief Default sparse_set::iterator construtor.
-				 * 
+				 *
 				 */
 				iterator() = default;
 
 				/**
+				 * @brief Returns the distance between *this and another iterator.
+				 *
+				 * @param other The other iterator.
+				 * @return difference_type The distance between the two iterators.
+				 */
+				difference_type operator-(const iterator& other) const {
+					assert(valid() && other.valid());
+					assert(compatible(other));
+					return m_it - other.m_it;
+				}
+
+				/**
 				 * @brief Dereference operator.
-				 * 
+				 *
 				 * @return A reference to the pointed-to element.
 				 */
 				reference operator*() const {
 					return *(operator->());
 				}
-				
+
 				/**
 				 * @brief Member access operator.
-				 * 
+				 *
 				 * @return A pointer to the pointed-to element.
 				 */
 				pointer operator->() const {
@@ -68,7 +81,7 @@ namespace ecfw {
 
 				/**
 				 * @brief Prefix increment operator.
-				 * 
+				 *
 				 * @return *this incremented one position.
 				 */
 				iterator& operator++() {
@@ -80,18 +93,43 @@ namespace ecfw {
 
 				/**
 				 * @brief Posfix increment operator.
-				 * 
+				 *
 				 * @return An iterator to *this before the increment.
 				 */
 				iterator operator++(int) {
 					iterator tmp(*this);
-					++*this;
+					++* this;
 					return tmp;
 				}
 
 				/**
-				 * @brief Prefix decrement operator.
+				 * @brief Increments *this n times.
+				 *
+				 * @note Complexity: O(1).
+				 *
+				 * @param n The value to increment by.
+				 * @return *this
+				 */
+				iterator& operator+=(difference_type n) {
+					assert(valid());
+					m_it += n;
+					assert(m_parent->within_range(m_it));
+					return *this;
+				}
+
+				/**
+				 * @brief Increment operator.
 				 * 
+				 * @param n The value to increment by.
+				 * @return An iterator n positions higher than *this. 
+				 */
+				iterator operator+(difference_type n) {
+					return iterator(*this) += n;
+				}
+
+				/**
+				 * @brief Prefix decrement operator.
+				 *
 				 * @return *this decremented one position.
 				 */
 				iterator& operator--() {
@@ -103,13 +141,80 @@ namespace ecfw {
 
 				/**
 				 * @brief Postfix decrement operator.
-				 * 
+				 *
 				 * @return An iterator to *this before the decrement.
 				 */
 				iterator operator--(int) {
 					iterator tmp(*this);
-					--*this;
+					--* this;
 					return tmp;
+				}
+
+				/**
+				 * @brief Decrements *this n times.
+				 *
+				 * @note Complexity: O(1).
+				 *
+				 * @param n The value to decrement by.
+				 * @return iterator&
+				 */
+				iterator& operator-=(difference_type n) {
+					return *this += -n;
+				}
+
+				/**
+				 * @brief Decrement operator.
+				 * 
+				 * @param n The amount to decrement by.
+				 * @return An iterator n positions lower than *this.
+				 */
+				iterator operator-(difference_type n) {
+					return iterator(*this) -= n;
+				}
+
+				/**
+				 * @brief Less-than comparison operator.
+				 * 
+				 * @param other The other iterator to compare to.
+				 * @return true If *this is less than other.
+				 * @return false otherwise.
+				 */
+				bool operator<(const iterator& other) const noexcept {
+					assert(compatible(other) && "Iterators incompatible");
+					return m_it < other.m_it;
+				}
+
+				/**
+				 * @brief Less-than or equal operator.
+				 * 
+				 * @param other The other iterator to compare to.
+				 * @return true If *this is lt or eq to other.
+				 * @return false otherwise.
+				 */
+				bool operator<=(const iterator& other) const noexcept {
+					return !(other < *this);
+				}
+
+				/**
+				 * @brief Greater-than operator.
+				 * 
+				 * @param other The other iterator to compare to.
+				 * @return true If *this is greater than other.
+				 * @return false otherwise.
+				 */
+				bool operator>(const iterator& other) const noexcept {
+					return other < *this;
+				}
+
+				/**
+				 * @brief Greater-than or equal operator
+				 * 
+				 * @param other The other iterator to compare to.
+				 * @return true If *this is gt or eq to other.
+				 * @return false otherwisee.
+				 */
+				bool operator>=(const iterator& other) const noexcept {
+					return !(*this < other);
 				}
 
 				/**
@@ -120,8 +225,7 @@ namespace ecfw {
 				 * @return false otherwise.
 				 */
 				bool operator==(const iterator& other) const noexcept {
-					assert(compatible(other) && "Incompatible iterators!");
-					return m_it == other.m_it;
+					return !(*this < other) && !(other < *this);
 				}
 
 				/**
@@ -207,7 +311,7 @@ namespace ecfw {
 			 * @param other The container to move from.
 			 */
 			sparse_set(sparse_set&& other)
-				: m_size{ std::exchange(other.m_size, 0) }
+				: m_size{std::exchange(other.m_size, 0)}
 				, m_packed{std::move(other.m_packed)}
 				, m_sparse{std::move(other.m_sparse)}
 			{}
@@ -231,6 +335,8 @@ namespace ecfw {
 
 			/**
 			 * @brief Returns a pointer to the packed integer vector.
+			 * 
+			 * @note [data(), data() + size()) is always a valid range.
 			 * 
 			 * @return A pointer to the packed integer vector.
 			 */
