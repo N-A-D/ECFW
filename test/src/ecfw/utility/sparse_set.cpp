@@ -95,6 +95,9 @@ TEST(SparseSetTests, Iterator) {
 	ASSERT_EQ(sparse_set::iterator{}, sparse_set::iterator{});
 	ASSERT_NE(set.begin() + 1, set.begin());
 	
+	ASSERT_EQ(set.end() - set.begin(), set.size());
+	ASSERT_EQ((set.end() - 4) - set.begin(), 4);
+
 	ASSERT_TRUE(std::equal(std::begin(list),  std::end(list), std::begin(set), std::end(set)));
 	ASSERT_TRUE(std::equal(std::rbegin(list), std::rend(list) , std::rbegin(set), std::rend(set)));
 
