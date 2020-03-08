@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint> // std::uint32_t, std::uint64_t
+#include <cstdint> // uint32_t, uint64_t
 
 namespace ecfw {
 

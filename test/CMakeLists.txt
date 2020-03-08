@@ -22,11 +22,11 @@ macro(package_add_test TESTNAME)
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
 endmacro()
 
-package_add_test(component_mask_tests "src/ecfw/component/mask.cpp")
-package_add_test(component_trait_tests "src/ecfw/component/traits.cpp")
-package_add_test(component_vector_tests "src/ecfw/component/vector.cpp")
+set(TEST_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(COMPONENT_TEST_DIR "${TEST_SRC_DIR}/component")
+set(ENTITY_TEST_DIR "${TEST_SRC_DIR}/entity")
 
-package_add_test(entity_id_tests "src/ecfw/entity/entity.cpp")
-
-package_add_test(utility_sparse_set_tests "src/ecfw/utility/sparse_set.cpp")
-package_add_test(utility_traits_tests "src/ecfw/utility/traits.cpp")
+package_add_test(paged_vector_tests "${COMPONENT_TEST_DIR}/vector.cpp")
+package_add_test(component_storage_tests "${COMPONENT_TEST_DIR}/storage.cpp")
+package_add_test(entity_tests "${ENTITY_TEST_DIR}/entity.cpp")
+package_add_test(entity_index_tests "${ENTITY_TEST_DIR}/index.cpp")
