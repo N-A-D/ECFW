@@ -68,6 +68,7 @@ namespace ecfw {
 		 * @return A const pointer to a specific element.
 		 */
 		const_pointer at(size_type pos) const {
+			assert(m_pages[page(pos)]);
 			return static_cast<const_pointer>(data(pos));
 		}
 
@@ -86,7 +87,7 @@ namespace ecfw {
 		 */
 		template <typename... Args>
 		pointer construct(size_type pos, Args&&... args) {
-			accommodate(pos);
+			ensure_memory_at(pos);
 			pointer comp = static_cast<pointer>(data(pos));
 			::new (comp) value_type(std::forward<Args>(args)...);
 			return comp;
@@ -102,6 +103,7 @@ namespace ecfw {
 		 * @param pos The index to a specific element.
 		 */
 		void destroy(size_type pos) {
+			assert(m_pages[page(pos)]);
 			static_cast<pointer>(data(pos))->~T();
 		}
 
@@ -128,17 +130,39 @@ namespace ecfw {
 		std::vector<std::unique_ptr<byte[]>> m_pages{};
 
 		/**
-		 * @brief Ensures there is valid memory at the given index.
+		 * @brief Ensures the memory at the given index.
 		 *
 		 * @param pos The index to accommodate.
 		 */
-		void accommodate(size_type pos) {
+		void ensure_memory_at(size_type pos) {
 			using std::make_unique;
-			size_type sz = pos / page_size;
+			size_type page_n = page(pos);
 			if (pos >= size())
-				m_pages.resize(sz + 1);
-			if (!m_pages[sz])
-				m_pages[sz] = make_unique<byte[]>(page_size_bytes);
+				m_pages.resize(page_n + 1);
+			if (!m_pages[page_n])
+				m_pages[page_n] = 
+					make_unique<byte[]>(page_size_bytes);
+		}
+
+		/**
+		 * @brief Returns an index to a memory page.
+		 *
+		 * @param pos An index to map to a memory page.
+		 */
+		size_type page(size_type pos) const noexcept {
+			return pos / page_size;
+		}
+
+		/**
+		 * @brief Returns a memory page offset.
+		 *
+		 * @param pos The index to offset.
+		 */
+		size_type offset(size_type pos) const noexcept {
+			if constexpr ((page_size & page_size - 1) == 0)
+				return (pos & page_size - 1) * elem_size;
+			else
+				return (pos % page_size) * elem_size;
 		}
 
 		/**
@@ -160,9 +184,7 @@ namespace ecfw {
 		 * @return A const void pointer to the elements data.
 		 */
 		const void* data(size_type pos) const {
-			auto page = m_pages[pos / page_size].get();
-			auto offset = (pos % page_size) * elem_size;
-			return page + offset;
+			return m_pages[page(pos)].get() + offset(pos);
 		}
 
 	};
