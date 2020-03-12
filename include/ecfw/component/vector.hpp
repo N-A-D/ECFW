@@ -86,8 +86,7 @@ namespace ecfw {
 		 */
 		template <typename... Args>
 		pointer construct(size_type pos, Args&&... args) {
-			if (pos >= size())
-				accommodate(pos + 1);
+			accommodate(pos);
 			pointer comp = static_cast<pointer>(data(pos));
 			::new (comp) value_type(std::forward<Args>(args)...);
 			return comp;
@@ -129,14 +128,17 @@ namespace ecfw {
 		std::vector<std::unique_ptr<byte[]>> m_pages{};
 
 		/**
-		 * @brief Ensures that a specific index fits within bounds.
+		 * @brief Ensures there is valid memory at the given index.
 		 *
 		 * @param pos The index to accommodate.
 		 */
 		void accommodate(size_type pos) {
 			using std::make_unique;
-			while (size() < pos)
-				m_pages.push_back(make_unique<byte[]>(page_size_bytes));
+			size_type sz = pos / page_size;
+			if (pos >= size())
+				m_pages.resize(sz + 1);
+			if (!m_pages[sz])
+				m_pages[sz] = make_unique<byte[]>(page_size_bytes);
 		}
 
 		/**
@@ -159,8 +161,8 @@ namespace ecfw {
 		 */
 		const void* data(size_type pos) const {
 			auto page = m_pages[pos / page_size].get();
-			auto offs = (pos % page_size) * elem_size;
-			return page + offs;
+			auto offset = (pos % page_size) * elem_size;
+			return page + offset;
 		}
 
 	};
