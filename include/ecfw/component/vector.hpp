@@ -22,7 +22,7 @@ namespace ecfw {
 	 * @tparam PageSize The number of elements stored in each page.
 	 */
 	template <typename T, std::size_t PageSize = 4096>
-	class paged_vector final {
+	class page_vector final {
 	public:
 
 		using value_type	= T;
@@ -34,20 +34,20 @@ namespace ecfw {
 		 * @brief Default constructor.
 		 * 
 		 */
-		paged_vector() = default;
+		page_vector() = default;
 
 		/**
 		 * @brief Default move constructor
 		 * 
 		 */
-		paged_vector(paged_vector&&) = default;
+		page_vector(page_vector&&) = default;
 
 		/**
 		 * @brief Default move assignment operator.
 		 * 
 		 * @return *this.
 		 */
-		paged_vector& operator=(paged_vector&&) = default;
+		page_vector& operator=(page_vector&&) = default;
 
 		/**
 		 * @brief Access a specific element.
