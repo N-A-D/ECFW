@@ -15,7 +15,7 @@ struct Assert {
 	bool output() const {
 		constexpr bitmask<4> invariant{5};
 		constexpr auto component_types = typelist<Comp<0>, Comp<2>>{};
-		if constexpr (invariant == encode_subset(component_types, all_component_types))
+		if constexpr (invariant == encode_subset_as_bitmask(component_types, all_component_types))
 			return true;
 		else
 			return false;
@@ -26,7 +26,7 @@ TEST(EntityIndexTests, BitmaskGenerationTests) {
 	Assert a{};
 	ASSERT_TRUE(a.output());
 	constexpr auto component_types = typelist<Comp<0>, Comp<1>, Comp<3>>{};
-	constexpr bool output = (bitmask<4>{11} == encode_subset(component_types, all_component_types));
+	constexpr bool output = (bitmask<4>{11} == encode_subset_as_bitmask(component_types, all_component_types));
 	static_assert(output);
 	ASSERT_TRUE(output);
 }

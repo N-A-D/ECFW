@@ -40,7 +40,7 @@ namespace ecfw { namespace detail {
 	}
 	
 	/**
-	 * @brief Encodes a subset of a larger sequence as a bitmask.
+	 * @brief Encodes a subset of a sequence as a bitmask.
 	 * 
 	 * The purpose of this function is to provide compile-time 
 	 * bitmasks that can be used to index entities based on the
@@ -53,7 +53,7 @@ namespace ecfw { namespace detail {
 	 * @return A bitmask whose active bits represent elements of the subset.
 	 */
 	template <typename Xs, typename Ys>
-	constexpr auto encode_subset(const Xs& xs, const Ys& ys) {
+	constexpr auto encode_subset_as_bitmask(const Xs& xs, const Ys& ys) {
 		static_assert(hana::is_subset(decltype(xs){}, decltype(ys){}));
 		auto size = decltype(hana::size(ys)){};
 		bitmask<size> mask;
