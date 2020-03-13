@@ -54,6 +54,7 @@ namespace ecfw { namespace detail {
 	 */
 	template <typename Xs, typename Ys>
 	constexpr auto encode_subset(const Xs& xs, const Ys& ys) {
+		static_assert(hana::is_subset(decltype(xs){}, decltype(ys){}));
 		auto size = decltype(hana::size(ys)){};
 		bitmask<size> mask;
 		auto encode = [&](auto t) { mask.set(index_of(t, ys)); };
