@@ -130,7 +130,7 @@ namespace ecfw {
 		std::vector<std::unique_ptr<byte[]>> m_blocks{};
 
 		/**
-		 * @brief Ensures the memory at the given index.
+		 * @brief Ensures the memory at  the given index is allocated.
 		 *
 		 * @param pos The index to accommodate.
 		 */
