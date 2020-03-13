@@ -6,7 +6,7 @@ namespace ecfw {
 
 	template <typename T>
 	struct storage {
-		using type = paged_vector<T>;
+		using type = block_vector<T>;
 	};
 
 	template <typename T>

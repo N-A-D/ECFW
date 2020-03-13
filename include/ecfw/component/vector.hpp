@@ -8,7 +8,7 @@ namespace ecfw {
 
 	/**
 	 * @brief A dynamically resizing container which allocates
-	 * memory in pages.
+	 * memory in fixed sized blocks.
 	 *
 	 * The purpose of this container is to serve as the default
 	 * storage implementation for components.
@@ -19,10 +19,10 @@ namespace ecfw {
 	 * functions for each.
 	 *  
 	 * @tparam T The type of element to store.
-	 * @tparam PageSize The number of elements stored in each page.
+	 * @tparam BlockSize The number of elements stored in each block.
 	 */
-	template <typename T, std::size_t PageSize = 4096>
-	class page_vector final {
+	template <typename T, std::size_t BlockSize = 4096>
+	class block_vector final {
 	public:
 
 		using value_type	= T;
@@ -34,20 +34,20 @@ namespace ecfw {
 		 * @brief Default constructor.
 		 * 
 		 */
-		page_vector() = default;
+		block_vector() = default;
 
 		/**
 		 * @brief Default move constructor
 		 * 
 		 */
-		page_vector(page_vector&&) = default;
+		block_vector(block_vector&&) = default;
 
 		/**
 		 * @brief Default move assignment operator.
 		 * 
 		 * @return *this.
 		 */
-		page_vector& operator=(page_vector&&) = default;
+		block_vector& operator=(block_vector&&) = default;
 
 		/**
 		 * @brief Access a specific element.
@@ -68,7 +68,7 @@ namespace ecfw {
 		 * @return A const pointer to a specific element.
 		 */
 		const_pointer at(size_type pos) const {
-			assert(m_pages[page(pos)]);
+			assert(m_blocks[block(pos)]);
 			return static_cast<const_pointer>(data(pos));
 		}
 
@@ -103,7 +103,7 @@ namespace ecfw {
 		 * @param pos The index to a specific element.
 		 */
 		void destroy(size_type pos) {
-			assert(m_pages[page(pos)]);
+			assert(m_blocks[block(pos)]);
 			static_cast<pointer>(data(pos))->~T();
 		}
 
@@ -116,7 +116,7 @@ namespace ecfw {
 		 * @return The number of elements.
 		 */
 		size_type size() const noexcept {
-			return std::size(m_pages) * page_size;
+			return std::size(m_blocks) * block_size;
 		}
 
 	private:
@@ -124,10 +124,10 @@ namespace ecfw {
 		using byte = unsigned char;
 
 		static constexpr size_type elem_size = sizeof(T);
-		static constexpr size_type page_size = PageSize;
-		static constexpr size_type page_size_bytes = elem_size * page_size;
+		static constexpr size_type block_size = BlockSize;
+		static constexpr size_type block_size_bytes = elem_size * block_size;
 
-		std::vector<std::unique_ptr<byte[]>> m_pages{};
+		std::vector<std::unique_ptr<byte[]>> m_blocks{};
 
 		/**
 		 * @brief Ensures the memory at the given index.
@@ -136,33 +136,33 @@ namespace ecfw {
 		 */
 		void ensure_memory_at(size_type pos) {
 			using std::make_unique;
-			size_type page_n = page(pos);
+			size_type block_n = block(pos);
 			if (pos >= size())
-				m_pages.resize(page_n + 1);
-			if (!m_pages[page_n])
-				m_pages[page_n] = 
-					make_unique<byte[]>(page_size_bytes);
+				m_blocks.resize(block_n + 1);
+			if (!m_blocks[block_n])
+				m_blocks[block_n] = 
+					make_unique<byte[]>(block_size_bytes);
 		}
 
 		/**
-		 * @brief Returns an index to a memory page.
+		 * @brief Returns an index to a memory block.
 		 *
-		 * @param pos An index to map to a memory page.
+		 * @param pos An index to map to a memory block.
 		 */
-		size_type page(size_type pos) const noexcept {
-			return pos / page_size;
+		size_type block(size_type pos) const noexcept {
+			return pos / block_size;
 		}
 
 		/**
-		 * @brief Returns a memory page offset.
+		 * @brief Returns a memory block offset.
 		 *
 		 * @param pos The index to offset.
 		 */
 		size_type offset(size_type pos) const noexcept {
-			if constexpr ((page_size & page_size - 1) == 0)
-				return (pos & page_size - 1) * elem_size;
+			if constexpr ((block_size & block_size - 1) == 0)
+				return (pos & block_size - 1) * elem_size;
 			else
-				return (pos % page_size) * elem_size;
+				return (pos % block_size) * elem_size;
 		}
 
 		/**
@@ -184,7 +184,7 @@ namespace ecfw {
 		 * @return A const void pointer to the elements data.
 		 */
 		const void* data(size_type pos) const {
-			return m_pages[page(pos)].get() + offset(pos);
+			return m_blocks[block(pos)].get() + offset(pos);
 		}
 
 	};

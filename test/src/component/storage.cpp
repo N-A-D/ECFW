@@ -17,7 +17,7 @@ namespace ecfw {
 }
 
 TEST(ComponentStorageTests, StorageDefinitionTests) {
-	ASSERT_TRUE((std::is_same_v<ecfw::storage_t<Component0>, ecfw::paged_vector<Component0>>));
-	ASSERT_FALSE((std::is_same_v<ecfw::storage_t<Component1>, ecfw::paged_vector<Component1>>));
+	ASSERT_TRUE((std::is_same_v<ecfw::storage_t<Component0>, ecfw::block_vector<Component0>>));
+	ASSERT_FALSE((std::is_same_v<ecfw::storage_t<Component1>, ecfw::block_vector<Component1>>));
 	ASSERT_TRUE((std::is_same_v<ecfw::storage_t<Component1>, AltStorage<Component1>>));
 }
