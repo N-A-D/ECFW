@@ -126,8 +126,6 @@ TEST(PageVectorTests, CustomBlockSizeInterfaceTests) {
 		ASSERT_EQ(element->m_state_ref.use_count(), state.use_count());
 	}
 
-	ASSERT_EQ(buffer0.size(), (limit / block_size + 1) * block_size);
-
 	// Test element destruction
 	for (auto i = 0; i != limit; ++i) {
 		buffer0.destroy(i);
