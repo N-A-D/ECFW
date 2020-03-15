@@ -6,14 +6,11 @@
 #include <cstdint>		 // uint32_t, uint64_t
 #include <utility>		 // exchange
 #include <unordered_map> // unordered_map
-#include <boost/hana.hpp>
-#include <bitset2/bitset2.hpp>
+#include <ecfw/aliases/bitset2.hpp>
+#include <ecfw/aliases/hana.hpp>
 #include <ecfw/fwd/unsigned.hpp>
 
 namespace ecfw { namespace detail {
-
-	namespace bs2  = Bitset2;
-	namespace hana = boost::hana;
 
 	template <std::size_t N>
 	using bitmask = bs2::bitset2<N>;
