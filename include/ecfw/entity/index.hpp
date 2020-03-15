@@ -46,7 +46,7 @@ namespace ecfw { namespace detail {
 	 * @tparam Xs An iterable sequence type.
 	 * @tparam Ys An iterable sequence type.
 	 * @param xs A sequence of types that is a subset of ys.
-	 * @param ys A sequence of types that is a supset set of xs.
+	 * @param ys A sequence of types that is a superset set of xs.
 	 * @return A bitmask whose active bits represent elements of the subset.
 	 */
 	template <typename Xs, typename Ys>
