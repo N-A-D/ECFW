@@ -3,6 +3,7 @@
 #include <vector>  // vector
 #include <memory>  // unique_ptr
 #include <cassert> // assert
+#include <ecfw/fwd/vector.hpp>
 
 namespace ecfw {
 
@@ -21,7 +22,7 @@ namespace ecfw {
 	 * @tparam T The type of element to store.
 	 * @tparam BlockSize The number of elements stored in each block.
 	 */
-	template <typename T, std::size_t BlockSize = 4096>
+	template <typename T, std::size_t BlockSize>
 	class block_vector final {
 	public:
 
