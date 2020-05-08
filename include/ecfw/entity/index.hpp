@@ -5,10 +5,12 @@
 #include <cassert>		 // assert
 #include <cstdint>		 // uint32_t, uint64_t
 #include <utility>		 // exchange
+#include <memory>		 // std::unique_ptr
 #include <unordered_map> // unordered_map
 #include <ecfw/aliases/bitset2.hpp>
 #include <ecfw/aliases/hana.hpp>
 #include <ecfw/fwd/unsigned.hpp>
+#include <ecfw/entity/entity.hpp>
 
 namespace ecfw { namespace detail {
 
@@ -37,7 +39,7 @@ namespace ecfw { namespace detail {
 	}
 	
 	/**
-	 * @brief Encodes a subset of a sequence as a bitmask.
+	 * @brief Encodes a subsequence as a bitmask.
 	 * 
 	 * The purpose of this function is to provide compile-time 
 	 * bitmasks that can be used to index entities based on the
@@ -70,12 +72,11 @@ namespace ecfw { namespace detail {
 	class sparse_set final {
 	public:
 
-		using container_type  = std::vector<u32>;
-		using size_type		  = u32;
-		using difference_type = typename container_type::difference_type;
-		using value_type	  = typename container_type::value_type;
-		using reference		  = typename container_type::const_reference;
-		using pointer		  = typename container_type::const_pointer;
+		using size_type		  = std::size_t;
+		using difference_type = std::ptrdiff_t;
+		using value_type	  = u64;
+		using reference		  = const u64&;
+		using pointer		  = const u64*;
 
 		/**
 		 * @brief Random access sparse set iterator.
@@ -302,8 +303,8 @@ namespace ecfw { namespace detail {
 				, m_it(it)
 			{}
 
-			const sparse_set* m_parent{ nullptr };
-			pointer m_it{ nullptr };
+			const sparse_set* m_parent{};
+			pointer m_it{};
 
 			/**
 			 * @brief Checks if *this is okay to use.
@@ -343,27 +344,14 @@ namespace ecfw { namespace detail {
 		~sparse_set() = default;
 
 		/**
-		 * @brief Default copy constructor.
-		 *
-		 */
-		sparse_set(const sparse_set&) = default;
-
-		/**
-		 * @brief Default copy assignment operator.
-		 *
-		 * @return *this.
-		 */
-		sparse_set& operator=(const sparse_set&) = default;
-
-		/**
 		 * @brief Move constructor.
 		 *
 		 * @param other The container to move from.
 		 */
 		sparse_set(sparse_set&& other)
-			: m_size{std::exchange(other.m_size, 0)}
-			, m_packed{std::move(other.m_packed)}
-			, m_sparse{std::move(other.m_sparse)}
+			: m_size{ std::exchange(other.m_size, 0) }
+			, m_packed{ std::move(other.m_packed) }
+			, m_sparse{ std::move(other.m_sparse) }
 		{}
 
 		/**
@@ -462,14 +450,32 @@ namespace ecfw { namespace detail {
 		 *
 		 * @param val The value to insert.
 		 */
-		void insert(value_type val) {
-			if (!contains(val)) {
-				if (val >= std::size(m_sparse))
-					m_sparse.resize(val + 1);
+		void insert(value_type eid) {
+			if (!contains(eid)) {
+				auto [_, i] = unpack_entity(eid);
+
+				// Resize the redirection table to accommodate
+				// the candidate's index if necessary
+				if (i >= std::size(m_sparse) * block_size)
+					m_sparse.resize(block(i) + 1);
+
+				// Resize the packed vector if it is at capacity
 				if (m_size >= std::size(m_packed))
 					m_packed.resize(m_size + 1);
-				m_sparse[val] = m_size;
-				m_packed[m_size] = val;
+
+				// The sparse vector resize will result in 
+				// uninitialized unique_ptrs. 
+				ensure_memory_at(i);
+
+				// Ensure the sparse vector points to the
+				// index of the new entity
+				m_sparse[block(i)][offset(i)] = m_size;
+
+				// Insert the new entity into the position
+				// the sparse vector thinks it's in
+				m_packed[m_size] = eid;
+
+				// Increment the number of stored entities
 				++m_size;
 			}
 		}
@@ -481,10 +487,21 @@ namespace ecfw { namespace detail {
 		 *
 		 * @param val The value to erase.
 		 */
-		void erase(value_type val) {
-			if (contains(val)) {
-				m_packed[m_sparse[val]] = m_packed[m_size - 1];
-				m_sparse[m_packed[m_size - 1]] = m_sparse[val];
+		void erase(value_type eid) {
+			if (contains(eid)) {
+				// Get the index portion of the entity to be removed
+				auto [v_old, i_old] = unpack_entity(eid);
+
+				// Get the index portion of the entity at the end
+				auto [v_new, i_new] = unpack_entity(m_packed[m_size - 1]);
+
+				// Swap the entity to be removed with the one at the end
+				m_packed[m_sparse[block(i_old)][offset(i_old)]] = m_packed[m_size - 1];
+
+				// Remap the pointer to the moved entity to ensure look up succeeds for it
+				m_sparse[block(i_new)][offset(i_new)] = m_sparse[block(i_old)][offset(i_old)];
+
+				// Decrement the number of stored entities
 				--m_size;
 			}
 		}
@@ -496,13 +513,17 @@ namespace ecfw { namespace detail {
 		 * @return true If the element is found in the set.
 		 * @return false otherwise.
 		 */
-		bool contains(value_type val) const {
-			return val < std::size(m_sparse)
-				&& m_sparse[val] < size()
-				&& m_packed[m_sparse[val]] == val;
+		bool contains(value_type eid) const {
+			auto [_, i] = unpack_entity(eid);
+			return i < std::size(m_sparse) * block_size  
+				&& m_sparse[block(i)][offset(i)] < size()
+				&& m_packed[m_sparse[block(i)][offset(i)]] == eid;
 		}
 
 	private:
+
+		// The number of indices per block
+		static constexpr std::size_t block_size = 32768;
 
 		/**
 		 * @brief Determines if a pointer fits within the sets range.
@@ -515,12 +536,48 @@ namespace ecfw { namespace detail {
 			return data() <= p && p <= data() + size();
 		}
 
-		size_type m_size{};
-		container_type m_packed{};
-		container_type m_sparse{};
-	};
+		/**
+		 * @brief Ensures the memory at  the given index is allocated.
+		 *
+		 * @param pos The index to accommodate.
+		 */
+		void ensure_memory_at(size_type pos) {
+			using std::make_unique;
 
-	template <typename Bitmask, typename ResultSet>
-	using index_map = std::unordered_map<Bitmask, ResultSet>;
+			size_type block_n = block(pos);
+			if (pos >= std::size(m_sparse) * block_size)
+				m_sparse.resize(block_n + 1);
+			if (!m_sparse[block_n])
+				m_sparse[block_n] = 
+					make_unique<u32[]>(block_size);
+		}
+
+		/**
+		 * @brief Returns an index to a memory block.
+		 *
+		 * @param pos An index to map to a memory block.
+		 */
+		size_type block(size_type pos) const noexcept {
+			return pos / block_size;
+		}
+
+		/**
+		 * @brief Returns a memory block offset.
+		 *
+		 * @param pos The index to offset.
+		 */
+		size_type offset(size_type pos) const noexcept {
+			return (pos & block_size - 1);
+		}
+
+		// The number of elements stored
+		size_type m_size{};
+
+		// Unordered collection of integers
+		std::vector<value_type> m_packed{};
+
+		// Redirection table. Entries are indices into m_packed
+		std::vector<std::unique_ptr<u32[]>> m_sparse{};
+	};
 
 } }

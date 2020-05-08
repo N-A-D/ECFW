@@ -32,52 +32,48 @@ TEST(EntityIndexTests, BitmaskGenerationTests) {
 }
 
 TEST(EntityIndexTests, SparseSetFunctionalityTests) {
-	std::vector<ecfw::u32> integers_with_duplicates = { 1, 2, 2, 3, 4, 5, 5, 5, 6, 6 };
-	std::vector<ecfw::u32> integers_without_duplicates = { 1, 2, 3, 4, 5, 6 };
+	std::vector<ecfw::u64> integers_with_duplicates = { 1, 2, 2, 3, 4, 5, 5, 5, 6, 6 };
+	std::vector<ecfw::u64> integers_without_duplicates = { 1, 2, 3, 4, 5, 6 };
 	sparse_set s0{};
 	ASSERT_TRUE(s0.empty());
 	for (auto integer : integers_with_duplicates) s0.insert(integer);
 
 	ASSERT_TRUE(std::equal(integers_without_duplicates.begin(), integers_without_duplicates.end(), s0.begin(), s0.end()));
 
-	sparse_set s1{ s0 };
-	ASSERT_EQ(s1.size(), s0.size());
+	sparse_set s1{ std::move(s0) };
 
-	sparse_set s2{ std::move(s1) };
-	ASSERT_TRUE(s1.empty());
-	ASSERT_EQ(s2.size(), s0.size());
+	ASSERT_EQ(s1.size(), integers_without_duplicates.size());
+	ASSERT_TRUE(s0.empty());
 
-	auto begin = s2.data();
-	auto end = s2.data() + s2.size();
+	ASSERT_TRUE(std::equal(s1.begin(), s1.end(), integers_without_duplicates.begin(), integers_without_duplicates.end()));
+	
+	for (auto integer : integers_without_duplicates)
+		ASSERT_TRUE(s1.contains(integer));
 
-	ASSERT_TRUE(std::equal(s0.begin(), s0.end(), begin, end));
-
-	for (auto integer : integers_with_duplicates) ASSERT_TRUE(s0.contains(integer));
-
-	auto integers = { 1, 6, 3, 4, 5 };
-	s0.erase(2);
-	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s0.begin(), s0.end()));
+	std::vector<ecfw::u64> integers = { 1, 6, 3, 4, 5 };
+	s1.erase(2);
+	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s1.begin(), s1.end()));
 
 	integers = { 1, 6, 3, 4 };
-	s0.erase(5);
-	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s0.begin(), s0.end()));
+	s1.erase(5);
+	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s1.begin(), s1.end()));
 
 	integers = { 4, 6, 3 };
-	s0.erase(1);
-	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s0.begin(), s0.end()));
+	s1.erase(1);
+	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s1.begin(), s1.end()));
 
 	integers = { 4, 3 };
-	s0.erase(6);
-	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s0.begin(), s0.end()));
+	s1.erase(6);
+	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s1.begin(), s1.end()));
 
 	integers = { 4 };
-	s0.erase(3);
-	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s0.begin(), s0.end()));
+	s1.erase(3);
+	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s1.begin(), s1.end()));
 }
 
 TEST(EntityIndexTests, SparseSetIteratorTests) {
 	sparse_set set{};
-	std::initializer_list<ecfw::u32> integers = { 1, 2, 3, 4, 5, 6 };
+	std::initializer_list<ecfw::u64> integers = { 1, 2, 3, 4, 5, 6 };
 	for (auto integer : integers) set.insert(integer);
 
 	auto it = set.begin();
