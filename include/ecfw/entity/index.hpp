@@ -463,7 +463,7 @@ namespace ecfw { namespace detail {
 				if (m_size >= std::size(m_packed))
 					m_packed.resize(m_size + 1);
 
-				// The sparse vector resize will result in 
+				// The sparse vector resize can result in 
 				// uninitialized unique_ptrs. 
 				ensure_memory_at(i);
 
