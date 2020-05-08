@@ -16,7 +16,7 @@ struct Element {
 	std::shared_ptr<bool> m_state_ref{};
 };
 
-TEST(PageVectorTests, DefaultBlockSizeInterfaceTests) {
+TEST(BlockVectorTests, DefaultBlockSizeInterfaceTests) {
 	using buffer_t0 = ecfw::block_vector<Element>;
 	std::shared_ptr<bool> state = std::make_shared<bool>(true);
 	const int limit = 65536;
@@ -98,7 +98,7 @@ TEST(PageVectorTests, DefaultBlockSizeInterfaceTests) {
 	ASSERT_EQ(state.use_count(), 1);
 }
 
-TEST(PageVectorTests, CustomBlockSizeInterfaceTests) {
+TEST(BlockVectorTests, CustomBlockSizeInterfaceTests) {
 	using buffer_t0 = ecfw::block_vector<Element, 1337>;
 	std::shared_ptr<bool> state = std::make_shared<bool>(true);
 	const int limit = 65536;
