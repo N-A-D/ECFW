@@ -32,8 +32,8 @@ TEST(EntityIndexTests, BitmaskGenerationTests) {
 }
 
 TEST(EntityIndexTests, SparseSetFunctionalityTests) {
-	std::vector<ecfw::u64> integers_with_duplicates = { 1, 2, 2, 3, 4, 5, 5, 5, 6, 6 };
-	std::vector<ecfw::u64> integers_without_duplicates = { 1, 2, 3, 4, 5, 6 };
+	std::vector<ecfw::u64> integers_with_duplicates = { 10, 200, 200, 3000, 40000, 50000, 50000, 50000, 600000, 600000 };
+	std::vector<ecfw::u64> integers_without_duplicates = { 10, 200, 3000, 40000, 50000, 600000 };
 	sparse_set s0{};
 	ASSERT_TRUE(s0.empty());
 	for (auto integer : integers_with_duplicates) s0.insert(integer);
@@ -50,24 +50,24 @@ TEST(EntityIndexTests, SparseSetFunctionalityTests) {
 	for (auto integer : integers_without_duplicates)
 		ASSERT_TRUE(s1.contains(integer));
 
-	std::vector<ecfw::u64> integers = { 1, 6, 3, 4, 5 };
-	s1.erase(2);
+	std::vector<ecfw::u64> integers = { 10, 600000, 3000, 40000, 50000 };
+	s1.erase(200);
 	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s1.begin(), s1.end()));
 
-	integers = { 1, 6, 3, 4 };
-	s1.erase(5);
+	integers = { 10, 600000, 3000, 40000 };
+	s1.erase(50000);
 	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s1.begin(), s1.end()));
 
-	integers = { 4, 6, 3 };
-	s1.erase(1);
+	integers = { 40000, 600000, 3000 };
+	s1.erase(10);
 	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s1.begin(), s1.end()));
 
-	integers = { 4, 3 };
-	s1.erase(6);
+	integers = { 40000, 3000 };
+	s1.erase(600000);
 	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s1.begin(), s1.end()));
 
-	integers = { 4 };
-	s1.erase(3);
+	integers = { 40000 };
+	s1.erase(3000);
 	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s1.begin(), s1.end()));
 }
 
