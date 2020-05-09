@@ -69,6 +69,22 @@ TEST(EntityIndexTests, SparseSetFunctionalityTests) {
 	integers = { 40000 };
 	s1.erase(3000);
 	ASSERT_TRUE(std::equal(integers.begin(), integers.end(), s1.begin(), s1.end()));
+
+	integers.pop_back();
+	s1.erase(40000);
+	ASSERT_TRUE(integers.empty());
+	ASSERT_TRUE(s1.empty());
+
+	integers = { 10, 600000, 3000, 40000, 50000 };
+	for (auto integer : integers) {
+		ASSERT_FALSE(s1.contains(integer));
+	}
+
+	for (auto rit = integers.rbegin(); rit != integers.rend(); ++rit) {
+		s1.insert(*rit);
+	}
+
+	ASSERT_TRUE(std::equal(integers.rbegin(), integers.rend(), s1.begin(), s1.end()));
 }
 
 TEST(EntityIndexTests, SparseSetIteratorTests) {
