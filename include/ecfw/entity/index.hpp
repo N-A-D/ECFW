@@ -3,7 +3,6 @@
 #include <vector>        // vector
 #include <iterator>		 // begin, data, size, reverse_iterator
 #include <cassert>		 // assert
-#include <cstdint>		 // uint32_t, uint64_t
 #include <utility>		 // exchange
 #include <memory>		 // std::unique_ptr
 #include <unordered_map> // unordered_map
@@ -64,10 +63,17 @@ namespace ecfw { namespace detail {
 	/**
 	 * @brief Sparse integer set
 	 *
-	 * A custom implementation of a sparse set.
+	 * A custom implementation to store entity ids. 
+	 * Functionally, this sparse set operates like a 
+	 * regular sparse set but retrieves the index of
+	 * an entity id when performing operations.
 	 *
-	 * Provides O(1) lookup + erase, amortized O(1) insert.
-	 *
+	 * The redirection table is stored as a vector of
+	 * fixed sized arrays. By doing this, we can reduce
+	 * the number of integers stored in the sparse vector.
+	 * However, worst case memory usage is still possible
+	 * when the sparsity of the set is 1 in 2^15.
+	 * 
 	 */
 	class sparse_set final {
 	public:
@@ -75,8 +81,8 @@ namespace ecfw { namespace detail {
 		using size_type		  = std::size_t;
 		using difference_type = std::ptrdiff_t;
 		using value_type	  = u64;
-		using reference		  = const u64&;
-		using pointer		  = const u64*;
+		using reference		  = const value_type&;
+		using pointer		  = const value_type*;
 
 		/**
 		 * @brief Random access sparse set iterator.
@@ -154,8 +160,6 @@ namespace ecfw { namespace detail {
 			/**
 			 * @brief Increments *this n times.
 			 *
-			 * @note Complexity: O(1).
-			 *
 			 * @param n The value to increment by.
 			 * @return *this
 			 */
@@ -201,8 +205,6 @@ namespace ecfw { namespace detail {
 
 			/**
 			 * @brief Decrements *this n times.
-			 *
-			 * @note Complexity: O(1).
 			 *
 			 * @param n The value to decrement by.
 			 * @return iterator&
@@ -450,9 +452,9 @@ namespace ecfw { namespace detail {
 		 *
 		 * @param val The value to insert.
 		 */
-		void insert(value_type eid) {
-			if (!contains(eid)) {
-				auto [_, i] = unpack_entity(eid);
+		void insert(value_type val) {
+			if (!contains(val)) {
+				auto [_, i] = unpack_entity(val);
 
 				// Resize the redirection table to accommodate
 				// the candidate's index if necessary
@@ -473,7 +475,7 @@ namespace ecfw { namespace detail {
 
 				// Insert the new entity into the position
 				// the sparse vector thinks it's in
-				m_packed[m_size] = eid;
+				m_packed[m_size] = val;
 
 				// Increment the number of stored entities
 				++m_size;
@@ -487,10 +489,10 @@ namespace ecfw { namespace detail {
 		 *
 		 * @param val The value to erase.
 		 */
-		void erase(value_type eid) {
-			if (contains(eid)) {
+		void erase(value_type val) {
+			if (contains(val)) {
 				// Get the index portion of the entity to be removed
-				auto [v_old, i_old] = unpack_entity(eid);
+				auto [v_old, i_old] = unpack_entity(val);
 
 				// Get the index portion of the entity at the end
 				auto [v_new, i_new] = unpack_entity(m_packed[m_size - 1]);
@@ -513,11 +515,11 @@ namespace ecfw { namespace detail {
 		 * @return true If the element is found in the set.
 		 * @return false otherwise.
 		 */
-		bool contains(value_type eid) const {
-			auto [_, i] = unpack_entity(eid);
+		bool contains(value_type val) const {
+			auto [_, i] = unpack_entity(val);
 			return i < std::size(m_sparse) * block_size  
 				&& m_sparse[block(i)][offset(i)] < size()
-				&& m_packed[m_sparse[block(i)][offset(i)]] == eid;
+				&& m_packed[m_sparse[block(i)][offset(i)]] == val;
 		}
 
 	private:
