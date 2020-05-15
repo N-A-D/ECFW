@@ -5,7 +5,6 @@
 #include <cassert>		 // assert
 #include <utility>		 // exchange
 #include <memory>		 // std::unique_ptr
-#include <unordered_map> // unordered_map
 #include <ecfw/aliases/bitset2.hpp>
 #include <ecfw/aliases/hana.hpp>
 #include <ecfw/fwd/unsigned.hpp>
