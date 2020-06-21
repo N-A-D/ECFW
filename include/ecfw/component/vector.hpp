@@ -22,8 +22,10 @@ namespace ecfw {
 	 * @tparam T The type of element to store.
 	 * @tparam BlockSize The number of elements stored in each block.
 	 */
-	template <typename T, std::size_t BlockSize>
-	class block_vector final {
+	template <
+		typename T, 
+		std::size_t BlockSize
+	> class block_vector final {
 	public:
 
 		using value_type	= T;

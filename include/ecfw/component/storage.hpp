@@ -48,12 +48,14 @@ namespace ecfw {
 	 * 
 	 * @tparam T The candidate component type.
 	 */
-	template <typename T>
-	struct storage {
+	template <
+		typename T
+	> struct storage {
 		using type = block_vector<T>;
 	};
 
-	template <typename T>
-	using storage_t = typename storage<T>::type;
+	template <
+		typename T
+	> using storage_t = typename storage<T>::type;
 
 }
