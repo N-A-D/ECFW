@@ -35,7 +35,7 @@ namespace ecfw { namespace detail {
 	}
 	
 	/**
-	 * @brief Encodes a subsequence as a bitmask.
+	 * @brief Encodes a subset as a bitmask.
 	 * 
 	 * The purpose of this function is to provide compile-time 
 	 * bitmasks that can be used to index entities based on the
