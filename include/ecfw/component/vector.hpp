@@ -55,7 +55,7 @@ namespace ecfw {
 		/**
 		 * @brief Access a specific element.
 		 *
-		 * @param pos The index of an element.
+		 * @param pos: The index to an element.
 		 * @return A pointer to a specific element.
 		 */
 		pointer at(size_type pos) {
@@ -67,8 +67,8 @@ namespace ecfw {
 		/**
 		 * @brief Access a specific element.
 		 *
-		 * @param pos The index of an element.
-		 * @return A const pointer to a specific element.
+		 * @param pos: The index to an element.
+		 * @return A const_pointer to a specific element.
 		 */
 		const_pointer at(size_type pos) const {
 			assert(m_blocks[block(pos)]);
@@ -78,14 +78,14 @@ namespace ecfw {
 		/**
 		 * @brief Inserts a new element in the vector.
 		 *
-		 * @note Inserting onto an existing element is undefined.
+		 * @note Inserting onto an existing element has undefined behaviour.
 		 *
 		 * @pre The index to insert into must point to an uninitialized
 		 * element.
 		 *
 		 * @tparam Args Component constructor argument types.
-		 * @param pos The index to a specific element.
-		 * @param args Component constructor argument values.
+		 * @param pos: The index to a specific element.
+		 * @param args: Component constructor argument values.
 		 * @return A pointer to the newly constructed element.
 		 */
 		template <typename... Args>
@@ -99,11 +99,11 @@ namespace ecfw {
 		/**
 		 * @brief Deletes an element.
 		 *
-		 * @note Deleting an uninitialized element is undefined.
+		 * @note Deleting an uninitialized element has undefined behaviour.
 		 *
 		 * @pre The specified element must be initialized.
 		 *
-		 * @param pos The index to a specific element.
+		 * @param pos: The index to a specific element.
 		 */
 		void destroy(size_type pos) {
 			assert(m_blocks[block(pos)]);
@@ -135,7 +135,7 @@ namespace ecfw {
 		/**
 		 * @brief Ensures the memory at  the given index is allocated.
 		 *
-		 * @param pos The index to accommodate.
+		 * @param pos: The index to accommodate.
 		 */
 		void ensure_memory_at(size_type pos) {
 			using std::make_unique;
@@ -150,7 +150,7 @@ namespace ecfw {
 		/**
 		 * @brief Returns an index to a memory block.
 		 *
-		 * @param pos An index to map to a memory block.
+		 * @param pos: An index to map to a memory block.
 		 */
 		size_type block(size_type pos) const noexcept {
 			return pos / block_size;
@@ -159,7 +159,7 @@ namespace ecfw {
 		/**
 		 * @brief Returns a memory block offset.
 		 *
-		 * @param pos The index to offset.
+		 * @param pos: The index to offset into a block.
 		 */
 		size_type offset(size_type pos) const noexcept {
 			if constexpr ((block_size & block_size - 1) == 0)
@@ -171,7 +171,7 @@ namespace ecfw {
 		/**
 		 * @brief Access a specific elements raw data.
 		 *
-		 * @param pos The index to a specific element.
+		 * @param pos: The index to a specific element.
 		 * @return A void pointer to the elements data.
 		 */
 		void* data(size_type pos) {
@@ -183,7 +183,7 @@ namespace ecfw {
 		/**
 		 * @brief Access a specific elements raw data.
 		 *
-		 * @param pos The index to a specific element.
+		 * @param pos: The index to a specific element.
 		 * @return A const void pointer to the elements data.
 		 */
 		const void* data(size_type pos) const {
