@@ -1,4 +1,4 @@
-﻿cmake_minimum_required (VERSION 3.8)
+﻿cmake_minimum_required (VERSION 3.17)
 
 project (ECFW)
 
@@ -17,6 +17,10 @@ target_include_directories(
     $<BUILD_INTERFACE:${ECFW_HEADER_PATH}>
     $<INSTALL_INTERFACE:include>
 )
+
+find_package(Boost 1.73.0 REQUIRED)
+target_link_libraries(${PROJECT_NAME} INTERFACE Boost::headers)
+cmake_policy(SET CMP0074 NEW)
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
