@@ -18,22 +18,9 @@
 namespace ecfw 
 {
  
-	/// <summary>
-	/// Heterogeneous object container.
-	/// </summary>
 	class world final {
 	public:
 
-		/// <summary>
-		/// Constructs a new entity, initialized with default 
-		/// constructed components if any are specified.
-		/// </summary>
-		/// <typeparam name="...Ts"> 
-		/// Component types to initialize the entity with. 
-		/// </typeparam>
-		/// <returns>
-		/// An entity identifier to the newly constructed entity.
-		/// </returns>
 		template <typename... Ts>
 		uint64_t create() {
 			using std::conjunction_v;
@@ -66,28 +53,12 @@ namespace ecfw
 			return entity;
 		}
 
-		/// <summary>
-		/// Constructs many entities, each initialized with default constructed
-		/// components if any are specified.
-		/// </summary>
-		/// <typeparam name="...Ts">
-		/// Component types to initialize the entities with.
-		/// </typeparam>
-		/// <typeparam name="OutIt">An output iterator type.</typeparam>
-		/// <param name="out"> An output iterator.</param>
-		/// <param name="n">The number of entities to create.</param>
 		template <typename... Ts, typename OutIt>
 		void create(OutIt out, size_t n) {
 			for (size_t i = 0; i != n; ++i)
 				*out++ = create<Ts...>();
 		}
 
-		/// <summary>
-		/// Constructs a new entity as a copy of another.
-		/// </summary>
-		/// <typeparam name="...Ts">Copyable component types.</typeparam>
-		/// <param name="original">The entity to copy from. </param>
-		/// <returns>An entity identifier to the newly constructed entity. </returns>
 		template <typename... Ts>
 		uint64_t clone(uint64_t original) {
 			using std::conjunction_v;
@@ -100,27 +71,12 @@ namespace ecfw
 			return entity;
 		}
 
-		/// <summary>
-		/// Constructs many entities as copies of another.
-		/// </summary>
-		/// <typeparam name="...Ts">Copyable component types.</typeparam>
-		/// <typeparam name="OutIt">An output iterator type.</typeparam>
-		/// <param name="original">The entity to copy.</param>
-		/// <param name="out">An output iterator.</param>
-		/// <param name="n">The number of entities to create.</param>
 		template <typename... Ts, typename OutIt>
 		void clone(uint64_t original, OutIt out, size_t n) {
 			for (size_t i = 0; i != n; ++i)
 				*out++ = clone<Ts...>(original);
 		}
 
-		/// <summary>
-		/// Checks if an entity belongs to the calling world.
-		/// </summary>
-		/// <param name="eid">The entity to check.</param>
-		/// <returns>
-		/// true if the entity belongs to this world, false otherwise.
-		/// </returns>
 		bool valid(uint64_t eid) const {
 			uint32_t idx = dtl::lsw(eid);
 			uint32_t ver = dtl::msw(eid);
@@ -165,28 +121,12 @@ namespace ecfw
 				group.erase(eid);
 		}
 
-		/// <summary>
-		/// Destroys a collection of entities.
-		/// </summary>
-		/// <typeparam name="InIt">An input iterator type.</typeparam>
-		/// <param name="first">The beginning of a sequence.</param>
-		/// <param name="last">One-past the end of a sequence.</param>
 		template <typename InIt>
 		void destroy(InIt first, InIt last) {
 			for (; first != last; ++first)
 				destroy(*first);
 		}
 
-		/// <summary>
-		/// Checks if an entity has any of the given component types.
-		/// </summary>
-		/// <typeparam name="...Ts">
-		/// The component types to check for.
-		/// </typeparam>
-		/// <param name="eid">The entity to check.</param>
-		/// <returns>
-		/// true if the entity as all of the components, false otherwise.
-		/// </returns>
 		template <typename... Ts>
 		bool has(uint64_t eid) const {
 			static_assert(sizeof...(Ts) > 0);
@@ -208,11 +148,6 @@ namespace ecfw
 				return (has<Ts>(eid) && ...);
 		}
 
-		/// <summary>
-		/// Removes components from an entity.
-		/// </summary>
-		/// <typeparam name="...Ts">The component types to remove.</typeparam>
-		/// <param name="eid">The entity to remove components from.</param>
 		template <typename... Ts>
 		void remove(uint64_t eid) {
 			assert(has<Ts...>(eid));
@@ -237,14 +172,6 @@ namespace ecfw
 				(remove<Ts>(eid), ...);
 		}
 
-		/// <summary>
-		/// Assigns a newly constructed component to an entity.
-		/// </summary>
-		/// <typeparam name="T">The component to assign.</typeparam>
-		/// <typeparam name="...Args">Constructor parameter types.</typeparam>
-		/// <param name="eid">The entity to assigned to.</param>
-		/// <param name="...args">Constructor parameters.</param>
-		/// <returns>A reference to newly assigned component.</returns>
 		template <typename T, typename... Args>
 		T& assign(uint64_t eid, Args&&... args) {
 			using std::make_unique;
@@ -314,21 +241,11 @@ namespace ecfw
 			return *data;
 		}
 
-		/// <summary>
-		/// Retrieves an entity's component(s).
-		/// If a single component type is given, returns a reference.
-		/// Otherwise, returns a tuple of references.
-		/// </summary>
-		/// <typeparam name="...Ts">The component types to retrieve.</typeparam>
-		/// <param name="eid">The entity to retrieve components for.</param>
-		/// <returns>
-		/// A reference to a single component or a tuple of references to components.
-		/// </returns>
 		template <typename... Ts>
 		decltype(auto) get(uint64_t eid) {
 			if constexpr (sizeof...(Ts) == 1) {
 				using std::as_const;
-				return const_cast<Ts&>(as_const(*this).get<Ts>(eid));
+				return (const_cast<Ts&>(as_const(*this).template get<Ts>(eid)), ...);
 			}
 			else {
 				using std::forward_as_tuple;
@@ -338,25 +255,14 @@ namespace ecfw
 			}
 		}
 
-		/// <summary>
-		/// Retrieves an entity's component(s).
-		/// If a single component type is given, returns a reference.
-		/// Otherwise, returns a tuple of references.
-		/// </summary>
-		/// <typeparam name="...Ts">The component types to retrieve.</typeparam>
-		/// <param name="eid">The entity to retrieve components for.</param>
-		/// <returns>
-		/// A reference to a single component or a tuple of references to components.
-		/// </returns>
 		template <typename... Ts>
 		decltype(auto) get(uint64_t eid) const {
 			assert(has<Ts...>(eid));
-			uint32_t idx = dtl::lsw(eid);
 			if constexpr (sizeof...(Ts) == 1) {
 				uint32_t idx = dtl::lsw(eid);
-				size_t type_id = dtl::type_index_v<Ts>;
-				return *static_cast<Ts*>(
-							m_buffers[type_id]->data(idx));
+				size_t type_id = (dtl::type_index_v<Ts>, ...);
+				return (*static_cast<Ts*>(
+							m_buffers[type_id]->data(idx)), ...);
 			}
 			else {
 				using std::forward_as_tuple;
@@ -366,58 +272,13 @@ namespace ecfw
 			}
 		}
 
-		/// <summary>
-		/// Returns the number of active entities.
-		/// If any components are given, the returned value indicates the
-		/// number of entities which have each of the given components.
-		/// </summary>
-		/// <typeparam name="...Ts">The component types to check for.</typeparam>
-		/// <returns>
-		/// The number of active entities in the world 
-		/// or the number of entities that have each of the given component types.
-		/// </returns>
-		template <typename... Ts>
 		size_t size() const {
-			if constexpr (sizeof...(Ts) > 0) {
-				size_t count = 0;
-				uint32_t size = static_cast<uint32_t>(m_versions.size());
-				for (uint32_t idx = 0; idx != size; ++idx) {
-					uint64_t entity = dtl::concat(m_versions[idx], idx);
-					if (has<Ts...>(entity))
-						++count;
-				}
-				return count;
-			}
-			else {
-				return static_cast<size_t>(m_versions.size()) 
-					- static_cast<size_t>(m_free_list.size());
-			}
+			return static_cast<size_t>(m_versions.size())
+				- static_cast<size_t>(m_free_list.size());
 		}
 
-		/// <summary>
-		/// Checks if there are any active entities.
-		/// If any components are given, the returned value indicates that
-		/// there exists entities which have each of the given components.
-		/// </summary>
-		/// <typeparam name="...Ts">The component types to check.</typeparam>
-		/// <returns>
-		/// true if there are any active entities, or if there are 
-		/// active entities which have all of the given components. Otherwise false.
-		/// </returns>
-		template <typename... Ts>
-		bool empty() const {
-			if constexpr (sizeof...(Ts) > 0) {
-				auto type_ids{ dtl::type_index_v<Ts>... };
-				return std::all_of(
-					type_ids.begin(), 
-					type_ids.end(), 
-					[this](auto type_id) {
-						return m_buffer_metadata[type_id].any();
-					}
-				);
-			}
-			else
-				return size() == 0;
+		bool empty() const noexcept {
+			return size() == 0;
 		}
 
 		template <typename... Ts>
@@ -425,15 +286,6 @@ namespace ecfw
 
 		template <typename... Ts>
 		ecfw::view<Ts...> select() const;
-	
-		/*
-			ecfw::view<const Transform, const Render> renderable_view = 
-				world.select<const Transform, const Render>();
-			...
-			for (auto&& [transform, render] : renderable_view) {
-				
-			}
-		*/
 
 	private:
 
