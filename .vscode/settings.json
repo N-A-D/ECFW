@@ -1,0 +1,6 @@
+{
+    "cmake.generator": "Ninja",
+    "cmake.buildDirectory": "${workspaceFolder}/build/${buildType}",
+    "cmake.installPrefix": "${workspaceFolder}/install/${buildType}",
+    "cmake.configureSettings": { "BUILD_ECFW_TESTS": "TRUE" },
+}
