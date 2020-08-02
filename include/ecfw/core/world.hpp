@@ -303,7 +303,7 @@ namespace ecfw
 			assert(largest_type_id < m_buffer_metadata.size());
 
 			// Build the filter in order to find an existing group or to create one.
-			boost::dynamic_bitset<> filter(largest_type_id);
+			boost::dynamic_bitset<> filter(largest_type_id + 1);
 			for (auto type_id : type_ids)
 				filter.set(type_id);
 
