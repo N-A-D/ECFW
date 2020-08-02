@@ -1,19 +1,19 @@
 #pragma once
 
-#include <map>          // map
-#include <tuple>		// tuple, get, forward_as_tuple
-#include <stack>		// stack
-#include <vector>		// vector
-#include <cassert>		// assert
-#include <algorithm>    // generate_n, all_of
-#include <type_traits>	// conjunction, is_default_constructible, as_const, is_constructible
+#include <tuple>		  // tuple, get, forward_as_tuple
+#include <stack>		  // stack
+#include <vector>		  // vector
+#include <cassert>		  // assert
+#include <algorithm>      // generate_n, all_of
+#include <type_traits>	  // conjunction, is_default_constructible, as_const, is_constructible
+#include <unordered_map>  // unordered_map
+#include <boost/dynamic_bitset.hpp> // dynamic_bitset
 #include <ecfw/core/view.hpp>
 #include <ecfw/detail/buffer.hpp>
 #include <ecfw/detail/integers.hpp>
 #include <ecfw/detail/sparse_set.hpp>
 #include <ecfw/detail/type_index.hpp>
 #include <ecfw/detail/type_traits.hpp>
-#include <ecfw/detail/dynamic_bitset.hpp>
 
 namespace ecfw 
 {
@@ -66,7 +66,7 @@ namespace ecfw
 
 			static_assert(conjunction_v<is_copy_constructible<Ts>...>);
 
-			uint64_t entity = create<T, Ts...>();
+			uint64_t entity = create<Ts...>();
 			(assign<Ts>(entity, get<Ts>(original)), ...);
 			return entity;
 		}
@@ -84,10 +84,6 @@ namespace ecfw
 				&& m_versions[idx] == ver;
 		}
 
-		/// <summary>
-		/// Removes an entity from the calling world.
-		/// </summary>
-		/// <param name="eid">The entity to remove.</param>
 		void destroy(uint64_t eid) {
 			assert(valid(eid));
 			
@@ -134,7 +130,7 @@ namespace ecfw
 			assert(valid(eid));
 			if constexpr (sizeof...(Ts) == 1) {
 				uint32_t idx = dtl::lsw(eid);
-				size_t type_id = dtl::type_index_v<Ts>;
+				size_t type_id = (dtl::type_index_v<Ts>, ...);
 
 				// Ensure that we're dealing with a component which has
 				// been assigned to an entity before.
@@ -154,7 +150,7 @@ namespace ecfw
 
 			if constexpr (sizeof...(Ts) == 1) {
 				uint32_t idx = dtl::lsw(eid);
-				size_t type_id = dtl::type_index_v<Ts>;
+				size_t type_id = (dtl::type_index_v<Ts>, ...);
 
 				// Remove component metadata for the entity.
 				m_buffer_metadata[type_id].reset(idx);
@@ -307,7 +303,7 @@ namespace ecfw
 			assert(largest_type_id < m_buffer_metadata.size());
 
 			// Build the filter in order to find an existing group or to create one.
-			dynamic_bitset<> filter(largest_type_id);
+			boost::dynamic_bitset<> filter(largest_type_id);
 			for (auto type_id : type_ids)
 				filter.set(type_id);
 
@@ -345,14 +341,14 @@ namespace ecfw
 
 		// Component metadata; one bitset for each component type.
 		// Space is only allocated in each bitset upon component assignment.
-		std::vector<dynamic_bitset<>> m_buffer_metadata{};
+		std::vector<boost::dynamic_bitset<>> m_buffer_metadata{};
 
 		// Component data. Data is only allocated when assigned.
 		std::vector<std::unique_ptr<dtl::base_buffer>> m_buffers{};
 
 		// Filtered groups of entities. Each filter represents a common
 		// set of components owned by each of the group's entities.
-		mutable std::map<dynamic_bitset<>, dtl::sparse_set> m_groups{};
+		mutable std::unordered_map<boost::dynamic_bitset<>, dtl::sparse_set> m_groups{};
 
 	};
 
