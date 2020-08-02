@@ -202,10 +202,10 @@ namespace ecfw
 			T* data = static_cast<T*>(m_buffers[type_id]->data(idx));
 			::new (data) T(std::forward<Args>(args)...);
 
-			// Add the entity to newly applicable groups.
+			// Add the entity to all newly applicable groups.
 			// Each time an entity is assigned a new component, it must
 			// be added to any existing group which shares a common set
-			// of components. This is to ensure that the applicable views
+			// of components to ensure that the applicable views
 			// automatically pick up the entity.
 			for (auto& [filter, group] : m_groups) {
 				// Skip groups which already contain this entity.
