@@ -1,12 +1,12 @@
 #pragma once
 
-#include <tuple>		  // tuple, get, forward_as_tuple
-#include <stack>		  // stack
-#include <vector>		  // vector
-#include <cassert>		  // assert
-#include <algorithm>      // generate_n, all_of
-#include <type_traits>	  // conjunction, is_default_constructible, as_const, is_constructible
-#include <unordered_map>  // unordered_map
+#include <tuple>		  			// tuple, get, forward_as_tuple
+#include <stack>		  			// stack
+#include <vector>		  			// vector
+#include <cassert>		  			// assert
+#include <algorithm>      			// generate_n, all_of
+#include <type_traits>	  			// conjunction, is_default_constructible, as_const, is_constructible
+#include <unordered_map>  			// unordered_map
 #include <boost/dynamic_bitset.hpp> // dynamic_bitset
 #include <ecfw/core/view.hpp>
 #include <ecfw/detail/buffer.hpp>
@@ -336,18 +336,21 @@ namespace ecfw
 		// indicate entities that can be reused when making new entities.
 		std::stack<uint32_t, std::vector<uint32_t>> m_free_list{};
 
-		// Collection of entity versions, representing their current states.
+		// Collection of entity versions.
 		std::vector<uint32_t> m_versions{};
 
 		// Component metadata; one bitset for each component type.
-		// Space is only allocated in each bitset upon component assignment.
+		// A bitset is only allocated when it is first assigned to an entity.
+		// Moreover, only enough space is allocated within a bitset to accommodate
+		// the entity to which it is first assigned, not for all currently possible
+		// entities.
 		std::vector<boost::dynamic_bitset<>> m_buffer_metadata{};
 
-		// Component data. Data is only allocated when assigned.
+		// Component data. space is allocated similarly to the buffer metadata.
 		std::vector<std::unique_ptr<dtl::base_buffer>> m_buffers{};
 
 		// Filtered groups of entities. Each filter represents a common
-		// set of components owned by each of the group's entities.
+		// set of components each of the entities in the group must possess.
 		mutable std::unordered_map<boost::dynamic_bitset<>, dtl::sparse_set> m_groups{};
 
 	};
