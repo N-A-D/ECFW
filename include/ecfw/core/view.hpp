@@ -36,11 +36,11 @@ namespace ecfw
 			return m_entities->end();
 		}
 
-		const_iterator rbegin() const noexcept {
+		const_reverse_iterator rbegin() const noexcept {
 			return m_entities->rbegin();
 		}
 
-		const_iterator rend() const noexcept {
+		const_reverse_iterator rend() const noexcept {
 			return m_entities->rend();
 		}
 
@@ -86,11 +86,11 @@ namespace ecfw
 			return m_entities->end();
 		}
 
-		const_iterator rbegin() const noexcept {
+		const_reverse_iterator rbegin() const noexcept {
 			return m_entities->rbegin();
 		}
 
-		const_iterator rend() const noexcept {
+		const_reverse_iterator rend() const noexcept {
 			return m_entities->rend();
 		}
 
