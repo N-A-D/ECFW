@@ -12,11 +12,11 @@ namespace detail {
 	template <typename T>
 	constexpr auto type_v = type<T>{};
 
-	template <typename T, typename... Ts>
-	using type_list = boost::hana::tuple<boost::hana::basic_type<T>, boost::hana::basic_type<Ts>...>;
+	template <typename... Ts>
+	using type_list = boost::hana::tuple<boost::hana::basic_type<Ts>...>;
 
-	template <typename T, typename... Ts>
-	constexpr auto type_list_v = type_list<T, Ts...>{};
+	template <typename... Ts>
+	constexpr auto type_list_v = type_list<Ts...>{};
 
 } // namespace detail
 } // namespace ecfw
