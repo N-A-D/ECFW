@@ -5,164 +5,275 @@
 
 using sparse_set = ecfw::detail::sparse_set;
 
-TEST(sparse_set, interface)
-{
-	// Default construction
-	sparse_set s{};
-	ASSERT_TRUE(s.empty());
-	ASSERT_EQ(s.size(), 0);
+TEST(sparse_set, nonexisting_element_insertion) {
+	sparse_set ss{};
 
 	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
-	std::vector<uint64_t> nonexistent_data{ 14999, 30001, 44999, 60001, 74999, 90001, 105001 };
 
 	std::mt19937 gen{ std::random_device{}() };
 	std::shuffle(data.begin(), data.end(), gen);
 
-	// Test sparse_set::insert
-	// Insert unique items
 	for (auto item : data)
-		s.insert(item);
-	ASSERT_FALSE(s.empty());
-	ASSERT_EQ(s.size(), data.size());
+		ss.insert(item);
 
-	// Try to reinsert existing items
-	for (auto item : data)
-		s.insert(item);
-	ASSERT_FALSE(s.empty());
-	ASSERT_EQ(s.size(), data.size());
-
-	// Test sparse_set::contains
-	// Check if the set contains the original data
-	std::shuffle(data.begin(), data.end(), gen);
-	for (auto item : data)
-		ASSERT_TRUE(s.contains(item));
-
-	// Check if the set contains non existent data
-	for (auto item : nonexistent_data)
-		ASSERT_FALSE(s.contains(item));
-
-	// Test sparse_set::data
-	auto raw_storage = s.data();
-	std::ptrdiff_t length = static_cast<std::ptrdiff_t>(s.size());
-	std::set<uint64_t> std_set{ data.begin(), data.end() };
-	// Check that what's in the raw_storage can be found in the original data set
-	for (auto i = 0; i != length; ++i)
-		ASSERT_TRUE(std_set.find(raw_storage[i]) != std_set.end());
-	// Check that each item in the original data set is in the set's storage
-	for (auto i = std_set.begin(); i != std_set.end(); ++i) {
-		ASSERT_NE(std::find(raw_storage, raw_storage + length, *i), raw_storage + length);
-	}
-
-	// Test sparse_set::erase
-	// Try to erase nonexistent data
-	for (auto item : nonexistent_data)
-		s.erase(item);
-	ASSERT_FALSE(s.empty());
-	ASSERT_EQ(s.size(), data.size());
-
-	// Erase existing data. Ensure that all 'erased' data remains erased and that
-	// all data not erased yet remains locatable in the set
-	std::shuffle(data.begin(), data.end(), gen);
-	for (std::ptrdiff_t i = 0; i < length; ++i) {
-		s.erase(data[i]);
-		for (std::ptrdiff_t j = i; j >= 0; --j)
-			ASSERT_FALSE(s.contains(data[j]));
-		for (std::ptrdiff_t j = i + 1; j < length; ++j)
-			ASSERT_TRUE(s.contains(data[j]));
-		ASSERT_EQ(s.size(), data.size() - i - 1);
-	}
-	ASSERT_TRUE(s.empty());
-
-	// Test sparse_set::clear
-	for (auto item : data)
-		s.insert(item);
-	ASSERT_TRUE(!s.empty());
-	ASSERT_EQ(s.size(), data.size());
-	s.clear();
-	ASSERT_TRUE(s.empty());
-	ASSERT_EQ(s.size(), 0);
-	for (auto item : data)
-		ASSERT_FALSE(s.contains(item));
-
-	std::shuffle(data.begin(), data.end(), gen);
-	for (auto item : data)
-		s.insert(item);
-	ASSERT_FALSE(s.empty());
-	ASSERT_EQ(s.size(), data.size());
-
-	// Move construction
-	sparse_set theif_by_construction{ std::move(s) };
-	ASSERT_FALSE(theif_by_construction.empty());
-	ASSERT_EQ(theif_by_construction.size(), data.size());
-	ASSERT_TRUE(s.empty());
-	ASSERT_EQ(s.size(), 0);
-
-	for (auto item : data)
-		ASSERT_TRUE(theif_by_construction.contains(item));
-
-	// Move assignment
-	s = std::move(theif_by_construction);
-	ASSERT_TRUE(theif_by_construction.empty());
-	ASSERT_EQ(theif_by_construction.size(), 0);
-	ASSERT_FALSE(s.empty());
-	ASSERT_EQ(s.size(), data.size());
+	ASSERT_TRUE(std::all_of(data.begin(), data.end(), [&ss](auto item) { return ss.contains(item); }));
+	ASSERT_TRUE(std::equal(data.begin(), data.end(), ss.begin(), ss.end()));
+	ASSERT_EQ(ss.size(), data.size());
+	ASSERT_FALSE(ss.empty());
+	
 }
 
-TEST(sparse_set, iterator)
-{
-	using iterator_t = sparse_set::iterator;
-	using vi_t = std::vector<uint64_t>::iterator;
+TEST(sparse_set, existing_element_reinsertion) {
+	sparse_set ss{};
 
-	sparse_set s{};
-	std::vector<uint64_t> data{ 60000, 75000, 15000, 30000, 90000, 105000, 45000 };
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+
+	std::mt19937 gen{ std::random_device{}() };
+	std::shuffle(data.begin(), data.end(), gen);
+
 	for (auto item : data)
-		s.insert(item);
+		ss.insert(item);
 
-	ASSERT_TRUE(std::equal(data.begin(), data.end(), s.begin(), s.end()));
-	ASSERT_TRUE(std::equal(data.rbegin(), data.rend(), s.rbegin(), s.rend()));
+	ASSERT_TRUE(std::all_of(data.begin(), data.end(), [&ss](auto item) { return ss.contains(item); }));
+	ASSERT_TRUE(std::equal(data.begin(), data.end(), ss.begin(), ss.end()));
+	ASSERT_EQ(ss.size(), data.size());
+	ASSERT_FALSE(ss.empty());
 
-	ASSERT_EQ(data.end() - data.begin(), s.end() - s.begin());
+	for (auto item : data)
+		ss.insert(item);
 
-	iterator_t it = s.begin();
-	vi_t invariant = data.begin();
+	ASSERT_TRUE(std::all_of(data.begin(), data.end(), [&ss](auto item) { return ss.contains(item); }));
+	ASSERT_TRUE(std::equal(data.begin(), data.end(), ss.begin(), ss.end()));
+	ASSERT_EQ(ss.size(), data.size());
+	ASSERT_FALSE(ss.empty());
+}
 
-	ASSERT_EQ(*it, *invariant);
-	ASSERT_EQ(*it++, *invariant++);
-	ASSERT_EQ(*it, *invariant);
-	ASSERT_EQ(*++it, *++invariant);
-	ASSERT_EQ(*(it += 2), *(invariant += 2));
-	ASSERT_EQ(*(it + 2), *(it + 2));
-	ASSERT_EQ(*it--, *invariant--);
-	ASSERT_EQ(*it, *invariant);
-	ASSERT_EQ(*--it, *--invariant);
-	ASSERT_EQ(*(it -= 1), *(invariant -= 1));
-	ASSERT_EQ(*(it - 1), *(invariant - 1));
+TEST(sparse_set, existing_element_removal) {
+	sparse_set ss{};
 
-	ASSERT_LT(s.begin(), s.end());
-	ASSERT_LE(s.begin(), s.begin());
-	ASSERT_GT(s.begin() + 1, s.begin());
-	ASSERT_GE(s.begin(), s.begin());
-	ASSERT_EQ(s.begin(), s.begin());
-	ASSERT_EQ(s.end(), s.end());
-	ASSERT_NE(s.begin(), s.end());
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
 
-	for (auto i = 0; i < data.size() - 1; ++i) {
-		ASSERT_LT(s.begin() + i, s.end());
-		ASSERT_GT(s.end(), s.begin() + i);
-	}
+	std::mt19937 gen{ std::random_device{}() };
+	std::shuffle(data.begin(), data.end(), gen);
 
-	for (auto i = 0; i < data.size(); ++i) {
-		ASSERT_LE(s.begin() + i, s.end());
-		ASSERT_GE(s.end(), s.begin() + i);
-	}
+	for (auto item : data)
+		ss.insert(item);
 
-	for (std::ptrdiff_t i = data.size() - 1; i > 0; --i) {
-		ASSERT_GT(s.end() - i, s.begin());
-		ASSERT_LT(s.begin(), s.end() - i);
-	}
+	ASSERT_TRUE(std::all_of(data.begin(), data.end(), [&ss](auto item) { return ss.contains(item); }));
+	ASSERT_TRUE(std::equal(data.begin(), data.end(), ss.begin(), ss.end()));
+	ASSERT_EQ(ss.size(), data.size());
+	ASSERT_FALSE(ss.empty());
 
-	for (std::ptrdiff_t i = data.size() - 1; i >= 0; --i) {
-		ASSERT_GE(s.end() - i, s.begin());
-		ASSERT_LE(s.begin(), s.end() - i);
-	}
+	for (auto item : data)
+		ss.erase(item);
+
+	ASSERT_EQ(ss.size(), 0);
+	ASSERT_TRUE(ss.empty());
+	ASSERT_FALSE(std::all_of(data.begin(), data.end(), [&ss](auto item) { return ss.contains(item); }));
+}
+
+TEST(sparse_set, nonexisting_element_removal) {
+	sparse_set ss{};
+
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+
+	std::mt19937 gen{ std::random_device{}() };
+	std::shuffle(data.begin(), data.end(), gen);
+
+	for (auto item : data)
+		ss.insert(item);
+
+	ASSERT_TRUE(std::all_of(data.begin(), data.end(), [&ss](auto item) { return ss.contains(item); }));
+	ASSERT_TRUE(std::equal(data.begin(), data.end(), ss.begin(), ss.end()));
+	ASSERT_EQ(ss.size(), data.size());
+	ASSERT_FALSE(ss.empty());
+
+	std::vector<uint64_t> nonexistent_data{ 14999, 30001, 44999, 60001, 74999, 90001, 105001 };
+	
+	ASSERT_FALSE(std::all_of(nonexistent_data.begin(), nonexistent_data.end(), [&ss](auto item) { return ss.contains(item); }));
+
+	for (auto item : nonexistent_data)
+		ss.erase(item);
+
+	ASSERT_TRUE(std::all_of(data.begin(), data.end(), [&ss](auto item) { return ss.contains(item); }));
+	ASSERT_TRUE(std::equal(data.begin(), data.end(), ss.begin(), ss.end()));
+	ASSERT_EQ(ss.size(), data.size());
+	ASSERT_FALSE(ss.empty());
+
+	for (auto item : nonexistent_data)
+		ASSERT_FALSE(ss.contains(item));
+	ASSERT_FALSE(std::all_of(nonexistent_data.begin(), nonexistent_data.end(), [&ss](auto item) { return ss.contains(item); }));
+}
+
+TEST(sparse_set, iterator_pre_increment) {
+	sparse_set ss{};
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+	for (auto item : data)
+		ss.insert(item);
+
+	auto invariant_it = data.begin();
+	auto candidate_it = ss.begin();
+
+	++invariant_it;
+	++candidate_it;
+
+	ASSERT_EQ(*invariant_it, *candidate_it);
+}
+
+TEST(sparse_set, iterator_post_increment) {
+	sparse_set ss{};
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+	for (auto item : data)
+		ss.insert(item);
+
+	auto invariant_it = data.begin();
+	auto candidate_it = ss.begin();
+
+	invariant_it++;
+	candidate_it++;
+
+	ASSERT_EQ(*invariant_it, *candidate_it);
+}
+
+TEST(sparse_set, iterator_pre_decrement) {
+	sparse_set ss{};
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+	for (auto item : data)
+		ss.insert(item);
+
+	auto invariant_it = data.end();
+	auto candidate_it = ss.end();
+
+	--invariant_it;
+	--candidate_it;
+
+	ASSERT_EQ(*invariant_it, *candidate_it);
+}
+
+TEST(sparse_set, iterator_post_decrement) {
+	sparse_set ss{};
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+	for (auto item : data)
+		ss.insert(item);
+	auto invariant_it = data.begin();
+	auto candidate_it = ss.begin();
+
+	++invariant_it;
+	++candidate_it;
+	ASSERT_EQ(*invariant_it, *candidate_it);
+
+	invariant_it--;
+	candidate_it--;
+
+	ASSERT_EQ(*invariant_it, *candidate_it);
+}
+
+TEST(sparse_set, iterator_compound_addition_assignment) {
+	sparse_set ss{};
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+	for (auto item : data)
+		ss.insert(item);
+	auto invariant_it = data.begin();
+	auto candidate_it = ss.begin();
+
+	invariant_it += 2;
+	candidate_it += 2;
+
+	ASSERT_EQ(*invariant_it, *candidate_it);
+}
+
+TEST(sparse_set, iterator_compound_subtraction_assignment) {
+	sparse_set ss{};
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+	for (auto item : data)
+		ss.insert(item);
+	auto invariant_it = data.end();
+	auto candidate_it = ss.end();
+
+	invariant_it -= 2;
+	candidate_it -= 2;
+
+	ASSERT_EQ(*invariant_it, *candidate_it);
+}
+
+TEST(sparse_set, iterator_addition) {
+	sparse_set ss{};
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+	for (auto item : data)
+		ss.insert(item);
+	auto invariant_it = data.begin();
+	auto candidate_it = ss.begin();
+
+	ASSERT_EQ(*(invariant_it + 2), *(candidate_it + 2));
+}
+
+TEST(sparse_set, iterator_subtraction) {
+	sparse_set ss{};
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+	for (auto item : data)
+		ss.insert(item);
+	auto invariant_it = data.end();
+	auto candidate_it = ss.end();
+
+	ASSERT_EQ(*(invariant_it - 2), *(candidate_it - 2));
+}
+
+TEST(sparse_set, iterator_equals) {
+	sparse_set ss{};
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+	for (auto item : data)
+		ss.insert(item);
+
+	ASSERT_EQ(ss.begin(), ss.begin());
+	ASSERT_EQ(ss.end(), ss.end());
+}
+
+TEST(sparse_set, iterator_not_equals) {
+	sparse_set ss{};
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+	for (auto item : data)
+		ss.insert(item);
+
+	ASSERT_NE(ss.begin(), ss.end());
+	ASSERT_NE(ss.begin(), ss.begin() + 1);
+}
+
+TEST(sparse_set, iterator_less_than) {
+	sparse_set ss{};
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+	for (auto item : data)
+		ss.insert(item);
+	ASSERT_LT(ss.begin(), ss.begin() + 1);
+	ASSERT_LT(ss.begin(), ss.end());
+}
+
+TEST(sparse_set, iteraor_less_than_or_equal_to) {
+	sparse_set ss{};
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+	for (auto item : data)
+		ss.insert(item);
+	ASSERT_LE(ss.begin(), ss.begin());
+	ASSERT_LE(ss.begin(), ss.begin() + 1);
+	ASSERT_LE(ss.begin(), ss.end());
+}
+
+TEST(sparse_set, iterator_greater_than) {
+	sparse_set ss{};
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+	for (auto item : data)
+		ss.insert(item);
+
+	ASSERT_GT(ss.end(), ss.begin());
+	ASSERT_GT(ss.end(), ss.end() - 1);
+}
+
+TEST(sparse_set, iterator_greater_than_or_equal_to) {
+	sparse_set ss{};
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+	for (auto item : data)
+		ss.insert(item);
+
+	ASSERT_GE(ss.end(), ss.end());
+	ASSERT_GE(ss.end(), ss.begin());
+	ASSERT_GE(ss.end(), ss.end() - 1);
 }
