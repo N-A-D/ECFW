@@ -1051,7 +1051,7 @@ TEST(world, component_retrieval) {
     ecfw::world world{};
     auto entity = world.create<C0, C1>();
 
-    auto& [c0, c1] = world.get<C0, C1>(entity);
+    auto&& [c0, c1] = world.get<C0, C1>(entity);
     ASSERT_FALSE(c0);
     ASSERT_FALSE(c1);
 
@@ -1445,13 +1445,13 @@ TEST(multi_component_view, component_retrieval) {
     auto entity = world.create<B0, B1, B2>();
     auto view = world.view<B0, B1, B2>();
 
-    auto& [b0, b1, b2] = view.get(entity);
+    auto&& [b0, b1, b2] = view.get(entity);
     ASSERT_FALSE(b0);
     ASSERT_FALSE(b1);
     ASSERT_FALSE(b2);
     ASSERT_FALSE(view.get<B0>(entity));
     ASSERT_FALSE(view.get<B1>(entity));
-    auto& [bb1, bb2] = view.get<B1, B2>(entity);
+    auto&& [bb1, bb2] = view.get<B1, B2>(entity);
     ASSERT_FALSE(bb1);
     ASSERT_FALSE(bb2);
 }
@@ -1479,7 +1479,7 @@ TEST(multi_component_view, sequential_forward_iteration) {
 
     // Update the value of the component
     for (auto entity : view) {
-        auto& [b0, b1, b2] = view.get(entity);
+        auto&& [b0, b1, b2] = view.get(entity);
         ASSERT_FALSE(b0);
         ASSERT_FALSE(b1);
         ASSERT_FALSE(b2);
@@ -1520,7 +1520,7 @@ TEST(multi_component_view, sequential_reverse_iteration) {
 
     // Update the value of the component
     for (auto entity : boost::adaptors::reverse(view)) {
-        auto& [b0, b1, b2] = view.get(entity);
+        auto&& [b0, b1, b2] = view.get(entity);
         ASSERT_FALSE(b0);
         ASSERT_FALSE(b1);
         ASSERT_FALSE(b2);
@@ -1561,7 +1561,7 @@ TEST(multi_component_view, parallel_forward_iteration) {
 
     // Update the value of the component
     std::for_each(std::execution::par, view.begin(), view.end(), [&view](auto entity){
-        auto& [b0, b1, b2] = view.get(entity);
+        auto&& [b0, b1, b2] = view.get(entity);
         ASSERT_FALSE(b0);
         ASSERT_FALSE(b1);
         ASSERT_FALSE(b2);
@@ -1602,7 +1602,7 @@ TEST(multi_component_view, parallel_reverse_iteration) {
 
     // Update the value of the component
     std::for_each(std::execution::par, view.rbegin(), view.rend(), [&view](auto entity){
-        auto& [b0, b1, b2] = view.get(entity);
+        auto&& [b0, b1, b2] = view.get(entity);
         ASSERT_FALSE(b0);
         ASSERT_FALSE(b1);
         ASSERT_FALSE(b2);
