@@ -35,7 +35,7 @@ TEST(world, create_multiple_entities_no_starting_components) {
 
     ecfw::world world;
     std::vector<uint64_t> entities{};
-    world.create(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n(std::back_inserter(entities), NUM_ENTITIES);
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
@@ -83,7 +83,7 @@ TEST(world, create_multiple_entities_with_starting_components) {
 
     ecfw::world world{};
     std::vector<uint64_t> entities{};
-    world.create<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
     ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
     ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
@@ -151,7 +151,7 @@ TEST(world, create_multiple_entities_with_existing_views) {
     ecfw::world world{};
 
     std::vector<uint64_t> entities{};
-    world.create<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
     ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
     ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
@@ -172,7 +172,7 @@ TEST(world, create_multiple_entities_with_existing_views) {
     auto v2 = world.view<C1>();
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
 
-    world.create<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
     ASSERT_EQ(v0.size(), 2 * NUM_ENTITIES);
     ASSERT_EQ(v1.size(), 2 * NUM_ENTITIES);
     ASSERT_EQ(v2.size(), 2 * NUM_ENTITIES);
@@ -217,7 +217,7 @@ TEST(world, recycle_multiple_entities_no_starting_components) {
 
     ecfw::world world;
     std::vector<uint64_t> entities{};
-    world.create(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n(std::back_inserter(entities), NUM_ENTITIES);
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
@@ -233,7 +233,7 @@ TEST(world, recycle_multiple_entities_no_starting_components) {
     ASSERT_EQ(world.size(), 0);
     ASSERT_FALSE(world.valid(entities.begin(), entities.end()));
 
-    world.create(std::begin(entities), NUM_ENTITIES);
+    world.create_n(std::begin(entities), NUM_ENTITIES);
     for (auto entity : entities) {
         auto version = msw(entity);
         ASSERT_EQ(version, 1);
@@ -316,7 +316,7 @@ TEST(world, recycle_multiple_entities_with_starting_components) {
 
     ecfw::world world{};
     std::vector<uint64_t> entities{};
-    world.create<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
     ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
     ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
@@ -347,7 +347,7 @@ TEST(world, recycle_multiple_entities_with_starting_components) {
     ASSERT_EQ((world.size<C0, C1>()), 0);
 
     // Recycle the entities, but do not provide starting components
-    world.create(std::begin(entities), NUM_ENTITIES);
+    world.create_n(std::begin(entities), NUM_ENTITIES);
     ASSERT_TRUE(world.valid(entities.begin(), entities.end()));
 
     // Ensure that each entity now has version # 1
@@ -369,7 +369,7 @@ TEST(world, recycle_multiple_entities_with_starting_components) {
     ASSERT_FALSE(world.valid(entities.begin(), entities.end()));
 
     // Recycle the entities and provide starting components
-    world.create<C0, C1>(std::begin(entities), NUM_ENTITIES);
+    world.create_n<C0, C1>(std::begin(entities), NUM_ENTITIES);
 
     // Ensure that the recycled entities are valid
     ASSERT_TRUE(world.valid(entities.begin(), entities.end()));
@@ -500,7 +500,7 @@ TEST(world, recycle_multiple_entities_with_existing_views) {
     ecfw::world world{};
 
     std::vector<uint64_t> entities{};
-    world.create<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
     ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
     ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
@@ -523,7 +523,7 @@ TEST(world, recycle_multiple_entities_with_existing_views) {
     ASSERT_EQ(v1.size(), NUM_ENTITIES);
     ASSERT_EQ(v2.size(), NUM_ENTITIES);
 
-    world.create<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
     ASSERT_EQ(v0.size(), 2 * NUM_ENTITIES);
     ASSERT_EQ(v1.size(), 2 * NUM_ENTITIES);
     ASSERT_EQ(v2.size(), 2 * NUM_ENTITIES);
@@ -556,7 +556,7 @@ TEST(world, recycle_multiple_entities_with_existing_views) {
     entities.clear();
 
     // Recycle the entities without starting components
-    world.create(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n(std::back_inserter(entities), NUM_ENTITIES);
 
     // Ensure that the entities are valid
     ASSERT_TRUE(world.valid(entities.begin(), entities.end()));
@@ -585,7 +585,7 @@ TEST(world, recycle_multiple_entities_with_existing_views) {
     ASSERT_FALSE(world.valid(entities.begin(), entities.end()));
 
     // Recycle the entities with starting components
-    world.create<C0, C1>(std::begin(entities), NUM_ENTITIES);
+    world.create_n<C0, C1>(std::begin(entities), NUM_ENTITIES);
 
     // Ensure that the entities are valid
     ASSERT_TRUE(world.valid(entities.begin(), entities.end()));
@@ -666,7 +666,7 @@ TEST(world, create_multiple_clones) {
     ASSERT_EQ(C1::how_many(), 1);
 
     std::vector<uint64_t> entities{};
-    world.clone<C0, C1>(entity, std::back_inserter(entities), NUM_ENTITIES);
+    world.clone_n<C0, C1>(entity, std::back_inserter(entities), NUM_ENTITIES);
 
 }
 
@@ -696,7 +696,7 @@ TEST(world, destroy_multiple_entities_no_components) {
 
     ecfw::world world;
     std::vector<uint64_t> entities{};
-    world.create(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n(std::back_inserter(entities), NUM_ENTITIES);
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
@@ -753,7 +753,7 @@ TEST(world, destroy_multiple_entities_with_components) {
 
     ecfw::world world{};
     std::vector<uint64_t> entities{};
-    world.create<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
     ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
     ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ(world.size(), NUM_ENTITIES);
@@ -850,7 +850,7 @@ TEST(world, destroy_multiple_entities_with_existing_views) {
     ecfw::world world{};
 
     std::vector<uint64_t> entities{};
-    world.create<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
     ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
     ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
@@ -873,7 +873,7 @@ TEST(world, destroy_multiple_entities_with_existing_views) {
     ASSERT_EQ(v1.size(), NUM_ENTITIES);
     ASSERT_EQ(v2.size(), NUM_ENTITIES);
 
-    world.create<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
     ASSERT_EQ(v0.size(), 2 * NUM_ENTITIES);
     ASSERT_EQ(v1.size(), 2 * NUM_ENTITIES);
     ASSERT_EQ(v2.size(), 2 * NUM_ENTITIES);
@@ -920,7 +920,7 @@ TEST(world, component_assignment_no_existing_views) {
 
     std::vector<uint64_t> entities{};
     ecfw::world world{};
-    world.create(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n(std::back_inserter(entities), NUM_ENTITIES);
 
     for (auto entity : entities)
         ASSERT_TRUE(world.assign<C0>(entity, true));
@@ -975,7 +975,7 @@ TEST(world, component_assignment_existing_views) {
 
     std::vector<uint64_t> entities{};
     ecfw::world world{};
-    world.create(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n(std::back_inserter(entities), NUM_ENTITIES);
 
     for (auto entity : entities)
         ASSERT_TRUE(world.assign<C0>(entity, true));
@@ -1010,7 +1010,7 @@ TEST(world, component_assignment_existing_views) {
     ASSERT_EQ(v5.size(), NUM_ENTITIES);   
     ASSERT_EQ(v6.size(), NUM_ENTITIES);
 
-    world.create(std::begin(entities), NUM_ENTITIES);
+    world.create_n(std::begin(entities), NUM_ENTITIES);
 
     for (auto entity : entities)
         ASSERT_TRUE(world.assign<C0>(entity, true));
@@ -1081,7 +1081,7 @@ TEST(world, component_removal_no_existing_views) {
 
     std::vector<uint64_t> entities{};
     ecfw::world world{};
-    world.create(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n(std::back_inserter(entities), NUM_ENTITIES);
 
     for (auto entity : entities)
         ASSERT_TRUE(world.assign<C0>(entity, true));
@@ -1193,7 +1193,7 @@ TEST(world, component_removal_existing_views) {
 
     std::vector<uint64_t> entities{};
     ecfw::world world{};
-    world.create(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n(std::back_inserter(entities), NUM_ENTITIES);
 
     for (auto entity : entities)
         ASSERT_TRUE(world.assign<C0>(entity, true));
@@ -1228,7 +1228,7 @@ TEST(world, component_removal_existing_views) {
     ASSERT_EQ(v5.size(), NUM_ENTITIES);   
     ASSERT_EQ(v6.size(), NUM_ENTITIES); 
 
-    world.create(std::begin(entities), NUM_ENTITIES);
+    world.create_n(std::begin(entities), NUM_ENTITIES);
 
     for (auto entity : entities)
         ASSERT_TRUE(world.assign<C0>(entity, true));
@@ -1334,7 +1334,7 @@ TEST(single_component_view, sequential_forward_iteration) {
     };
     std::vector<uint64_t> entities{};
     ecfw::world world{};
-    world.create<B0>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<B0>(std::back_inserter(entities), NUM_ENTITIES);
     auto view = world.view<B0>();
 
     // Update the value of the component
@@ -1360,7 +1360,7 @@ TEST(single_component_view, sequential_reverse_iteration) {
     };
     std::vector<uint64_t> entities{};
     ecfw::world world{};
-    world.create<B0>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<B0>(std::back_inserter(entities), NUM_ENTITIES);
     auto view = world.view<B0>();
 
     // Update the value of the component in reverse
@@ -1385,7 +1385,7 @@ TEST(single_component_view, parallel_forward_iteration) {
     };
     std::vector<uint64_t> entities{};
     ecfw::world world{};
-    world.create<B0>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<B0>(std::back_inserter(entities), NUM_ENTITIES);
     auto view = world.view<B0>();
 
     std::for_each(std::execution::par, view.begin(), view.end(), [&view](auto entity) {
@@ -1409,7 +1409,7 @@ TEST(single_component_view, parallel_reverse_iteration) {
     };
     std::vector<uint64_t> entities{};
     ecfw::world world{};
-    world.create<B0>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<B0>(std::back_inserter(entities), NUM_ENTITIES);
     auto view = world.view<B0>();
 
     std::for_each(std::execution::par, view.rbegin(), view.rend(), [&view](auto entity) {
@@ -1474,7 +1474,7 @@ TEST(multi_component_view, sequential_forward_iteration) {
     };
     std::vector<uint64_t> entities{};
     ecfw::world world{};
-    world.create<B0, B1, B2>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<B0, B1, B2>(std::back_inserter(entities), NUM_ENTITIES);
     auto view = world.view<B0, B1, B2>();
 
     // Update the value of the component
@@ -1515,7 +1515,7 @@ TEST(multi_component_view, sequential_reverse_iteration) {
     };
     std::vector<uint64_t> entities{};
     ecfw::world world{};
-    world.create<B0, B1, B2>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<B0, B1, B2>(std::back_inserter(entities), NUM_ENTITIES);
     auto view = world.view<B0, B1, B2>();
 
     // Update the value of the component
@@ -1556,7 +1556,7 @@ TEST(multi_component_view, parallel_forward_iteration) {
     };
     std::vector<uint64_t> entities{};
     ecfw::world world{};
-    world.create<B0, B1, B2>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<B0, B1, B2>(std::back_inserter(entities), NUM_ENTITIES);
     auto view = world.view<B0, B1, B2>();
 
     // Update the value of the component
@@ -1597,7 +1597,7 @@ TEST(multi_component_view, parallel_reverse_iteration) {
     };
     std::vector<uint64_t> entities{};
     ecfw::world world{};
-    world.create<B0, B1, B2>(std::back_inserter(entities), NUM_ENTITIES);
+    world.create_n<B0, B1, B2>(std::back_inserter(entities), NUM_ENTITIES);
     auto view = world.view<B0, B1, B2>();
 
     // Update the value of the component

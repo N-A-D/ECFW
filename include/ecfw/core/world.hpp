@@ -110,7 +110,8 @@ namespace ecfw
 		}
 
 		/**
-		 * @brief Constructs a collection of entities.
+		 * @brief Assigns each element in the range [first, first + n) an
+		 * entity created by *this.
 		 * 
 		 * @pre 
 		 * Each given component type must satisfy:
@@ -126,9 +127,29 @@ namespace ecfw
 			typename OutIt, 
 			typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
 		>
-		void create(OutIt out, size_t n) {
+		void create_n(OutIt out, size_t n) {
 			std::generate_n(out, n, [this]() mutable {
 				return create<Ts...>(); 
+			});
+		}
+
+		/**
+		 * @brief Assigns each element in the range [first, last) an 
+		 * entity created by *this.
+		 * 
+		 * @tparam Ts Component types to initialze each entity with.
+		 * @tparam FwdIt Forward iterator type.
+		 * @param first Beginning of the range of elements to generate.
+		 * @param last One-past the end of the range of elements to generate.
+		 */
+		template <
+			typename... Ts,
+			typename FwdIt,
+			typename = std::enable_if_t<dtl::is_iterator_v<FwdIt>>
+		>
+		void create(FwdIt first, FwdIt last) {
+			std::generate(first, last, [this]() mutable {
+				return create<Ts...>();
 			});
 		}
 
@@ -155,7 +176,8 @@ namespace ecfw
 		}
 
 		/**
-		 * @brief Constructs a collection of clones.
+		 * @brief Assigns each element in the range [first, first + n) a 
+		 * clone created by *this from original.
 		 * 
 		 * @pre
 		 * Each given component must satisfy: 
@@ -172,9 +194,29 @@ namespace ecfw
 			typename OutIt, 
 			typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
 		>
-		void clone(uint64_t original, OutIt out, size_t n) {
+		void clone_n(uint64_t original, OutIt out, size_t n) {
 			std::generate_n(out, n, [this, original]() mutable {
 				 return clone<Ts...>(original); 
+			});
+		}
+
+		/**
+		 * @brief Assigns each element in the range [first, last) a
+		 * clone created by *this from original
+		 * 
+		 * @tparam Ts Component types to copy for each entity.
+		 * @tparam FwdIt Forward iterator type.
+		 * @param first Beginning of the range of elements to generate.
+		 * @param last One-past the end of the range of elements to generate.
+		 */
+		template <
+			typename... Ts,
+			typename FwdIt,
+			typename = std::enable_if_t<dtl::is_iterator_v<FwdIt>>
+		> 
+		void clone(uint64_t original, FwdIt first, FwdIt last) {
+			std::generate(first, last, [this, original]() mutable {
+				return clone<Ts...>(original);
 			});
 		}
 
