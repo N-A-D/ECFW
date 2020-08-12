@@ -63,3 +63,8 @@ if (${BUILD_ECFW_TESTS})
     enable_testing()
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
 endif()
+
+option(BUILD_ECFW_BENCHMARKS ON)
+if (${BUILD_ECFW_BENCHMARKS})
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/benchmark")
+endif()
