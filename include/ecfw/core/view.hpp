@@ -40,6 +40,12 @@ namespace detail {
 	namespace dtl = detail;
 	namespace bh = boost::hana;
 
+	/**
+	 * @brief Non-owning collection of entities which share a common
+	 * set of components.
+	 * 
+	 * @tparam Ts Component types common among all entities a part of *this.
+	 */
 	template <typename... Ts>
 	class view final {
 		static_assert(
@@ -189,10 +195,16 @@ namespace detail {
 		{}
 
 		const dtl::sparse_set* m_entities{};
-		boost::hana::tuple<buffer_type<Ts>*...> m_buffers{};
+		const boost::hana::tuple<buffer_type<Ts>*...> m_buffers{};
 
 	};
 
+	/**
+	 * @brief Non-owning collection of entities which share a common
+	 * set of components.
+	 * 
+	 * @tparam T Component type common among all entities a part of *this.
+	 */
 	template <typename T>
 	class view<T> final {
 	public:
