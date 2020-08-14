@@ -23,7 +23,7 @@ namespace detail {
 	 * @tparam Iterable Iterable sequence type.
 	 * @param element An element to search for.
 	 * @param iterable An iterable sequence to search in.
-	 * @return An index to the first occurence of the element. Otherwise,
+	 * @return An index to the first occurrence of the element. Otherwise,
 	 * the length of the iterable sequence.
 	 */
 	template <typename T, typename Iterable>
@@ -139,9 +139,9 @@ namespace detail {
 		}
 
 		/**
-		 * @brief Returns the an entity's components.
+		 * @brief Returns an entity's components.
 		 * 
-		 * @note All components are returned when none are specified.
+		 * @note All components are returned when no specific components are specified.
 		 * 
 		 * @tparam Cs The component types to retrieve.
 		 * @param eid The entity to fetch for.
@@ -200,8 +200,7 @@ namespace detail {
 	};
 
 	/**
-	 * @brief Non-owning collection of entities which share a common
-	 * set of components.
+	 * @brief Non-owning collection of entities which share a common component.
 	 * 
 	 * @tparam T Component type common among all entities a part of *this.
 	 */
