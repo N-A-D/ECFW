@@ -1,13 +1,12 @@
 #pragma once
 
-#include <type_traits>
 #include <boost/hana.hpp>
 
 namespace ecfw {
 namespace detail {
 
 	template <typename T>
-	using type = boost::hana::basic_type<std::decay_t<T>>;
+	using type = boost::hana::basic_type<T>;
 
 	template <typename T>
 	constexpr auto type_v = type<T>{};
