@@ -641,8 +641,6 @@ namespace ecfw
 
 	private:
 
-		using dynamic_bitset = boost::dynamic_bitset<uint64_t>;
-
 		template <typename... Ts>
 		const dtl::sparse_set& group_by() const {
 			using std::max;
@@ -661,7 +659,7 @@ namespace ecfw
 			assert(largest_type_id < m_buffer_metadata.size());
 
 			// Build the filter in order to find an existing group or to create one.
-			dynamic_bitset filter(largest_type_id + 1);
+			boost::dynamic_bitset<> filter(largest_type_id + 1);
 			for (auto type_id : type_ids)
 				filter.set(type_id);
 
@@ -703,14 +701,14 @@ namespace ecfw
 		// allocated for a compoentn when it's first assigned to an entity. Moreover,
 		// only enough space is allocated within the bitset to accommodate the entity 
 		// to which it the component is assigned.
-		std::vector<dynamic_bitset> m_buffer_metadata{};
+		std::vector<boost::dynamic_bitset<>> m_buffer_metadata{};
 
 		// Component data. space is allocated similarly to the buffer metadata.
 		std::vector<std::unique_ptr<dtl::base_buffer>> m_buffers{};
 
 		// Filtered groups of entities. Each filter represents a common
 		// set of components each of the entities in the group must possess.
-		mutable std::unordered_map<dynamic_bitset, dtl::sparse_set> m_groups{};
+		mutable std::unordered_map<boost::dynamic_bitset<>, dtl::sparse_set> m_groups{};
 
 	};
 
