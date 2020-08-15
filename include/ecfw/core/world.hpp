@@ -333,7 +333,10 @@ namespace ecfw
 		 * @return true If the entity has each component.
 		 * @return false If the entity does not have each component.
 		 */
-		template <typename... Ts>
+		template <
+			typename... Ts, 
+			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+		>
 		bool has(uint64_t eid) const {
 			using boost::hana::unique;
 			using boost::hana::equal;
@@ -341,8 +344,6 @@ namespace ecfw
 			constexpr auto type_list = dtl::type_list_v<Ts...>;
 			static_assert(equal(unique(type_list), type_list),
 				"Duplicate types are not allowed!");
-
-			static_assert(sizeof...(Ts) > 0);
 
 			assert(valid(eid));
 			if constexpr (sizeof...(Ts) == 1) {
@@ -363,7 +364,10 @@ namespace ecfw
 		 * @tparam Ts Component types to remove.
 		 * @param eid The entity to remove from.
 		 */
-		template <typename... Ts>
+		template <
+			typename... Ts,
+			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+		>
 		void remove(uint64_t eid) {
 			assert(has<Ts...>(eid));
 
@@ -550,6 +554,46 @@ namespace ecfw
 		}
 
 		/**
+		 * @brief Preallocates storage space for the given component types.
+		 * 
+		 * @tparam Ts Component types to reserve space for.
+		 * @param n The number of components to allocated space for.
+		 */
+		template <
+			typename... Ts,
+			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+		>
+		void reserve(size_t n) {
+			if constexpr (sizeof...(Ts) == 1) {
+				using std::make_unique;
+				size_t type_id = (dtl::type_index_v<Ts>, ...);
+				
+				// Ensure there exists buffer metadata for the component type.
+				if (type_id >= m_buffer_metadata.size())
+					m_buffer_metadata.resize(type_id + 1);
+				
+				// Ensure there exists component metadata up to index n.
+				if (n >= m_buffer_metadata[type_id].size())
+					m_buffer_metadata[type_id].resize(n + 1);
+
+				// Ensure there exists a buffer for the component type.
+				if (type_id >= m_buffers.size())
+					m_buffers.resize(type_id + 1);
+
+				// Ensure there exists a data buffer for the component type.
+				if (!m_buffers[type_id])
+					m_buffers[type_id] = (make_unique<dtl::typed_buffer<Ts>>(), ...);
+
+				// Ensure there physically exists memory for n components.
+				for (size_t i = 0; i != n; ++i)
+					m_buffers[type_id]->accommodate(i);
+			}
+			else {
+				(reserve<Ts>(n), ...);
+			}
+		}
+
+		/**
 		 * @brief Returns a view of a given set of components.
 		 * 
 		 * @warning
@@ -597,6 +641,8 @@ namespace ecfw
 
 	private:
 
+		using dynamic_bitset = boost::dynamic_bitset<uint64_t>;
+
 		template <typename... Ts>
 		const dtl::sparse_set& group_by() const {
 			using std::max;
@@ -615,7 +661,7 @@ namespace ecfw
 			assert(largest_type_id < m_buffer_metadata.size());
 
 			// Build the filter in order to find an existing group or to create one.
-			boost::dynamic_bitset<> filter(largest_type_id + 1);
+			dynamic_bitset filter(largest_type_id + 1);
 			for (auto type_id : type_ids)
 				filter.set(type_id);
 
@@ -657,14 +703,14 @@ namespace ecfw
 		// allocated for a compoentn when it's first assigned to an entity. Moreover,
 		// only enough space is allocated within the bitset to accommodate the entity 
 		// to which it the component is assigned.
-		std::vector<boost::dynamic_bitset<>> m_buffer_metadata{};
+		std::vector<dynamic_bitset> m_buffer_metadata{};
 
 		// Component data. space is allocated similarly to the buffer metadata.
 		std::vector<std::unique_ptr<dtl::base_buffer>> m_buffers{};
 
 		// Filtered groups of entities. Each filter represents a common
 		// set of components each of the entities in the group must possess.
-		mutable std::unordered_map<boost::dynamic_bitset<>, dtl::sparse_set> m_groups{};
+		mutable std::unordered_map<dynamic_bitset, dtl::sparse_set> m_groups{};
 
 	};
 
