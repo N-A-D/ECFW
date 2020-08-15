@@ -277,7 +277,7 @@ namespace ecfw
 			
 			// Split the entity into its index and version
 			uint32_t idx = dtl::lsw(eid);
-			uint32_t ver = dtl::msw(eid);
+			[[maybe_unused]] uint32_t ver = dtl::msw(eid);
 			
 			// Ensure the entity can still be reused
 			assert(ver < 0xFFFFFFFF);
