@@ -162,8 +162,10 @@ namespace detail {
 			static_assert(is_subset(requested_types, viewed_types),
 				"Cannot return unviewed types!");
 
-			if constexpr (sizeof...(Cs) == 1) {
-				assert(contains(eid));
+			assert(contains(eid));	
+
+			if constexpr (sizeof...(Cs) == 1) {			
+				
 				uint32_t idx = dtl::lsw(eid);
 				return (
 					*static_cast<Cs*>(
