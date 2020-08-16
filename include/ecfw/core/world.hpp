@@ -415,7 +415,7 @@ namespace ecfw
 			using std::make_unique;
 			using std::is_constructible_v;
 
-			static_assert(is_constructible<T, Args>, 
+			static_assert(is_constructible_v<T, Args...>, 
 				"Cannot construct component type from the given arguments.");
 
 			assert(!has<T>(eid));
