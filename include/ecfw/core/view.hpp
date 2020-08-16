@@ -162,10 +162,8 @@ namespace detail {
 			static_assert(is_subset(requested_types, viewed_types),
 				"Cannot return unviewed types!");
 
-			assert(contains(eid));	
-
 			if constexpr (sizeof...(Cs) == 1) {			
-				
+				assert(contains(eid));
 				uint32_t idx = dtl::lsw(eid);
 				return (
 					*static_cast<Cs*>(
@@ -175,14 +173,8 @@ namespace detail {
 			}
 			else if constexpr (sizeof...(Cs) > 1)
 				return forward_as_tuple(get<Cs>(eid)...);
-			else {
-				uint32_t idx = dtl::lsw(eid);
-				return forward_as_tuple(
-					*static_cast<Ts*>(
-						m_buffers[dtl::index_of(dtl::type_v<Ts>, viewed_types)]->data(idx)
-					)...
-				);
-			}
+			else 
+				return forward_as_tuple(get<Ts>(eid)...);
 		}
 
 	private:
