@@ -71,13 +71,16 @@ namespace ecfw
 		 * @tparam Ts Components types to initialize the entity with.
 		 * @return An entity identifier.
 		 */
-		template <
-			typename... Ts,
-			typename = std::enable_if_t<std::conjunction_v<std::is_default_constructible<Ts>...>>
-		>
+		template <typename... Ts>
 		uint64_t create() {
+			using std::conjunction_v;
+			using std::is_default_constructible;
 			using boost::hana::unique;
 			using boost::hana::equal;
+
+			// Ensure that each given component is default constructible
+			static_assert(conjunction_v<is_default_constructible<Ts>...>, 
+				"Assigning components through world::create requires default constructible types");
 
 			// Check for any duplicate types
 			constexpr auto type_list = dtl::type_list_v<Ts...>;
@@ -164,12 +167,12 @@ namespace ecfw
 		 * @param original The entity to copy from.
 		 * @return An entity identiter.
 		 */
-		template <
-			typename... Ts, 
-			typename = std::enable_if_t<std::conjunction_v<std::is_copy_constructible<Ts>...>>
-		>
+		template <typename... Ts>
 		uint64_t clone(uint64_t original) {
 			using std::conjunction_v;
+			using std::is_copy_constructible;
+			static_assert(conjunction_v<is_copy_constructible<Ts>...>, 
+				"Cloning components requires copy constructible component types.");
 			uint64_t entity = create();
 			(assign<Ts>(entity, get<Ts>(original)), ...);
 			return entity;
@@ -406,11 +409,14 @@ namespace ecfw
 		 */
 		template <
 			typename T, 
-			typename... Args, 
-			typename = std::enable_if_t<std::is_constructible_v<T, Args...>>
+			typename... Args
 		>
 		T& assign(uint64_t eid, Args&&... args) {
 			using std::make_unique;
+			using std::is_constructible_v;
+
+			static_assert(is_constructible<T, Args>, 
+				"Cannot construct component type from the given arguments.");
 
 			assert(!has<T>(eid));
 
