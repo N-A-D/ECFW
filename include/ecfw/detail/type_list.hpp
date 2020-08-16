@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/hana.hpp>
+#include <boost/hana.hpp> // basic_type, tuple
 
 namespace ecfw {
 namespace detail {

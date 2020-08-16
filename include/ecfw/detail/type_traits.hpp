@@ -1,7 +1,7 @@
 #pragma once
 
-#include <iterator>
-#include <type_traits>
+#include <iterator>    // iterator_traits
+#include <type_traits> // true_type, false_type, void_t
 
 namespace ecfw
 {
