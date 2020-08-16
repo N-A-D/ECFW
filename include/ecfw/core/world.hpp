@@ -585,8 +585,7 @@ namespace ecfw
 					m_buffers[type_id] = (make_unique<dtl::typed_buffer<Ts>>(), ...);
 
 				// Ensure there physically exists memory for n components.
-				for (size_t i = 0; i != n; ++i)
-					m_buffers[type_id]->accommodate(i);
+				m_buffers[type_id]->reserve(n);
 			}
 			else {
 				(reserve<Ts>(n), ...);

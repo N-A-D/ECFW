@@ -33,6 +33,11 @@ namespace detail
 
 		void accommodate(size_t index) {
 			using std::make_unique;
+
+			// Only allocate space for the block which includes
+			// the given index. This is to reduce the amount of
+			// wasted space in case only a few entities have 
+			// data stored in *this.
 			size_t block_i = block(index);
 			if (block_i >= m_blocks.size())
 				m_blocks.resize(block_i + 1);
@@ -41,6 +46,26 @@ namespace detail
 					m_object_size * m_block_size;
 				m_blocks[block_i] = 
 					make_unique<unsigned char[]>(size_in_bytes);
+			}
+		}
+
+		void reserve(size_t n) {
+			using std::make_unique;
+
+			size_t block_n = block(n);
+			if (block_n >= m_blocks.size())
+				m_blocks.resize(block_n + 1);
+
+			// Unlike accommodate(...), we need to allocate space
+			// for all indices up to and including n. Therefore,
+			// each block up to and including the block which 
+			// includes index n must be allocated.
+			size_t size_in_bytes = m_object_size * m_block_size;
+			for (size_t block_i = 0; block_i != block_n; ++block_i) {
+				// In
+				if (!m_blocks[block_i])
+					m_blocks[block_i] = 
+						make_unique<unsigned char[]>(size_in_bytes);
 			}
 		}
 

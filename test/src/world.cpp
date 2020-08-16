@@ -1726,7 +1726,7 @@ TEST(world, component_removal_existing_views) {
 
 TEST(world, reserve_component_storage) {
     struct C0 {
-        C0(bool value)
+        C0(bool value = false)
             : value(value)
         {}
         operator bool() const {
@@ -1735,7 +1735,7 @@ TEST(world, reserve_component_storage) {
         bool value = false;
     };
     struct C1 {
-        C1(bool value)
+        C1(bool value = false)
             : value(value)
         {}
         operator bool() const {
@@ -1745,11 +1745,14 @@ TEST(world, reserve_component_storage) {
     };
     
     ecfw::world world{};
-    world.reserve<C0, C1>(1);
+    std::vector<uint64_t> entities{};
+    world.create_n(std::back_inserter(entities), NUM_ENTITIES);
+    world.reserve<C0, C1>(NUM_ENTITIES);
 
-    auto entity = world.create();
-    ASSERT_TRUE((world.assign<C0>(entity, true)));
-    ASSERT_TRUE((world.assign<C1>(entity, true)));
+    for (auto entity : entities) {
+        ASSERT_TRUE((world.assign<C0>(entity, true)));
+        ASSERT_TRUE((world.assign<C1>(entity, true)));
+    }
 }
 
 TEST(single_component_view, componen_retrieval) {
