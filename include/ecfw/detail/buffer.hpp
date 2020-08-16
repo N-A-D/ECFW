@@ -62,7 +62,7 @@ namespace detail
 			// includes index n must be allocated.
 			size_t size_in_bytes = m_object_size * m_block_size;
 			for (size_t block_i = 0; block_i != block_n; ++block_i) {
-				// In
+				// Just in case there are existing components
 				if (!m_blocks[block_i])
 					m_blocks[block_i] = 
 						make_unique<unsigned char[]>(size_in_bytes);
