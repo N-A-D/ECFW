@@ -52,8 +52,13 @@ namespace ecfw
 		 */
 		~world() {
 			// Destroy all component data
+			
+			// We need to go through the buffer metadata of all known components
+			// and for each set bit in the current metadata, found at index i, 
+			// we need to destroy the component data associated with that index.
 			for (size_t type_id = 0; type_id < m_buffer_metadata.size(); ++type_id) {
 				const auto& buffer_metadata = m_buffer_metadata[type_id];
+				// Loop through only the set bits in the metadata.
 				for (size_t index = buffer_metadata.find_first();
 					index < buffer_metadata.size(); 
 					index = buffer_metadata.find_next(index)) 
