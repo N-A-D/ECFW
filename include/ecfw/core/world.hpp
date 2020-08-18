@@ -54,8 +54,10 @@ namespace ecfw
 			// Destroy all component data
 			for (size_t type_id = 0; type_id < m_buffer_metadata.size(); ++type_id) {
 				const auto& buffer_metadata = m_buffer_metadata[type_id];
-				for (auto index = buffer_metadata.find_first();
-					index < buffer_metadata.size(); ++index) {
+				for (size_t index = buffer_metadata.find_first();
+					index < buffer_metadata.size(); 
+					index = buffer_metadata.find_next(index)) 
+				{
 					m_buffers[type_id]->destroy(index);
 				}
 			}
