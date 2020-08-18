@@ -274,7 +274,7 @@ namespace detail {
 		}
 
 		/**
-		 * @brief Checks if the view has no entities, i.e., whether begin() == end().
+		 * @brief Checks if the view has no entities, i.e., size() == 0.
 		 * 
 		 * @return true If the view is empty.
 		 * @return false If the view is not empty.
