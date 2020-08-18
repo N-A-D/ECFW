@@ -71,6 +71,32 @@ namespace detail {
 		using reverse_iterator		 = dtl::sparse_set::reverse_iterator;
 
 		/**
+		 * @brief Default copy constructor.
+		 * 
+		 */
+		view(const view&) = default;
+		
+		/**
+		 * @brief Default move constructor.
+		 * 
+		 */
+		view(view&&) = default;
+
+		/**
+		 * @brief Default copy assignment operator.
+		 * 
+		 * @return *this
+		 */
+		view& operator=(const view&) = default;
+
+		/**
+		 * @brief Default move assignment operator.
+		 * 
+		 * @return *this
+		 */
+		view& operator=(view&&) = default;
+
+		/**
 		 * @brief Returns an iterator to the first element of the vector.
 		 * 
 		 * @return Iterator to the first element.
@@ -189,7 +215,7 @@ namespace detail {
 		{}
 
 		const dtl::sparse_set* m_entities{};
-		const boost::hana::tuple<buffer_type<Ts>*...> m_buffers{};
+		boost::hana::tuple<buffer_type<Ts>*...> m_buffers{};
 
 	};
 
@@ -214,6 +240,32 @@ namespace detail {
 		using iterator				 = dtl::sparse_set::iterator;
 		using const_reverse_iterator = dtl::sparse_set::const_reverse_iterator;
 		using reverse_iterator		 = dtl::sparse_set::reverse_iterator;
+
+		/**
+		 * @brief Default copy constructor.
+		 * 
+		 */
+		view(const view&) = default;
+		
+		/**
+		 * @brief Default move constructor.
+		 * 
+		 */
+		view(view&&) = default;
+
+		/**
+		 * @brief Default copy assignment operator.
+		 * 
+		 * @return *this
+		 */
+		view& operator=(const view&) = default;
+
+		/**
+		 * @brief Default move assignment operator.
+		 * 
+		 * @return *this
+		 */
+		view& operator=(view&&) = default;
 
 		/**
 		 * @brief Returns an iterator to the first element of the vector.
