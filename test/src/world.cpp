@@ -217,6 +217,8 @@ TEST(world, create_multiple_entities_with_existing_views) {
     auto v1 = world.view<C0>();
     auto v2 = world.view<C1>();
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
+    ASSERT_EQ(v1.size(), NUM_ENTITIES);
+    ASSERT_EQ(v2.size(), NUM_ENTITIES);
 
     world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
     ASSERT_EQ(v0.size(), 2 * NUM_ENTITIES);
@@ -259,6 +261,8 @@ TEST(world, create_batch_with_existing_views) {
     auto v1 = world.view<C0>();
     auto v2 = world.view<C1>();
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
+    ASSERT_EQ(v1.size(), NUM_ENTITIES);
+    ASSERT_EQ(v2.size(), NUM_ENTITIES);
 
     world.create<C0, C1>(entities.begin(), entities.end());
     ASSERT_EQ(v0.size(), 2 * NUM_ENTITIES);
