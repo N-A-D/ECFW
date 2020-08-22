@@ -56,7 +56,7 @@ namespace ecfw
 			// We need to go through the buffer metadata of all known components
 			// and for each set bit in the current metadata, found at index i, 
 			// we need to destroy the component data associated with that index.
-			for (size_t type_id = 0; type_id < m_buffer_metadata.size(); ++type_id) {
+			for (auto type_id = 0; type_id < m_buffer_metadata.size(); ++type_id) {
 				const auto& buffer_metadata = m_buffer_metadata[type_id];
 				// Loop through only the set bits in the metadata.
 				for (size_t index = buffer_metadata.find_first();
@@ -238,8 +238,8 @@ namespace ecfw
 		 * @return false If the entity does not belong to *this.
 		 */
 		bool valid(uint64_t eid) const {
-			uint32_t idx = dtl::lsw(eid);
-			uint32_t ver = dtl::msw(eid);
+			auto idx = dtl::lsw(eid);
+			auto ver = dtl::msw(eid);
 			return idx < m_versions.size()
 				&& m_versions[idx] == ver;
 		}
@@ -286,8 +286,8 @@ namespace ecfw
 			assert(valid(eid));
 			
 			// Split the entity into its index and version
-			uint32_t idx = dtl::lsw(eid);
-			[[maybe_unused]] uint32_t ver = dtl::msw(eid);
+			auto idx = dtl::lsw(eid);
+			[[maybe_unused]] auto ver = dtl::msw(eid);
 			
 			// Ensure the entity can still be reused
 			assert(ver < 0xFFFFFFFF);
@@ -297,7 +297,7 @@ namespace ecfw
 			m_free_list.push(idx);
 
 			// Destroy all of the entity's components
-			for (size_t type_id = 0;
+			for (auto type_id = 0;
 				type_id != m_buffer_metadata.size(); ++type_id) 
 			{
 				if (idx < m_buffer_metadata[type_id].size()
@@ -357,8 +357,8 @@ namespace ecfw
 
 			assert(valid(eid));
 			if constexpr (sizeof...(Ts) == 1) {
-				uint32_t idx = dtl::lsw(eid);
-				size_t type_id = (dtl::type_index_v<Ts>, ...);
+				auto idx = dtl::lsw(eid);
+				auto type_id = (dtl::type_index_v<Ts>, ...);
 
 				return type_id < m_buffer_metadata.size()
 					&& idx < m_buffer_metadata[type_id].size()
@@ -382,8 +382,8 @@ namespace ecfw
 			assert(has<Ts...>(eid));
 
 			if constexpr (sizeof...(Ts) == 1) {
-				uint32_t idx = dtl::lsw(eid);
-				size_t type_id = (dtl::type_index_v<Ts>, ...);
+				auto idx = dtl::lsw(eid);
+				auto type_id = (dtl::type_index_v<Ts>, ...);
 
 				// Remove component metadata for the entity.
 				m_buffer_metadata[type_id].reset(idx);
@@ -427,8 +427,8 @@ namespace ecfw
 
 			assert(!has<T>(eid));
 
-			uint32_t idx = dtl::lsw(eid);
-			size_t type_id = dtl::type_index_v<T>;
+			auto idx = dtl::lsw(eid);
+			auto type_id = dtl::type_index_v<T>;
 
 			// Ensure there exists buffer metadata for the component.
 			if (type_id >= m_buffer_metadata.size())
@@ -517,8 +517,8 @@ namespace ecfw
 		decltype(auto) get(uint64_t eid) const {
 			assert(has<Ts...>(eid));
 			if constexpr (sizeof...(Ts) == 1) {
-				uint32_t idx = dtl::lsw(eid);
-				size_t type_id = (dtl::type_index_v<Ts>, ...);
+				auto idx = dtl::lsw(eid);
+				auto type_id = (dtl::type_index_v<Ts>, ...);
 				return (*static_cast<Ts*>(
 							m_buffers[type_id]->data(idx)), ...);
 			}
@@ -579,7 +579,7 @@ namespace ecfw
 		void reserve(size_t n) {
 			if constexpr (sizeof...(Ts) == 1) {
 				using std::make_unique;
-				size_t type_id = (dtl::type_index_v<Ts>, ...);
+				auto type_id = (dtl::type_index_v<Ts>, ...);
 				
 				// Ensure there exists buffer metadata for the component type.
 				if (type_id >= m_buffer_metadata.size())

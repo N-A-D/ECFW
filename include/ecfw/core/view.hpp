@@ -190,7 +190,7 @@ namespace detail {
 
 			if constexpr (sizeof...(Cs) == 1) {			
 				assert(contains(eid));
-				uint32_t idx = dtl::lsw(eid);
+				auto idx = dtl::lsw(eid);
 				return (
 					*static_cast<Cs*>(
 						m_buffers[dtl::index_of(dtl::type_v<Cs>, viewed_types)]->data(idx)
@@ -343,7 +343,7 @@ namespace detail {
 		 */
 		T& get(uint64_t eid) const {
 			assert(contains(eid));
-			uint32_t idx = dtl::lsw(eid);
+			auto idx = dtl::lsw(eid);
 			return *static_cast<T*>(m_buffer->data(idx));
 		}
 
