@@ -4,7 +4,7 @@
 #include <memory>   // unique_ptr
 #include <cassert>  // assert
 #include <iterator> // reverse_iterator, random_access_iterator_tag
-#include <ecfw/detail/integers.hpp>
+#include <ecfw/detail/dword.hpp>
 
 namespace ecfw
 {

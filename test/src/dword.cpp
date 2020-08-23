@@ -1,6 +1,6 @@
 #include <random>
 #include <gtest/gtest.h>
-#include <ecfw/detail/integers.hpp>
+#include <ecfw/detail/dword.hpp>
 
 TEST(integers, packing_and_unpacking)
 {

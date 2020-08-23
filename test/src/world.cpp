@@ -5,7 +5,7 @@
 #include <execution>
 #include <gtest/gtest.h>
 #include <ecfw/core/world.hpp>
-#include <ecfw/detail/integers.hpp>
+#include <ecfw/detail/dword.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include "counter.hpp"
 

@@ -11,7 +11,7 @@
 #include <boost/dynamic_bitset.hpp> // dynamic_bitset
 #include <ecfw/core/view.hpp>
 #include <ecfw/detail/buffer.hpp>
-#include <ecfw/detail/integers.hpp>
+#include <ecfw/detail/dword.hpp>
 #include <ecfw/detail/sparse_set.hpp>
 #include <ecfw/detail/type_index.hpp>
 #include <ecfw/detail/type_traits.hpp>
@@ -105,8 +105,10 @@ namespace ecfw
 			}
 			else {
 				// Ensure it is still possible to create new entities
-				uint32_t idx = static_cast<uint32_t>(m_versions.size());
-				assert(idx < 0xFFFFFFFF);
+				auto size = m_versions.size();
+				assert(size < 0xFFFFFFFF);
+
+				uint32_t idx = static_cast<uint32_t>(size);
 
 				// Any new entity is effectively a new row in the component table.
 				// However, we refrain from actually allocating space in the component

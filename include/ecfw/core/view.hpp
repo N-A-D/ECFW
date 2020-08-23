@@ -4,7 +4,7 @@
 #include <type_traits>	  // is_const, conditional, conditional_t
 #include <boost/hana.hpp> // equal, unique, is_subset
 #include <ecfw/detail/buffer.hpp>
-#include <ecfw/detail/integers.hpp>
+#include <ecfw/detail/dword.hpp>
 #include <ecfw/detail/sparse_set.hpp>
 #include <ecfw/detail/type_list.hpp>
 
