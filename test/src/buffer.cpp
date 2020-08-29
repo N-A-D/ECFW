@@ -25,19 +25,19 @@ private:
 	size_t iden{};
 };
 
-TEST(buffer, typed_buffer)
+TEST(buffer, chunked_buffer)
 {
 	
 	const size_t block_size = 2;
 	std::vector<size_t> indices = { 7, 8, 1, 2, 5, 6, 3, 4 };
 	std::vector<std::pair<size_t, size_t>> indices_to_identities{};
-	std::unique_ptr<dtl::base_buffer> buffer = std::make_unique<dtl::typed_buffer<Object>>(block_size);
+	dtl::chunked_buffer buffer(sizeof(Object), 8192, &dtl::destroy_object<Object>);
 
 	// Test construction
 	for (auto index : indices)
 	{
-		buffer->accommodate(index);
-		Object* data = static_cast<Object*>(buffer->data(index));
+		buffer.accommodate(index);
+		Object* data = static_cast<Object*>(buffer.data(index));
 		::new (data) Object();
 		indices_to_identities.emplace_back(index, data->id());
 	}
@@ -48,13 +48,13 @@ TEST(buffer, typed_buffer)
 
 	// Test element access
 	for (auto [index, id] : indices_to_identities) {
-		Object* data = static_cast<Object*>(buffer->data(index));
+		Object* data = static_cast<Object*>(buffer.data(index));
 		ASSERT_EQ(data->id(), id);
 	}
 
 	// Test destruction
 	for (auto index : indices) {
-		buffer->destroy(index);
+		buffer.destroy(index);
 	}
 	ASSERT_EQ(Object::how_many(), 0);
 

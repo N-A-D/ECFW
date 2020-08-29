@@ -207,11 +207,11 @@ namespace detail {
 
 		template <typename C>
 		using buffer_type = 
-			std::conditional_t<std::is_const_v<C>, const dtl::base_buffer, dtl::base_buffer>;
+			std::conditional_t<std::is_const_v<C>, const dtl::chunked_buffer, dtl::chunked_buffer>;
 
-		view(const dtl::sparse_set& entities, buffer_type<Ts>*... buffers)
+		view(const dtl::sparse_set& entities, buffer_type<Ts>&... buffers)
 			: m_entities(std::addressof(entities))
-			, m_buffers(buffers...)
+			, m_buffers(std::addressof(buffers)...)
 		{}
 
 		const dtl::sparse_set* m_entities{};
@@ -351,11 +351,11 @@ namespace detail {
 
 		template <typename C>
 		using buffer_type =
-			std::conditional_t<std::is_const_v<C>, const dtl::base_buffer, dtl::base_buffer>;
+			std::conditional_t<std::is_const_v<C>, const dtl::chunked_buffer, dtl::chunked_buffer>;
 
-		view(const dtl::sparse_set& es, buffer_type<T>* b)
+		view(const dtl::sparse_set& es, buffer_type<T>& b)
 			: m_entities(std::addressof(es))
-			, m_buffer(b)
+			, m_buffer(std::addressof(b))
 		{}
 
 		const dtl::sparse_set* m_entities{};

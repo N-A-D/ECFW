@@ -25,6 +25,9 @@ namespace ecfw
 	 * 
 	 */
 	class world final {
+
+		constexpr static size_t s_chunk_size = 8192;
+
 	public:
 
 		/**
@@ -63,7 +66,7 @@ namespace ecfw
 					index < buffer_metadata.size(); 
 					index = buffer_metadata.find_next(index)) 
 				{
-					m_buffers[type_id]->destroy(index);
+					m_buffers[type_id].destroy(index);
 				}
 			}
 		}
@@ -306,7 +309,7 @@ namespace ecfw
 					&& m_buffer_metadata[type_id].test(idx)) 
 				{
 					m_buffer_metadata[type_id].reset(idx);
-					m_buffers[type_id]->destroy(idx);
+					m_buffers[type_id].destroy(idx);
 				}
 			}
 
@@ -391,7 +394,7 @@ namespace ecfw
 				m_buffer_metadata[type_id].reset(idx);
 
 				// Destroy the component.
-				m_buffers[type_id]->destroy(idx);
+				m_buffers[type_id].destroy(idx);
 
 				// Remove the entity from all groups which require
 				// the recently removed component type
@@ -444,19 +447,22 @@ namespace ecfw
 			m_buffer_metadata[type_id].set(idx);
 
 			// Ensure there exists a buffer for the component.
-			if (type_id >= m_buffers.size())
+			if (type_id >= m_buffers.size()) 
 				m_buffers.resize(type_id + 1);
 
-			// Ensure there exists a data buffer for the component.
+			// Ensure there exists a valid buffer for the component type.
 			if (!m_buffers[type_id])
-				m_buffers[type_id] = make_unique<dtl::typed_buffer<T>>();
-
+				m_buffers[type_id] = 
+					dtl::chunked_buffer(sizeof(T), s_chunk_size, &dtl::destroy_object<T>);
+			
 			// Ensure there physically exists memory for the new component
-			m_buffers[type_id]->accommodate(idx);
+			m_buffers[type_id].accommodate(idx);
 
-			// Construct the component in memory provided by the type's buffer
-			T* data = static_cast<T*>(m_buffers[type_id]->data(idx));
-			::new (data) T(std::forward<Args>(args)...);
+			// Construct the component 
+			T* data = static_cast<T*>(
+						m_buffers[type_id]
+						.template construct<T>(idx, std::forward<Args>(args)...)
+					);
 
 			// Add the entity to all newly applicable groups.
 			// Each time an entity is assigned a new component, it must
@@ -503,8 +509,10 @@ namespace ecfw
 		template <typename... Ts>
 		decltype(auto) get(uint64_t eid) {
 			if constexpr (sizeof...(Ts) == 1) {
-				using std::as_const;
-				return (const_cast<Ts&>(as_const(*this).template get<Ts>(eid)), ...);
+				auto idx = dtl::lsw(eid);
+				auto type_id = (dtl::type_index_v<Ts>, ...);
+				return (*static_cast<Ts*>(
+							m_buffers[type_id].data(idx)), ...);
 			}
 			else {
 				using std::forward_as_tuple;
@@ -521,8 +529,8 @@ namespace ecfw
 			if constexpr (sizeof...(Ts) == 1) {
 				auto idx = dtl::lsw(eid);
 				auto type_id = (dtl::type_index_v<Ts>, ...);
-				return (*static_cast<Ts*>(
-							m_buffers[type_id]->data(idx)), ...);
+				return (*static_cast<const Ts*>(
+							m_buffers[type_id].data(idx)), ...);
 			}
 			else {
 				using std::forward_as_tuple;
@@ -592,15 +600,16 @@ namespace ecfw
 					m_buffer_metadata[type_id].resize(n + 1);
 
 				// Ensure there exists a buffer for the component type.
-				if (type_id >= m_buffers.size())
+				if (type_id >= m_buffers.size()) 
 					m_buffers.resize(type_id + 1);
 
-				// Ensure there exists a data buffer for the component type.
+				// Ensure there exists a valid buffer for the component type.
 				if (!m_buffers[type_id])
-					m_buffers[type_id] = (make_unique<dtl::typed_buffer<Ts>>(), ...);
+					m_buffers[type_id] = 
+						(dtl::chunked_buffer(sizeof(Ts), s_chunk_size, &dtl::destroy_object<Ts>), ...);
 
 				// Ensure there physically exists memory for n components.
-				m_buffers[type_id]->reserve(n);
+				m_buffers[type_id].reserve(n);
 			}
 			else {
 				(reserve<Ts>(n), ...);
@@ -632,7 +641,7 @@ namespace ecfw
 
 			return ecfw::view<Ts...>(
 				group_by<Ts...>(),
-				m_buffers[dtl::type_index_v<std::decay_t<Ts>>].get()...
+				m_buffers[dtl::type_index_v<std::decay_t<Ts>>]...
 			);
 		}
 
@@ -649,7 +658,7 @@ namespace ecfw
 
 			return ecfw::view<Ts...>(
 				group_by<Ts...>(), 
-				m_buffers[dtl::type_index_v<std::decay_t<Ts>>].get()...
+				m_buffers[dtl::type_index_v<std::decay_t<Ts>>]...
 			);
 		}
 
@@ -718,7 +727,7 @@ namespace ecfw
 		std::vector<boost::dynamic_bitset<>> m_buffer_metadata{};
 
 		// Component data. space is allocated similarly to the buffer metadata.
-		std::vector<std::unique_ptr<dtl::base_buffer>> m_buffers{};
+		std::vector<dtl::chunked_buffer> m_buffers{};
 
 		// Filtered groups of entities. Each filter represents a common
 		// set of components each of the entities in the group must possess.

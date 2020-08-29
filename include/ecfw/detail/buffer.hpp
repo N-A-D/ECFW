@@ -10,25 +10,50 @@ namespace ecfw
 namespace detail 
 {
 
-	class base_buffer {
+	class chunked_buffer final {
 	public:
 
-		base_buffer(uint32_t object_size, uint32_t block_size)
+		chunked_buffer() = default;
+
+		chunked_buffer(chunked_buffer&&) = default;
+
+		chunked_buffer& operator=(chunked_buffer&&) = default;
+
+		using destructor_fn_type = void (*) (void*);
+
+		chunked_buffer(uint32_t object_size, // sizeof(T)
+					   uint32_t block_size,  // # of elements per chunk
+					   destructor_fn_type object_destructor) // How we'll destroy each element
 			: m_blocks{}
+			, m_object_destructor{object_destructor}
 			, m_object_size{object_size}
 			, m_block_size{block_size}
 		{}
-
-		virtual ~base_buffer() = default;
 		
+		// For checking if the buffer has a valid object destructor
+		operator bool() const noexcept {
+			return m_object_destructor != nullptr;
+		}
+
 		const void* data(uint32_t index) const {
-			assert(valid(index));
+			assert(block(index) < m_blocks.size() 
+				&& m_blocks[block(index)]);
 			return m_blocks[block(index)].get() + offset(index);
 		}
 
 		void* data(uint32_t index) {
 			using std::as_const;
 			return const_cast<void*>(as_const(*this).data(index));
+		}
+
+		template <typename T, typename... Args>
+		void* construct(uint32_t index, Args&&... args) {
+			// Ensure that the given object type is compatible
+			// with the stored object destructor function.
+			assert(&destroy_object<T> == m_object_destructor);
+			auto ptr = data(index);
+			::new (static_cast<T*>(ptr)) T(std::forward<Args>(args)...);
+			return ptr;
 		}
 
 		void accommodate(uint32_t index) {
@@ -73,12 +98,9 @@ namespace detail
 			return static_cast<uint32_t>(m_blocks.size()) * m_block_size;
 		}
 
-		bool valid(uint32_t index) const {
-			return block(index) < m_blocks.size()
-				&& m_blocks[block(index)];
+		void destroy(uint32_t index) {
+			m_object_destructor(data(index));
 		}
-
-		virtual void destroy(uint32_t) = 0;
 
 	private:
 		
@@ -91,21 +113,15 @@ namespace detail
 		}
 
 		std::vector<std::unique_ptr<unsigned char[]>> m_blocks{};
-		uint32_t m_object_size{};
-		uint32_t m_block_size{};
+		destructor_fn_type m_object_destructor{nullptr};
+		uint32_t m_object_size{0};
+		uint32_t m_block_size{0};
 	};
 
 	template <typename T>
-	class typed_buffer final : public base_buffer {
-	public:
-		explicit typed_buffer(uint32_t block_size = 8192)
-			: base_buffer(sizeof(T), block_size)
-		{}
-
-		void destroy(uint32_t index) override {
-			static_cast<T*>(data(index))->~T();
-		}
-	};
+	void destroy_object(void* ptr) {
+		static_cast<T*>(ptr)->~T();
+	}
 
 } // namespace detail
 } // namespace ecfw
