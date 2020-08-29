@@ -11,6 +11,11 @@ namespace detail
 {
 
 	class chunked_buffer final {
+
+		// Owning objects who construct elements 
+		// inside of a buffer are responsible for
+		// destroying all of the objects they construct.
+	
 	public:
 
 		chunked_buffer() = default;
@@ -22,12 +27,12 @@ namespace detail
 		using destructor_fn_type = void (*) (void*);
 
 		chunked_buffer(uint32_t object_size, // sizeof(T)
-					   uint32_t block_size,  // # of elements per chunk
+					   uint32_t chunk_size,  // # of elements per chunk
 					   destructor_fn_type object_destructor) // How we'll destroy each element
 			: m_blocks{}
 			, m_object_destructor{object_destructor}
 			, m_object_size{object_size}
-			, m_block_size{block_size}
+			, m_chunk_size{chunk_size}
 		{}
 		
 		// For checking if the buffer has a valid object destructor
@@ -68,7 +73,7 @@ namespace detail
 				m_blocks.resize(block_i + 1);
 			if (!m_blocks[block_i]) {
 				uint32_t size_in_bytes =
-					m_object_size * m_block_size;
+					m_object_size * m_chunk_size;
 				m_blocks[block_i] = 
 					make_unique<unsigned char[]>(size_in_bytes);
 			}
@@ -85,7 +90,7 @@ namespace detail
 			// for all indices up to and including n. Therefore,
 			// each block up to and including the block which 
 			// includes index n must be allocated.
-			uint32_t size_in_bytes = m_object_size * m_block_size;
+			uint32_t size_in_bytes = m_object_size * m_chunk_size;
 			for (uint32_t block_i = 0; block_i != block_n; ++block_i) {
 				// Just in case there are existing components
 				if (!m_blocks[block_i])
@@ -95,7 +100,7 @@ namespace detail
 		}
 
 		uint32_t size() const noexcept {
-			return static_cast<uint32_t>(m_blocks.size()) * m_block_size;
+			return static_cast<uint32_t>(m_blocks.size()) * m_chunk_size;
 		}
 
 		void destroy(uint32_t index) {
@@ -105,17 +110,17 @@ namespace detail
 	private:
 		
 		uint32_t block(uint32_t index) const noexcept {
-			return index / m_block_size;
+			return index / m_chunk_size;
 		}
 
 		uint32_t offset(uint32_t index) const noexcept {
-			return (index % m_block_size) * m_object_size;
+			return (index % m_chunk_size) * m_object_size;
 		}
 
 		std::vector<std::unique_ptr<unsigned char[]>> m_blocks{};
 		destructor_fn_type m_object_destructor{nullptr};
 		uint32_t m_object_size{0};
-		uint32_t m_block_size{0};
+		uint32_t m_chunk_size{0};
 	};
 
 	template <typename T>
