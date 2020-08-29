@@ -453,16 +453,21 @@ namespace ecfw
 			// Ensure there exists a valid buffer for the component type.
 			if (!m_buffers[type_id])
 				m_buffers[type_id] = 
-					dtl::chunked_buffer(sizeof(T), s_chunk_size, &dtl::destroy_object<T>);
+					dtl::chunked_buffer(
+						sizeof(T), 
+						s_chunk_size, 
+						&dtl::destroy_object<T>
+					);
 			
 			// Ensure there physically exists memory for the new component
 			m_buffers[type_id].accommodate(idx);
 
 			// Construct the component 
-			T* data = static_cast<T*>(
-						m_buffers[type_id]
-						.template construct<T>(idx, std::forward<Args>(args)...)
-					);
+			T* data = 
+				static_cast<T*>(
+					m_buffers[type_id]
+					.template construct<T>(idx, std::forward<Args>(args)...)
+				);
 
 			// Add the entity to all newly applicable groups.
 			// Each time an entity is assigned a new component, it must
@@ -605,8 +610,13 @@ namespace ecfw
 
 				// Ensure there exists a valid buffer for the component type.
 				if (!m_buffers[type_id])
-					m_buffers[type_id] = 
-						(dtl::chunked_buffer(sizeof(Ts), s_chunk_size, &dtl::destroy_object<Ts>), ...);
+					m_buffers[type_id] = (
+							dtl::chunked_buffer(
+								sizeof(Ts),
+								s_chunk_size, 
+								&dtl::destroy_object<Ts>
+							), ...
+						);
 
 				// Ensure there physically exists memory for n components.
 				m_buffers[type_id].reserve(n);
