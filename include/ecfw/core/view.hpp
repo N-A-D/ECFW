@@ -175,11 +175,19 @@ namespace detail {
 		 */
 		template <typename... Cs>
 		decltype(auto) get(uint64_t eid) const {
+			auto idx = dtl::lsw(eid);
+			return unchecked_get<Cs...>(idx);
+		}
+
+	private:
+
+		template <typename... Cs>
+		decltype(auto) unchecked_get(uint32_t idx) const {
 			using std::forward_as_tuple;
 			using boost::hana::unique;
 			using boost::hana::equal;
 			using boost::hana::is_subset;
-
+			
 			constexpr auto requested_types = dtl::type_list_v<Cs...>;
 			static_assert(equal(unique(requested_types), requested_types),
 				"Duplicate types are not allowed!");
@@ -189,8 +197,6 @@ namespace detail {
 				"Cannot return unviewed types!");
 
 			if constexpr (sizeof...(Cs) == 1) {			
-				assert(contains(eid));
-				auto idx = dtl::lsw(eid);
 				return (
 					*static_cast<Cs*>(
 						m_buffers[dtl::index_of(dtl::type_v<Cs>, viewed_types)]->data(idx)
@@ -198,12 +204,10 @@ namespace detail {
 				);
 			}
 			else if constexpr (sizeof...(Cs) > 1)
-				return forward_as_tuple(get<Cs>(eid)...);
+				return forward_as_tuple(get<Cs>(idx)...);
 			else 
-				return forward_as_tuple(get<Ts>(eid)...);
+				return forward_as_tuple(get<Ts>(idx)...);
 		}
-
-	private:
 
 		template <typename C>
 		using buffer_type = 
