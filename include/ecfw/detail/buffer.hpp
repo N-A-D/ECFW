@@ -4,6 +4,7 @@
 #include <memory>   // unique_ptr
 #include <utility>  // as_const
 #include <cassert>  // assert
+#include <cstddef>  // byte
 
 namespace ecfw 
 {
@@ -15,7 +16,7 @@ namespace detail
 		// Owning objects who construct elements 
 		// inside of a buffer are responsible for
 		// destroying all of the objects they construct.
-	
+		
 	public:
 
 		chunked_buffer() = default;
@@ -52,13 +53,15 @@ namespace detail
 		}
 
 		template <typename T, typename... Args>
-		void* construct(uint32_t index, Args&&... args) {
+		void construct(T* p, Args&&... args) {
 			// Ensure that the given object type is compatible
 			// with the stored object destructor function.
 			assert(&destroy_object<T> == m_object_destructor);
-			auto ptr = data(index);
-			::new (static_cast<T*>(ptr)) T(std::forward<Args>(args)...);
-			return ptr;
+
+			// Construct the object of type T in allocated 
+			// uninitialized storage pointed to by p, 
+			// using placement-new
+			::new ((void *)p) T(std::forward<Args>(args)...);
 		}
 
 		void accommodate(uint32_t index) {
@@ -75,7 +78,7 @@ namespace detail
 				uint32_t size_in_bytes =
 					m_object_size * m_chunk_size;
 				m_blocks[block_i] = 
-					make_unique<unsigned char[]>(size_in_bytes);
+					make_unique<std::byte[]>(size_in_bytes);
 			}
 		}
 
@@ -95,7 +98,7 @@ namespace detail
 				// Just in case there are existing components
 				if (!m_blocks[block_i])
 					m_blocks[block_i] = 
-						make_unique<unsigned char[]>(size_in_bytes);
+						make_unique<std::byte[]>(size_in_bytes);
 			}
 		}
 
@@ -103,8 +106,8 @@ namespace detail
 			return static_cast<uint32_t>(m_blocks.size()) * m_chunk_size;
 		}
 
-		void destroy(uint32_t index) {
-			m_object_destructor(data(index));
+		void destroy(void* p) {
+			m_object_destructor(p);
 		}
 
 	private:
@@ -117,7 +120,7 @@ namespace detail
 			return (index % m_chunk_size) * m_object_size;
 		}
 
-		std::vector<std::unique_ptr<unsigned char[]>> m_blocks{};
+		std::vector<std::unique_ptr<std::byte[]>> m_blocks{};
 		destructor_fn_type m_object_destructor{nullptr};
 		uint32_t m_object_size{0};
 		uint32_t m_chunk_size{0};

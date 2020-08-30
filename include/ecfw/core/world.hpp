@@ -66,7 +66,8 @@ namespace ecfw
 					index < buffer_metadata.size(); 
 					index = buffer_metadata.find_next(index)) 
 				{
-					m_buffers[type_id].destroy(index);
+					auto data = m_buffers[type_id].data(index);
+					m_buffers[type_id].destroy(data);
 				}
 			}
 		}
@@ -309,7 +310,8 @@ namespace ecfw
 					&& m_buffer_metadata[type_id].test(idx)) 
 				{
 					m_buffer_metadata[type_id].reset(idx);
-					m_buffers[type_id].destroy(idx);
+					auto data = m_buffers[type_id].data(idx);
+					m_buffers[type_id].destroy(data);
 				}
 			}
 
@@ -394,7 +396,8 @@ namespace ecfw
 				m_buffer_metadata[type_id].reset(idx);
 
 				// Destroy the component.
-				m_buffers[type_id].destroy(idx);
+				auto data = m_buffers[type_id].data(idx);
+				m_buffers[type_id].destroy(data);
 
 				// Remove the entity from all groups which require
 				// the recently removed component type
@@ -463,11 +466,8 @@ namespace ecfw
 			m_buffers[type_id].accommodate(idx);
 
 			// Construct the component 
-			T* data = 
-				static_cast<T*>(
-					m_buffers[type_id]
-					.template construct<T>(idx, std::forward<Args>(args)...)
-				);
+			T* data = static_cast<T*>(m_buffers[type_id].data(idx));
+			m_buffers[type_id].construct(data, std::forward<Args>(args)...);
 
 			// Add the entity to all newly applicable groups.
 			// Each time an entity is assigned a new component, it must

@@ -38,7 +38,7 @@ TEST(buffer, chunked_buffer)
 	{
 		buffer.accommodate(index);
 		Object* data = static_cast<Object*>(buffer.data(index));
-		::new (data) Object();
+		buffer.construct(data);
 		indices_to_identities.emplace_back(index, data->id());
 	}
 	ASSERT_EQ(Object::how_many(), indices.size());
@@ -54,9 +54,9 @@ TEST(buffer, chunked_buffer)
 
 	// Test destruction
 	for (auto index : indices) {
-		buffer.destroy(index);
+		auto p = buffer.data(index);
+		buffer.destroy(p);
 	}
 	ASSERT_EQ(Object::how_many(), 0);
-
 
 }
