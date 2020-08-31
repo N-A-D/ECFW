@@ -602,7 +602,7 @@ namespace ecfw
 				
 				// Ensure there exists component metadata up to index n.
 				if (n >= m_buffer_metadata[type_id].size())
-					m_buffer_metadata[type_id].resize(n + 1);
+					m_buffer_metadata[type_id].reserve(n);
 
 				// Ensure there exists a buffer for the component type.
 				if (type_id >= m_buffers.size()) 
