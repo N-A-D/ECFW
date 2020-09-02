@@ -1,5 +1,6 @@
 #pragma once
 
+#include <any>
 #include <tuple>		  			// tuple, get, forward_as_tuple
 #include <stack>		  			// stack
 #include <vector>		  			// vector
@@ -25,9 +26,6 @@ namespace ecfw
 	 * 
 	 */
 	class world final {
-
-		constexpr static size_t s_chunk_size = 8192;
-
 	public:
 
 		/**
@@ -50,27 +48,10 @@ namespace ecfw
 		world& operator=(world&&) = default;
 
 		/**
-		 * @brief Destroys *this.
+		 * @brief Default destructor.
 		 * 
 		 */
-		~world() {
-			// Destroy all component data
-			
-			// We need to go through the buffer metadata of all known components
-			// and for each set bit in the current metadata, found at index i, 
-			// we need to destroy the component data associated with that index.
-			for (auto type_id = 0; type_id < m_buffer_metadata.size(); ++type_id) {
-				const auto& buffer_metadata = m_buffer_metadata[type_id];
-				// Loop through only the set bits in the metadata.
-				for (size_t index = buffer_metadata.find_first();
-					index < buffer_metadata.size(); 
-					index = buffer_metadata.find_next(index)) 
-				{
-					auto data = m_buffers[type_id].data(index);
-					m_buffers[type_id].destroy(data);
-				}
-			}
-		}
+		~world() = default;
 
 		/**
 		 * @brief Constructs a new entity.
@@ -303,16 +284,10 @@ namespace ecfw
 			m_free_list.push(idx);
 
 			// Destroy all of the entity's components
-			for (auto type_id = 0;
-				type_id != m_buffer_metadata.size(); ++type_id) 
-			{
-				if (idx < m_buffer_metadata[type_id].size()
-					&& m_buffer_metadata[type_id].test(idx)) 
-				{
-					m_buffer_metadata[type_id].reset(idx);
-					auto data = m_buffers[type_id].data(idx);
-					m_buffers[type_id].destroy(data);
-				}
+			for (auto type_id = 0; type_id != m_metadatas.size(); ++type_id) {
+				auto& metadata = m_metadatas[type_id];
+				if (idx < metadata.size() && metadata.test(idx)) 
+					m_metadatas[type_id].reset(idx);
 			}
 
 			// Remove the entity from all groups it's a part of.
@@ -367,9 +342,9 @@ namespace ecfw
 				auto idx = dtl::lsw(eid);
 				auto type_id = (dtl::type_index_v<Ts>, ...);
 
-				return type_id < m_buffer_metadata.size()
-					&& idx < m_buffer_metadata[type_id].size()
-					&& m_buffer_metadata[type_id].test(idx);
+				return type_id < m_metadatas.size()
+					&& idx < m_metadatas[type_id].size()
+					&& m_metadatas[type_id].test(idx);
 			}
 			else
 				return (has<Ts>(eid) && ...);
@@ -393,11 +368,7 @@ namespace ecfw
 				auto type_id = (dtl::type_index_v<Ts>, ...);
 
 				// Remove component metadata for the entity.
-				m_buffer_metadata[type_id].reset(idx);
-
-				// Destroy the component.
-				auto data = m_buffers[type_id].data(idx);
-				m_buffers[type_id].destroy(data);
+				m_metadatas[type_id].reset(idx);
 
 				// Remove the entity from all groups which require
 				// the recently removed component type
@@ -427,8 +398,23 @@ namespace ecfw
 			typename... Args
 		>
 		T& assign(uint64_t eid, Args&&... args) {
+			using std::vector;
+			using std::forward;
+			using std::make_any;
+			using std::any_cast;
 			using std::make_unique;
+			using std::conjunction_v;
+			using std::is_aggregate_v;
 			using std::is_constructible_v;
+			using std::is_move_assignable;
+			using std::is_move_constructible;
+			using std::is_default_constructible_v;
+
+			static_assert(is_default_constructible_v<T>,
+				"All component types must be default constructible.");
+
+			static_assert(conjunction_v<is_move_constructible<T>, is_move_assignable<T>>,
+				"All component types must at least be move constructible and assignable.");
 
 			static_assert(is_constructible_v<T, Args...>, 
 				"Cannot construct component type from the given arguments.");
@@ -439,35 +425,34 @@ namespace ecfw
 			auto type_id = dtl::type_index_v<T>;
 
 			// Ensure there exists buffer metadata for the component.
-			if (type_id >= m_buffer_metadata.size())
-				m_buffer_metadata.resize(type_id + 1);
+			if (type_id >= m_metadatas.size())
+				m_metadatas.resize(type_id + 1);
 
 			// Ensure there exists component metadata for the entity.
-			if (idx >= m_buffer_metadata[type_id].size())
-				m_buffer_metadata[type_id].resize(idx + 1);
+			if (idx >= m_metadatas[type_id].size())
+				m_metadatas[type_id].resize(idx + 1);
 
 			// Logically add the component to the entity.
-			m_buffer_metadata[type_id].set(idx);
+			m_metadatas[type_id].set(idx);
 
 			// Ensure there exists a buffer for the component.
 			if (type_id >= m_buffers.size()) 
 				m_buffers.resize(type_id + 1);
 
 			// Ensure there exists a valid buffer for the component type.
-			if (!m_buffers[type_id])
-				m_buffers[type_id] = 
-					dtl::chunked_buffer(
-						sizeof(T), 
-						s_chunk_size, 
-						&dtl::destroy_object<T>
-					);
-			
+			if (!m_buffers[type_id].has_value())
+				m_buffers[type_id] = make_any<vector<T>>();
+			auto& buffer = any_cast<vector<T>&>(m_buffers[type_id]);
+
 			// Ensure there physically exists memory for the new component
-			m_buffers[type_id].accommodate(idx);
+			if (idx >= buffer.size())
+				buffer.resize(idx + 1);
 
 			// Construct the component 
-			T* data = static_cast<T*>(m_buffers[type_id].data(idx));
-			m_buffers[type_id].construct(data, std::forward<Args>(args)...);
+			if constexpr (is_aggregate_v<T>)
+				buffer[idx] = T{forward<Args>(args)...};
+			else 
+				buffer[idx] = T(forward<Args>(args)...);
 
 			// Add the entity to all newly applicable groups.
 			// Each time an entity is assigned a new component, it must
@@ -487,12 +472,10 @@ namespace ecfw
 				// bitset, there exists an active component associated with
 				// the entity we're trying to add.
 				bool has_all = true;
-				for (size_t i = filter.find_first();
-					i < filter.size(); i = filter.find_next(i)) 
-				{
-					if (idx >= m_buffer_metadata[i].size()
-						|| !m_buffer_metadata[i].test(idx)) 
-					{
+				size_t i = filter.find_first();
+				for (; i < filter.size(); i = filter.find_next(i)) {
+					const auto& metadata = m_metadatas[i];
+					if (idx >= metadata.size() || !metadata.test(idx)) {
 						has_all = false;
 						break;
 					}
@@ -501,7 +484,7 @@ namespace ecfw
 					group.insert(eid);
 			}
 
-			return *data;
+			return buffer[idx];
 		}
 
 		/**
@@ -514,13 +497,13 @@ namespace ecfw
 		template <typename... Ts>
 		decltype(auto) get(uint64_t eid) {
 			if constexpr (sizeof...(Ts) == 1) {
-				auto idx = dtl::lsw(eid);
-				auto type_id = (dtl::type_index_v<Ts>, ...);
-				return (*static_cast<Ts*>(
-							m_buffers[type_id].data(idx)), ...);
+				using std::as_const;
+
+				return (const_cast<Ts&>(as_const(*this). template get<Ts>(eid)), ...);
 			}
 			else {
 				using std::forward_as_tuple;
+				
 				return forward_as_tuple(
 					get<Ts>(eid)...
 				);
@@ -532,13 +515,17 @@ namespace ecfw
 		decltype(auto) get(uint64_t eid) const {
 			assert(has<Ts...>(eid));
 			if constexpr (sizeof...(Ts) == 1) {
+				using std::vector;
+				using std::any_cast;
+
 				auto idx = dtl::lsw(eid);
 				auto type_id = (dtl::type_index_v<Ts>, ...);
-				return (*static_cast<const Ts*>(
-							m_buffers[type_id].data(idx)), ...);
+				const auto& buffer = (any_cast<const vector<Ts>&>(m_buffers[type_id]), ...);
+				return buffer[idx];
 			}
 			else {
 				using std::forward_as_tuple;
+
 				return forward_as_tuple(
 					get<Ts>(eid)...
 				);
@@ -588,42 +575,42 @@ namespace ecfw
 		 * @param n The number of components to allocated space for.
 		 */
 		template <
-			typename... Ts,
-			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+			typename... Ts
 		>
 		void reserve(size_t n) {
 			if constexpr (sizeof...(Ts) == 1) {
+				using std::vector;
+				using std::make_any;
+				using std::any_cast;
 				using std::make_unique;
+
 				auto type_id = (dtl::type_index_v<Ts>, ...);
 				
 				// Ensure there exists buffer metadata for the component type.
-				if (type_id >= m_buffer_metadata.size())
-					m_buffer_metadata.resize(type_id + 1);
+				if (type_id >= m_metadatas.size())
+					m_metadatas.resize(type_id + 1);
 				
 				// Ensure there exists component metadata up to index n.
-				if (n >= m_buffer_metadata[type_id].size())
-					m_buffer_metadata[type_id].reserve(n);
+				if (n >= m_metadatas[type_id].size())
+					m_metadatas[type_id].reserve(n);
 
 				// Ensure there exists a buffer for the component type.
 				if (type_id >= m_buffers.size()) 
 					m_buffers.resize(type_id + 1);
 
 				// Ensure there exists a valid buffer for the component type.
-				if (!m_buffers[type_id])
-					m_buffers[type_id] = (
-							dtl::chunked_buffer(
-								sizeof(Ts),
-								s_chunk_size, 
-								&dtl::destroy_object<Ts>
-							), ...
-						);
+				if (!m_buffers[type_id].has_value())
+					m_buffers[type_id] = (make_any<vector<Ts>>(), ...);
+				auto& buffer = (any_cast<vector<Ts>&>(m_buffers[type_id]), ...);
 
 				// Ensure there physically exists memory for n components.
-				m_buffers[type_id].reserve(n);
+				buffer.reserve(n);
 			}
-			else {
+			else if constexpr (sizeof...(Ts) > 1){
 				(reserve<Ts>(n), ...);
 			}
+			else 
+				m_versions.reserve(n);
 		}
 
 		/**
@@ -641,6 +628,8 @@ namespace ecfw
 		 */
 		template <typename... Ts>
 		ecfw::view<Ts...> view() {
+			using std::vector;
+			using std::any_cast;
 			using boost::hana::equal;
 			using boost::hana::unique;
 
@@ -651,13 +640,15 @@ namespace ecfw
 
 			return ecfw::view<Ts...>(
 				group_by<Ts...>(),
-				m_buffers[dtl::type_index_v<std::decay_t<Ts>>]...
+				any_cast<vector<Ts>&>(m_buffers[dtl::type_index_v<std::decay_t<Ts>>])...
 			);
 		}
 
 		/*! @copydoc view */
 		template <typename... Ts>
 		ecfw::view<Ts...> view() const {
+			using std::vector;
+			using std::any_cast;
 			using boost::hana::equal;
 			using boost::hana::unique;
 			
@@ -668,7 +659,7 @@ namespace ecfw
 
 			return ecfw::view<Ts...>(
 				group_by<Ts...>(), 
-				m_buffers[dtl::type_index_v<std::decay_t<Ts>>]...
+				any_cast<vector<Ts>&>(m_buffers[dtl::type_index_v<std::decay_t<Ts>>])...
 			);
 		}
 
@@ -689,7 +680,7 @@ namespace ecfw
 			// to an entity is some way. Therefore, any unknown component
 			// will not have buffer metadata or a data buffer associated with it
 			// and cannot be viewed.
-			assert(largest_type_id < m_buffer_metadata.size());
+			assert(largest_type_id < m_metadatas.size());
 
 			// Build the filter in order to find an existing group or to create one.
 			boost::dynamic_bitset<> filter(largest_type_id + 1);
@@ -706,17 +697,9 @@ namespace ecfw
 			dtl::sparse_set group{};
 			uint32_t size = static_cast<uint32_t>(m_versions.size());
 			for (uint32_t idx = 0; idx != size; ++idx) {
-				bool has_all = true;
-				for (auto type_id : type_ids) {
-					if (idx >= m_buffer_metadata[type_id].size() 
-						|| !m_buffer_metadata[type_id].test(idx)) 
-					{
-						has_all = false;
-						break;
-					}
-				}
-				if (has_all)
-					group.insert(dtl::concat(m_versions[idx], idx));
+				auto entity = dtl::concat(m_versions[idx], idx);
+				if (has<Ts...>(entity))
+					group.insert(entity);
 			}
 			it = m_groups.emplace_hint(it, filter, std::move(group));
 			return it->second;
@@ -734,10 +717,10 @@ namespace ecfw
 		// allocated for a compoentn when it's first assigned to an entity. Moreover,
 		// only enough space is allocated within the bitset to accommodate the entity 
 		// to which it the component is assigned.
-		std::vector<boost::dynamic_bitset<>> m_buffer_metadata{};
+		std::vector<boost::dynamic_bitset<>> m_metadatas{};
 
 		// Component data. space is allocated similarly to the buffer metadata.
-		std::vector<dtl::chunked_buffer> m_buffers{};
+		std::vector<std::any> m_buffers{};
 
 		// Filtered groups of entities. Each filter represents a common
 		// set of components each of the entities in the group must possess.

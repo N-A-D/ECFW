@@ -7,7 +7,6 @@
 #include <ecfw/core/world.hpp>
 #include <ecfw/detail/dword.hpp>
 #include <boost/range/adaptor/reversed.hpp>
-#include "counter.hpp"
 
 using namespace std::literals;
 
@@ -71,8 +70,8 @@ TEST(world, create_single_entity_with_starting_components) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
     
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
     auto entity = world.create<C0, C1>();
@@ -86,8 +85,6 @@ TEST(world, create_single_entity_with_starting_components) {
     ASSERT_TRUE(world.valid(entity));
 
     // Ensure that the components were created successfully
-    ASSERT_EQ(C0::how_many(), 1);
-    ASSERT_EQ(C1::how_many(), 1);
     ASSERT_EQ((world.size<C0>()), 1);
     ASSERT_EQ((world.size<C1>()), 1);
     ASSERT_EQ((world.size<C0, C1>()), 1);
@@ -97,14 +94,12 @@ TEST(world, create_multiple_entities_with_starting_components) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
     std::vector<uint64_t> entities{};
     world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -124,14 +119,12 @@ TEST(world, create_batch_with_starting_components) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
     std::vector<uint64_t> entities(NUM_ENTITIES);
     world.create<C0, C1>(entities.begin(), entities.end());
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -151,8 +144,8 @@ TEST(world, create_single_entity_with_existing_views) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
     auto entity = world.create<C0, C1>();
@@ -167,8 +160,6 @@ TEST(world, create_single_entity_with_existing_views) {
     ASSERT_TRUE(world.valid(entity));
 
     // Ensure that the components were created successfully
-    ASSERT_EQ(C0::how_many(), 1);
-    ASSERT_EQ(C1::how_many(), 1);
     ASSERT_EQ((world.size<C0>()), 1);
     ASSERT_EQ((world.size<C1>()), 1);
     ASSERT_EQ((world.size<C0, C1>()), 1);
@@ -191,15 +182,13 @@ TEST(world, create_multiple_entities_with_existing_views) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
 
     std::vector<uint64_t> entities{};
     world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -224,8 +213,6 @@ TEST(world, create_multiple_entities_with_existing_views) {
     ASSERT_EQ(v0.size(), 2 * NUM_ENTITIES);
     ASSERT_EQ(v1.size(), 2 * NUM_ENTITIES);
     ASSERT_EQ(v2.size(), 2 * NUM_ENTITIES);
-    ASSERT_EQ(C0::how_many(), 2 *  NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), 2 * NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), 2 * NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), 2 * NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), 2 * NUM_ENTITIES);
@@ -235,15 +222,13 @@ TEST(world, create_batch_with_existing_views) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
 
     std::vector<uint64_t> entities(NUM_ENTITIES);
     world.create<C0, C1>(entities.begin(), entities.end());
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -268,8 +253,6 @@ TEST(world, create_batch_with_existing_views) {
     ASSERT_EQ(v0.size(), 2 * NUM_ENTITIES);
     ASSERT_EQ(v1.size(), 2 * NUM_ENTITIES);
     ASSERT_EQ(v2.size(), 2 * NUM_ENTITIES);
-    ASSERT_EQ(C0::how_many(), 2 *  NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), 2 * NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), 2 * NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), 2 * NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), 2 * NUM_ENTITIES);
@@ -369,8 +352,8 @@ TEST(world, recycle_single_entity_with_starting_components) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
     
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
     auto entity = world.create<C0, C1>();
@@ -384,8 +367,6 @@ TEST(world, recycle_single_entity_with_starting_components) {
     ASSERT_TRUE(world.valid(entity));
 
     // Ensure that the components were created successfully
-    ASSERT_EQ(C0::how_many(), 1);
-    ASSERT_EQ(C1::how_many(), 1);
     ASSERT_EQ((world.size<C0>()), 1);
     ASSERT_EQ((world.size<C1>()), 1);
     ASSERT_EQ((world.size<C0, C1>()), 1);
@@ -396,8 +377,6 @@ TEST(world, recycle_single_entity_with_starting_components) {
     ASSERT_FALSE(world.valid(entity));
 
     // Ensure that the components were destroyed successfully
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -410,8 +389,6 @@ TEST(world, recycle_single_entity_with_starting_components) {
     ASSERT_EQ(msw(entity), 1);
 
     // Ensure that no components were reconstructed
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -423,8 +400,6 @@ TEST(world, recycle_single_entity_with_starting_components) {
     ASSERT_EQ(msw(entity), 2);
 
     // Ensure that the components were created successfully
-    ASSERT_EQ(C0::how_many(), 1);
-    ASSERT_EQ(C1::how_many(), 1);
     ASSERT_EQ((world.size<C0>()), 1);
     ASSERT_EQ((world.size<C1>()), 1);
     ASSERT_EQ((world.size<C0, C1>()), 1);
@@ -434,14 +409,12 @@ TEST(world, recycle_multiple_entities_with_starting_components) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
     std::vector<uint64_t> entities{};
     world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -463,8 +436,6 @@ TEST(world, recycle_multiple_entities_with_starting_components) {
     ASSERT_FALSE(world.valid(entities.begin(), entities.end()));
 
     // Ensure that the components were destroyed successfully
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -479,8 +450,6 @@ TEST(world, recycle_multiple_entities_with_starting_components) {
     }));
 
     // Ensure that no components were reconstructed
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -504,8 +473,6 @@ TEST(world, recycle_multiple_entities_with_starting_components) {
 
     // Ensure that only std::size(entities) components were
     // created of each type
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -515,14 +482,12 @@ TEST(world, recycle_batch_with_starting_components) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
     std::vector<uint64_t> entities(NUM_ENTITIES);
     world.create<C0, C1>(entities.begin(), entities.end());
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -544,8 +509,6 @@ TEST(world, recycle_batch_with_starting_components) {
     ASSERT_FALSE(world.valid(entities.begin(), entities.end()));
 
     // Ensure that the components were destroyed successfully
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -560,8 +523,6 @@ TEST(world, recycle_batch_with_starting_components) {
     }));
 
     // Ensure that no components were reconstructed
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -585,8 +546,6 @@ TEST(world, recycle_batch_with_starting_components) {
 
     // Ensure that only std::size(entities) components were
     // created of each type
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -596,8 +555,8 @@ TEST(world, recycle_single_entity_with_existing_views) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
     auto entity = world.create<C0, C1>();
@@ -612,8 +571,6 @@ TEST(world, recycle_single_entity_with_existing_views) {
     ASSERT_TRUE(world.valid(entity));
 
     // Ensure that the components were created successfully
-    ASSERT_EQ(C0::how_many(), 1);
-    ASSERT_EQ(C1::how_many(), 1);
     ASSERT_EQ((world.size<C0>()), 1);
     ASSERT_EQ((world.size<C1>()), 1);
     ASSERT_EQ((world.size<C0, C1>()), 1);
@@ -628,8 +585,6 @@ TEST(world, recycle_single_entity_with_existing_views) {
     ASSERT_EQ(v2.size(), 1);
 
     world.create<C0, C1>();
-    ASSERT_EQ(C0::how_many(), 2);
-    ASSERT_EQ(C1::how_many(), 2);
     ASSERT_EQ((world.size<C0>()), 2);
     ASSERT_EQ((world.size<C1>()), 2);
     ASSERT_EQ((world.size<C0, C1>()), 2);
@@ -644,8 +599,6 @@ TEST(world, recycle_single_entity_with_existing_views) {
     ASSERT_FALSE(world.valid(entity));
 
     // Ensure that it's components have been destroyed
-    ASSERT_EQ(C0::how_many(), 1);
-    ASSERT_EQ(C1::how_many(), 1);
     ASSERT_EQ((world.size<C0>()), 1);
     ASSERT_EQ((world.size<C1>()), 1);
     ASSERT_EQ((world.size<C0, C1>()), 1);
@@ -662,8 +615,6 @@ TEST(world, recycle_single_entity_with_existing_views) {
     ASSERT_EQ(msw(entity), 1);
 
     // Ensure that there is only one entity with the starting components
-    ASSERT_EQ(C0::how_many(), 1);
-    ASSERT_EQ(C1::how_many(), 1);
     ASSERT_EQ((world.size<C0>()), 1);
     ASSERT_EQ((world.size<C1>()), 1);
     ASSERT_EQ((world.size<C0, C1>()), 1);
@@ -684,8 +635,6 @@ TEST(world, recycle_single_entity_with_existing_views) {
     ASSERT_EQ(msw(entity), 2);
 
     // Ensure that there is now two entities with the starting components
-    ASSERT_EQ(C0::how_many(), 2);
-    ASSERT_EQ(C1::how_many(), 2);
     ASSERT_EQ((world.size<C0>()), 2);
     ASSERT_EQ((world.size<C1>()), 2);
     ASSERT_EQ((world.size<C0, C1>()), 2);
@@ -698,15 +647,13 @@ TEST(world, recycle_multiple_entities_with_existing_views) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
 
     std::vector<uint64_t> entities{};
     world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -731,8 +678,7 @@ TEST(world, recycle_multiple_entities_with_existing_views) {
     ASSERT_EQ(v0.size(), 2 * NUM_ENTITIES);
     ASSERT_EQ(v1.size(), 2 * NUM_ENTITIES);
     ASSERT_EQ(v2.size(), 2 * NUM_ENTITIES);
-    ASSERT_EQ(C0::how_many(), 2 *  NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), 2 * NUM_ENTITIES);
+
     ASSERT_EQ((world.size<C0>()), 2 * NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), 2 * NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), 2 * NUM_ENTITIES);
@@ -745,8 +691,6 @@ TEST(world, recycle_multiple_entities_with_existing_views) {
     ASSERT_FALSE(world.valid(entities.begin(), entities.end()));
 
     // Ensure that all components have been destroyed
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -771,8 +715,6 @@ TEST(world, recycle_multiple_entities_with_existing_views) {
     }));
 
     // Ensure that components have not be reconstructed
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -803,8 +745,6 @@ TEST(world, recycle_multiple_entities_with_existing_views) {
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
     ASSERT_EQ(v1.size(), NUM_ENTITIES);
     ASSERT_EQ(v2.size(), NUM_ENTITIES);
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
 
@@ -816,15 +756,13 @@ TEST(world, recycle_batch_with_existing_views) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
 
     std::vector<uint64_t> entities(NUM_ENTITIES);
     world.create<C0, C1>(entities.begin(), entities.end());
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -852,8 +790,6 @@ TEST(world, recycle_batch_with_existing_views) {
     ASSERT_FALSE(world.valid(entities.begin(), entities.end()));
 
     // Ensure that all components have been destroyed
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -875,8 +811,6 @@ TEST(world, recycle_batch_with_existing_views) {
     }));
 
     // Ensure that components have not be reconstructed
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -907,8 +841,6 @@ TEST(world, recycle_batch_with_existing_views) {
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
     ASSERT_EQ(v1.size(), NUM_ENTITIES);
     ASSERT_EQ(v2.size(), NUM_ENTITIES);
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
 
@@ -920,8 +852,8 @@ TEST(world, create_single_clone) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
     auto entity = world.create<C0, C1>();
@@ -934,14 +866,7 @@ TEST(world, create_single_clone) {
     ASSERT_EQ(world.size(), 1);
     ASSERT_TRUE(world.valid(entity));
 
-    // Ensure that the components were created successfully
-    ASSERT_EQ(C0::how_many(), 1);
-    ASSERT_EQ(C1::how_many(), 1);
-
     auto clone = world.clone<C0, C1>(entity);
-    
-    ASSERT_EQ(C0::how_many(), 2);
-    ASSERT_EQ(C1::how_many(), 2);
 
     index = lsw(clone);
     version = msw(clone);
@@ -955,8 +880,8 @@ TEST(world, create_multiple_clones) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
     auto entity = world.create<C0, C1>();
@@ -968,10 +893,6 @@ TEST(world, create_multiple_clones) {
     ASSERT_EQ(version, 0);
     ASSERT_EQ(world.size(), 1);
     ASSERT_TRUE(world.valid(entity));
-
-    // Ensure that the components were created successfully
-    ASSERT_EQ(C0::how_many(), 1);
-    ASSERT_EQ(C1::how_many(), 1);
 
     std::vector<uint64_t> entities{};
     world.clone_n<C0, C1>(entity, std::back_inserter(entities), NUM_ENTITIES);
@@ -1048,8 +969,8 @@ TEST(world, destroy_single_entities_with_components) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
     auto entity = world.create<C0, C1>();
@@ -1062,31 +983,23 @@ TEST(world, destroy_single_entities_with_components) {
     ASSERT_EQ(world.size(), 1);
     ASSERT_TRUE(world.valid(entity));
 
-    // Ensure that the components were created successfully
-    ASSERT_EQ(C0::how_many(), 1);
-    ASSERT_EQ(C1::how_many(), 1);
-
     world.destroy(entity);
     ASSERT_FALSE(world.valid(entity));
     ASSERT_EQ((world.size<C0, C1>()), 0);
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
 }
 
 TEST(world, destroy_multiple_entities_with_components) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
     std::vector<uint64_t> entities{};
     world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ(world.size(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
@@ -1101,8 +1014,6 @@ TEST(world, destroy_multiple_entities_with_components) {
         ASSERT_TRUE(world.valid(entity));
     }
     world.destroy(entities.begin(), entities.end());
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
     ASSERT_EQ(world.size(), 0);
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
@@ -1113,14 +1024,12 @@ TEST(world, destroy_batch_with_components) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
     std::vector<uint64_t> entities(NUM_ENTITIES);
     world.create<C0, C1>(entities.begin(), entities.end());
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ(world.size(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
@@ -1135,8 +1044,6 @@ TEST(world, destroy_batch_with_components) {
         ASSERT_TRUE(world.valid(entity));
     }
     world.destroy(entities.begin(), entities.end());
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
     ASSERT_EQ(world.size(), 0);
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
@@ -1147,8 +1054,8 @@ TEST(world, destroy_single_entity_with_existing_views) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
     auto entity = world.create<C0, C1>();
@@ -1163,8 +1070,6 @@ TEST(world, destroy_single_entity_with_existing_views) {
     ASSERT_TRUE(world.valid(entity));
 
     // Ensure that the components were created successfully
-    ASSERT_EQ(C0::how_many(), 1);
-    ASSERT_EQ(C1::how_many(), 1);
     ASSERT_EQ((world.size<C0>()), 1);
     ASSERT_EQ((world.size<C1>()), 1);
     ASSERT_EQ((world.size<C0, C1>()), 1);
@@ -1179,8 +1084,6 @@ TEST(world, destroy_single_entity_with_existing_views) {
     ASSERT_EQ(v2.size(), 1);
 
     world.create<C0, C1>();
-    ASSERT_EQ(C0::how_many(), 2);
-    ASSERT_EQ(C1::how_many(), 2);
     ASSERT_EQ((world.size<C0>()), 2);
     ASSERT_EQ((world.size<C1>()), 2);
     ASSERT_EQ((world.size<C0, C1>()), 2);
@@ -1195,8 +1098,6 @@ TEST(world, destroy_single_entity_with_existing_views) {
     ASSERT_FALSE(world.valid(entity));
 
     // Ensure that it's components have been destroyed
-    ASSERT_EQ(C0::how_many(), 1);
-    ASSERT_EQ(C1::how_many(), 1);
     ASSERT_EQ((world.size<C0>()), 1);
     ASSERT_EQ((world.size<C1>()), 1);
     ASSERT_EQ((world.size<C0, C1>()), 1);
@@ -1209,15 +1110,13 @@ TEST(world, destroy_multiple_entities_with_existing_views) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
 
     std::vector<uint64_t> entities{};
     world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -1242,12 +1141,9 @@ TEST(world, destroy_multiple_entities_with_existing_views) {
     ASSERT_EQ(v0.size(), 2 * NUM_ENTITIES);
     ASSERT_EQ(v1.size(), 2 * NUM_ENTITIES);
     ASSERT_EQ(v2.size(), 2 * NUM_ENTITIES);
-    ASSERT_EQ(C0::how_many(), 2 *  NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), 2 * NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), 2 * NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), 2 * NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), 2 * NUM_ENTITIES);
-
 
     // Destroy the entities
     world.destroy(entities.begin(), entities.end());
@@ -1255,9 +1151,6 @@ TEST(world, destroy_multiple_entities_with_existing_views) {
     // Ensure that they're all invalid
     ASSERT_FALSE(world.valid(entities.begin(), entities.end()));
 
-    // Ensure that all components have been destroyed
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -1270,15 +1163,13 @@ TEST(world, destroy_batch_with_existing_views) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;
 
-    struct C0 : public Counter<C0> {};
-    struct C1 : public Counter<C1> {};
+    struct C0 {};
+    struct C1 {};
 
     ecfw::world world{};
 
     std::vector<uint64_t> entities(NUM_ENTITIES);
     world.create<C0, C1>(entities.begin(), entities.end());
-    ASSERT_EQ(C0::how_many(), NUM_ENTITIES);
-    ASSERT_EQ(C1::how_many(), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C1>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -1305,9 +1196,7 @@ TEST(world, destroy_batch_with_existing_views) {
     // Ensure that they're all invalid
     ASSERT_FALSE(world.valid(entities.begin(), entities.end()));
 
-    // Ensure that all components have been destroyed
-    ASSERT_EQ(C0::how_many(), 0);
-    ASSERT_EQ(C1::how_many(), 0);
+    // Ensure that all components have been destroyed logically
     ASSERT_EQ((world.size<C0>()), 0);
     ASSERT_EQ((world.size<C1>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -1317,18 +1206,18 @@ TEST(world, destroy_batch_with_existing_views) {
 }
 
 TEST(world, component_assignment_no_existing_views) {
-    struct C0 : public Counter<C0> {
-        C0(bool value) : value(value) {}
+    struct C0 {
+        C0(bool value = false) : value(value) {}
         operator bool() const noexcept {return value;}
         bool value{false};
     };
-    struct C1 : public Counter<C1> {
-        C1(bool value) : value(value) {}
+    struct C1 {
+        C1(bool value = false) : value(value) {}
         operator bool() const noexcept {return value;}
         bool value{false};
     };
-    struct C2 : public Counter<C2> {
-        C2(bool value) : value(value) {}
+    struct C2 {
+        C2(bool value = false) : value(value) {}
         operator bool() const noexcept {return value;}
         bool value{false};
     };
@@ -1372,18 +1261,18 @@ TEST(world, component_assignment_no_existing_views) {
 }
 
 TEST(world, component_assignment_existing_views) {
-    struct C0 : public Counter<C0> {
-        C0(bool value) : value(value) {}
+    struct C0 {
+        C0(bool value = false) : value(value) {}
         operator bool() const noexcept {return value;}
         bool value{false};
     };
-    struct C1 : public Counter<C1> {
-        C1(bool value) : value(value) {}
+    struct C1 {
+        C1(bool value = false) : value(value) {}
         operator bool() const noexcept {return value;}
         bool value{false};
     };
-    struct C2 : public Counter<C2> {
-        C2(bool value) : value(value) {}
+    struct C2 {
+        C2(bool value = false) : value(value) {}
         operator bool() const noexcept {return value;}
         bool value{false};
     };
@@ -1454,11 +1343,11 @@ TEST(world, component_assignment_existing_views) {
 }
 
 TEST(world, component_retrieval) {
-    struct C0 : public Counter<C0> {
+    struct C0 {
         operator bool() const noexcept {return value;}
         bool value{false};
     };
-    struct C1 : public Counter<C1> {
+    struct C1 {
         operator bool() const noexcept {return value;}
         bool value{false};
     };
@@ -1478,18 +1367,18 @@ TEST(world, component_retrieval) {
 }
 
 TEST(world, component_removal_no_existing_views) {
-    struct C0 : public Counter<C0> {
-        C0(bool value) : value(value) {}
+    struct C0 {
+        C0(bool value = false) : value(value) {}
         operator bool() const noexcept {return value;}
         bool value{false};
     };
-    struct C1 : public Counter<C1> {
-        C1(bool value) : value(value) {}
+    struct C1 {
+        C1(bool value = false) : value(value) {}
         operator bool() const noexcept {return value;}
         bool value{false};
     };
-    struct C2 : public Counter<C2> {
-        C2(bool value) : value(value) {}
+    struct C2 {
+        C2(bool value = false) : value(value) {}
         operator bool() const noexcept {return value;}
         bool value{false};
     };
@@ -1590,18 +1479,18 @@ TEST(world, component_removal_no_existing_views) {
 }
 
 TEST(world, component_removal_existing_views) {
-    struct C0 : public Counter<C0> {
-        C0(bool value) : value(value) {}
+    struct C0 {
+        C0(bool value = false) : value(value) {}
         operator bool() const noexcept {return value;}
         bool value{false};
     };
-    struct C1 : public Counter<C1> {
-        C1(bool value) : value(value) {}
+    struct C1 {
+        C1(bool value = false) : value(value) {}
         operator bool() const noexcept {return value;}
         bool value{false};
     };
-    struct C2 : public Counter<C2> {
-        C2(bool value) : value(value) {}
+    struct C2 {
+        C2(bool value = false) : value(value) {}
         operator bool() const noexcept {return value;}
         bool value{false};
     };

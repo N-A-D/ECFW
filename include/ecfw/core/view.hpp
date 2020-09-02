@@ -196,30 +196,21 @@ namespace detail {
 			static_assert(is_subset(requested_types, viewed_types),
 				"Cannot return unviewed types!");
 
-			if constexpr (sizeof...(Cs) == 1) {			
-				return (
-					*static_cast<Cs*>(
-						m_buffers[dtl::index_of(dtl::type_v<Cs>, viewed_types)]->data(idx)
-					), ...
-				);
-			}
+			if constexpr (sizeof...(Cs) == 1)
+				return (m_buffers[dtl::index_of(dtl::type_v<Cs>, viewed_types)]->at(idx), ...);
 			else if constexpr (sizeof...(Cs) > 1)
 				return forward_as_tuple(get<Cs>(idx)...);
 			else 
 				return forward_as_tuple(get<Ts>(idx)...);
 		}
 
-		template <typename C>
-		using buffer_type = 
-			std::conditional_t<std::is_const_v<C>, const dtl::chunked_buffer, dtl::chunked_buffer>;
-
-		view(const dtl::sparse_set& entities, buffer_type<Ts>&... buffers)
+		view(const dtl::sparse_set& entities, dtl::buffer_type<Ts>&... buffers)
 			: m_entities(std::addressof(entities))
 			, m_buffers(std::addressof(buffers)...)
 		{}
 
 		const dtl::sparse_set* m_entities{};
-		boost::hana::tuple<buffer_type<Ts>*...> m_buffers{};
+		boost::hana::tuple<dtl::buffer_type<Ts>*...> m_buffers{};
 
 	};
 
@@ -348,22 +339,18 @@ namespace detail {
 		T& get(uint64_t eid) const {
 			assert(contains(eid));
 			auto idx = dtl::lsw(eid);
-			return *static_cast<T*>(m_buffer->data(idx));
+			return m_buffer->at(idx);
 		}
 
 	private:
 
-		template <typename C>
-		using buffer_type =
-			std::conditional_t<std::is_const_v<C>, const dtl::chunked_buffer, dtl::chunked_buffer>;
-
-		view(const dtl::sparse_set& es, buffer_type<T>& b)
+		view(const dtl::sparse_set& es, dtl::buffer_type<T>& b)
 			: m_entities(std::addressof(es))
 			, m_buffer(std::addressof(b))
 		{}
 
 		const dtl::sparse_set* m_entities{};
-		buffer_type<T>* m_buffer{};
+		dtl::buffer_type<T>* m_buffer{};
 
 	};
 
