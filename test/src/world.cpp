@@ -148,6 +148,11 @@ TEST(world, create_single_entity_with_existing_views) {
     struct C1 {};
 
     ecfw::world world{};
+
+    auto v0 = world.view<C0, C1>();
+    auto v1 = world.view<C0>();
+    auto v2 = world.view<C1>();
+
     auto entity = world.create<C0, C1>();
 
     // Ensure the entity's index & version are both 0
@@ -164,11 +169,8 @@ TEST(world, create_single_entity_with_existing_views) {
     ASSERT_EQ((world.size<C1>()), 1);
     ASSERT_EQ((world.size<C0, C1>()), 1);
 
-    // Create views and ensure any new compatible entity
+    // ensure any new compatible entity
     // is picked up by the view
-    auto v0 = world.view<C0, C1>();
-    auto v1 = world.view<C0>();
-    auto v2 = world.view<C1>();
     ASSERT_EQ(v0.size(), 1);
     ASSERT_EQ(v1.size(), 1);
     ASSERT_EQ(v2.size(), 1);
@@ -187,6 +189,10 @@ TEST(world, create_multiple_entities_with_existing_views) {
 
     ecfw::world world{};
 
+    auto v0 = world.view<C0, C1>();
+    auto v1 = world.view<C0>();
+    auto v2 = world.view<C1>();
+
     std::vector<uint64_t> entities{};
     world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
@@ -202,9 +208,6 @@ TEST(world, create_multiple_entities_with_existing_views) {
         ASSERT_TRUE(world.valid(entity));
     }
 
-    auto v0 = world.view<C0, C1>();
-    auto v1 = world.view<C0>();
-    auto v2 = world.view<C1>();
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
     ASSERT_EQ(v1.size(), NUM_ENTITIES);
     ASSERT_EQ(v2.size(), NUM_ENTITIES);
@@ -227,6 +230,10 @@ TEST(world, create_batch_with_existing_views) {
 
     ecfw::world world{};
 
+    auto v0 = world.view<C0, C1>();
+    auto v1 = world.view<C0>();
+    auto v2 = world.view<C1>();
+
     std::vector<uint64_t> entities(NUM_ENTITIES);
     world.create<C0, C1>(entities.begin(), entities.end());
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
@@ -242,9 +249,6 @@ TEST(world, create_batch_with_existing_views) {
         ASSERT_TRUE(world.valid(entity));
     }
 
-    auto v0 = world.view<C0, C1>();
-    auto v1 = world.view<C0>();
-    auto v2 = world.view<C1>();
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
     ASSERT_EQ(v1.size(), NUM_ENTITIES);
     ASSERT_EQ(v2.size(), NUM_ENTITIES);
@@ -559,6 +563,11 @@ TEST(world, recycle_single_entity_with_existing_views) {
     struct C1 {};
 
     ecfw::world world{};
+
+    auto v0 = world.view<C0, C1>();
+    auto v1 = world.view<C0>();
+    auto v2 = world.view<C1>();
+
     auto entity = world.create<C0, C1>();
 
     // Ensure the entity's index & version are both 0
@@ -575,11 +584,8 @@ TEST(world, recycle_single_entity_with_existing_views) {
     ASSERT_EQ((world.size<C1>()), 1);
     ASSERT_EQ((world.size<C0, C1>()), 1);
 
-    // Create a view and ensure the new  entity
+    // ensure the new  entity
     // is picked up by the view
-    auto v0 = world.view<C0, C1>();
-    auto v1 = world.view<C0>();
-    auto v2 = world.view<C1>();
     ASSERT_EQ(v0.size(), 1);
     ASSERT_EQ(v1.size(), 1);
     ASSERT_EQ(v2.size(), 1);
@@ -652,6 +658,10 @@ TEST(world, recycle_multiple_entities_with_existing_views) {
 
     ecfw::world world{};
 
+    auto v0 = world.view<C0, C1>();
+    auto v1 = world.view<C0>();
+    auto v2 = world.view<C1>();
+
     std::vector<uint64_t> entities{};
     world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
@@ -667,9 +677,6 @@ TEST(world, recycle_multiple_entities_with_existing_views) {
         ASSERT_TRUE(world.valid(entity));
     }
 
-    auto v0 = world.view<C0, C1>();
-    auto v1 = world.view<C0>();
-    auto v2 = world.view<C1>();
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
     ASSERT_EQ(v1.size(), NUM_ENTITIES);
     ASSERT_EQ(v2.size(), NUM_ENTITIES);
@@ -761,6 +768,10 @@ TEST(world, recycle_batch_with_existing_views) {
 
     ecfw::world world{};
 
+    auto v0 = world.view<C0, C1>();
+    auto v1 = world.view<C0>();
+    auto v2 = world.view<C1>();
+
     std::vector<uint64_t> entities(NUM_ENTITIES);
     world.create<C0, C1>(entities.begin(), entities.end());
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
@@ -776,9 +787,6 @@ TEST(world, recycle_batch_with_existing_views) {
         ASSERT_TRUE(world.valid(entity));
     }
 
-    auto v0 = world.view<C0, C1>();
-    auto v1 = world.view<C0>();
-    auto v2 = world.view<C1>();
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
     ASSERT_EQ(v1.size(), NUM_ENTITIES);
     ASSERT_EQ(v2.size(), NUM_ENTITIES);
@@ -1058,6 +1066,11 @@ TEST(world, destroy_single_entity_with_existing_views) {
     struct C1 {};
 
     ecfw::world world{};
+
+    auto v0 = world.view<C0, C1>();
+    auto v1 = world.view<C0>();
+    auto v2 = world.view<C1>();
+
     auto entity = world.create<C0, C1>();
 
     // Ensure the entity's index & version are both 0
@@ -1074,11 +1087,8 @@ TEST(world, destroy_single_entity_with_existing_views) {
     ASSERT_EQ((world.size<C1>()), 1);
     ASSERT_EQ((world.size<C0, C1>()), 1);
 
-    // Create a view and ensure the new  entity
+    // ensure the new  entity
     // is picked up by the view
-    auto v0 = world.view<C0, C1>();
-    auto v1 = world.view<C0>();
-    auto v2 = world.view<C1>();
     ASSERT_EQ(v0.size(), 1);
     ASSERT_EQ(v1.size(), 1);
     ASSERT_EQ(v2.size(), 1);
@@ -1115,6 +1125,10 @@ TEST(world, destroy_multiple_entities_with_existing_views) {
 
     ecfw::world world{};
 
+    auto v0 = world.view<C0, C1>();
+    auto v1 = world.view<C0>();
+    auto v2 = world.view<C1>();
+
     std::vector<uint64_t> entities{};
     world.create_n<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
@@ -1130,9 +1144,6 @@ TEST(world, destroy_multiple_entities_with_existing_views) {
         ASSERT_TRUE(world.valid(entity));
     }
 
-    auto v0 = world.view<C0, C1>();
-    auto v1 = world.view<C0>();
-    auto v2 = world.view<C1>();
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
     ASSERT_EQ(v1.size(), NUM_ENTITIES);
     ASSERT_EQ(v2.size(), NUM_ENTITIES);
@@ -1168,6 +1179,10 @@ TEST(world, destroy_batch_with_existing_views) {
 
     ecfw::world world{};
 
+    auto v0 = world.view<C0, C1>();
+    auto v1 = world.view<C0>();
+    auto v2 = world.view<C1>();
+
     std::vector<uint64_t> entities(NUM_ENTITIES);
     world.create<C0, C1>(entities.begin(), entities.end());
     ASSERT_EQ((world.size<C0>()), NUM_ENTITIES);
@@ -1183,9 +1198,6 @@ TEST(world, destroy_batch_with_existing_views) {
         ASSERT_TRUE(world.valid(entity));
     }
 
-    auto v0 = world.view<C0, C1>();
-    auto v1 = world.view<C0>();
-    auto v2 = world.view<C1>();
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
     ASSERT_EQ(v1.size(), NUM_ENTITIES);
     ASSERT_EQ(v2.size(), NUM_ENTITIES);
@@ -1224,6 +1236,11 @@ TEST(world, component_assignment_no_existing_views) {
 
     std::vector<uint64_t> entities{};
     ecfw::world world{};
+
+    auto v1 = world.view<C0, C1>();
+    auto v3 = world.view<C1, C2>();
+    auto v5 = world.view<C1>();
+
     world.create_n(std::back_inserter(entities), NUM_ENTITIES);
 
     for (auto entity : entities)
@@ -1244,11 +1261,8 @@ TEST(world, component_assignment_no_existing_views) {
     ASSERT_EQ((world.size<C2>()), NUM_ENTITIES);
 
     auto v0 = world.view<C0, C1, C2>();
-    auto v1 = world.view<C0, C1>();
     auto v2 = world.view<C0, C2>();
-    auto v3 = world.view<C1, C2>();
     auto v4 = world.view<C0>();
-    auto v5 = world.view<C1>();
     auto v6 = world.view<C2>();
 
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
@@ -1279,6 +1293,11 @@ TEST(world, component_assignment_existing_views) {
 
     std::vector<uint64_t> entities{};
     ecfw::world world{};
+
+    auto v1 = world.view<C0, C1>();
+    auto v3 = world.view<C1, C2>();
+    auto v5 = world.view<C1>();
+
     world.create_n(std::back_inserter(entities), NUM_ENTITIES);
 
     for (auto entity : entities)
@@ -1299,11 +1318,8 @@ TEST(world, component_assignment_existing_views) {
     ASSERT_EQ((world.size<C2>()), NUM_ENTITIES);
 
     auto v0 = world.view<C0, C1, C2>();
-    auto v1 = world.view<C0, C1>();
     auto v2 = world.view<C0, C2>();
-    auto v3 = world.view<C1, C2>();
     auto v4 = world.view<C0>();
-    auto v5 = world.view<C1>();
     auto v6 = world.view<C2>();
 
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
@@ -1385,6 +1401,11 @@ TEST(world, component_removal_no_existing_views) {
 
     std::vector<uint64_t> entities{};
     ecfw::world world{};
+
+    auto v1 = world.view<C0, C1>();
+    auto v3 = world.view<C1, C2>();
+    auto v5 = world.view<C1>();
+
     world.create_n(std::back_inserter(entities), NUM_ENTITIES);
 
     for (auto entity : entities)
@@ -1405,11 +1426,8 @@ TEST(world, component_removal_no_existing_views) {
     ASSERT_EQ((world.size<C2>()), NUM_ENTITIES);
 
     auto v0 = world.view<C0, C1, C2>();
-    auto v1 = world.view<C0, C1>();
     auto v2 = world.view<C0, C2>();
-    auto v3 = world.view<C1, C2>();
     auto v4 = world.view<C0>();
-    auto v5 = world.view<C1>();
     auto v6 = world.view<C2>();
 
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
@@ -1497,6 +1515,11 @@ TEST(world, component_removal_existing_views) {
 
     std::vector<uint64_t> entities{};
     ecfw::world world{};
+
+    auto v1 = world.view<C0, C1>();
+    auto v3 = world.view<C1, C2>();
+    auto v5 = world.view<C1>();
+
     world.create_n(std::back_inserter(entities), NUM_ENTITIES);
 
     for (auto entity : entities)
@@ -1517,11 +1540,8 @@ TEST(world, component_removal_existing_views) {
     ASSERT_EQ((world.size<C2>()), NUM_ENTITIES);
 
     auto v0 = world.view<C0, C1, C2>();
-    auto v1 = world.view<C0, C1>();
     auto v2 = world.view<C0, C2>();
-    auto v3 = world.view<C1, C2>();
     auto v4 = world.view<C0>();
-    auto v5 = world.view<C1>();
     auto v6 = world.view<C2>();
 
     ASSERT_EQ(v0.size(), NUM_ENTITIES);
