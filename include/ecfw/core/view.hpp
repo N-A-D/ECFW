@@ -52,7 +52,8 @@ namespace detail {
 			bh::equal(
 				bh::unique(dtl::type_list_v<Ts...>), 
 				dtl::type_list_v<Ts...>
-			)
+			),
+			"Cannot create a view with duplicate components."
 		);		
 
 	public:
@@ -101,7 +102,7 @@ namespace detail {
 		 * 
 		 * @return Iterator to the first element.
 		 */
-		const_iterator begin() const noexcept {
+		[[nodiscard]] const_iterator begin() const noexcept {
 			return m_entities->begin();
 		}
 
@@ -110,7 +111,7 @@ namespace detail {
 		 * 
 		 * @return Iterator to the element following the last element.
 		 */
-		const_iterator end() const noexcept {
+		[[nodiscard]] const_iterator end() const noexcept {
 			return m_entities->end();
 		}
 
@@ -119,7 +120,7 @@ namespace detail {
 		 * 
 		 * @return Reverse iterator to the first element.
 		 */
-		const_reverse_iterator rbegin() const noexcept {
+		[[nodiscard]] const_reverse_iterator rbegin() const noexcept {
 			return m_entities->rbegin();
 		}
 
@@ -129,7 +130,7 @@ namespace detail {
 		 * 
 		 * @return Reverse iterator to the element following the last element.
 		 */
-		const_reverse_iterator rend() const noexcept {
+		[[nodiscard]] const_reverse_iterator rend() const noexcept {
 			return m_entities->rend();
 		}
 
@@ -141,7 +142,7 @@ namespace detail {
 		 * @return true If there is such an entity.
 		 * @return false If there does not exist such an entity.
 		 */
-		bool contains(value_type eid) const {
+		[[nodiscard]] bool contains(value_type eid) const {
 			return m_entities->contains(eid);
 		}
 
@@ -150,7 +151,7 @@ namespace detail {
 		 * 
 		 * @return The number of entities viewed.
 		 */
-		size_type size() const noexcept {
+		[[nodiscard]] size_type size() const noexcept {
 			return m_entities->size();
 		}
 
@@ -160,7 +161,7 @@ namespace detail {
 		 * @return true If the view is empty.
 		 * @return false If the view is not empty.
 		 */
-		bool empty() const noexcept {
+		[[nodiscard]] bool empty() const noexcept {
 			return m_entities->empty();
 		}
 
@@ -174,7 +175,7 @@ namespace detail {
 		 * @return Reference to a component or a tuple of references.
 		 */
 		template <typename... Cs>
-		decltype(auto) get(uint64_t eid) const {
+		[[nodiscard]] decltype(auto) get(uint64_t eid) const {
 			auto idx = dtl::lsw(eid);
 			return unchecked_get<Cs...>(idx);
 		}
@@ -182,7 +183,7 @@ namespace detail {
 	private:
 
 		template <typename... Cs>
-		decltype(auto) unchecked_get(uint32_t idx) const {
+		[[nodiscard]] decltype(auto) unchecked_get(uint32_t idx) const {
 			using std::forward_as_tuple;
 			using boost::hana::unique;
 			using boost::hana::equal;
@@ -267,7 +268,7 @@ namespace detail {
 		 * 
 		 * @return Iterator to the first element.
 		 */
-		const_iterator begin() const noexcept {
+		[[nodiscard]] const_iterator begin() const noexcept {
 			return m_entities->begin();
 		}
 
@@ -276,7 +277,7 @@ namespace detail {
 		 * 
 		 * @return Iterator to the element following the last element.
 		 */
-		const_iterator end() const noexcept {
+		[[nodiscard]] const_iterator end() const noexcept {
 			return m_entities->end();
 		}
 
@@ -285,7 +286,7 @@ namespace detail {
 		 * 
 		 * @return Reverse iterator to the first element.
 		 */
-		const_reverse_iterator rbegin() const noexcept {
+		[[nodiscard]] const_reverse_iterator rbegin() const noexcept {
 			return m_entities->rbegin();
 		}
 
@@ -295,7 +296,7 @@ namespace detail {
 		 * 
 		 * @return Reverse iterator to the element following the last element.
 		 */
-		const_reverse_iterator rend() const noexcept {
+		[[nodiscard]] const_reverse_iterator rend() const noexcept {
 			return m_entities->rend();
 		}
 
@@ -307,7 +308,7 @@ namespace detail {
 		 * @return true If there is such an entity.
 		 * @return false If there does not exist such an entity.
 		 */
-		bool contains(value_type eid) const {
+		[[nodiscard]] bool contains(value_type eid) const {
 			return m_entities->contains(eid);
 		}
 
@@ -316,7 +317,7 @@ namespace detail {
 		 * 
 		 * @return The number of entities viewed.
 		 */
-		size_type size() const noexcept {
+		[[nodiscard]] size_type size() const noexcept {
 			return m_entities->size();
 		}
 
@@ -326,7 +327,7 @@ namespace detail {
 		 * @return true If the view is empty.
 		 * @return false If the view is not empty.
 		 */
-		bool empty() const noexcept {
+		[[nodiscard]] bool empty() const noexcept {
 			return m_entities->empty();
 		}
 
@@ -336,7 +337,7 @@ namespace detail {
 		 * @param eid The entity to fetch for.
 		 * @return Reference to the component. 
 		 */
-		T& get(uint64_t eid) const {
+		[[nodiscard]] T& get(uint64_t eid) const {
 			assert(contains(eid));
 			auto idx = dtl::lsw(eid);
 			return m_buffer->at(idx);
