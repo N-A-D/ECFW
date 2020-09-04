@@ -1,6 +1,7 @@
 #pragma once
 
-#include <utility>  // as_const
+#include <vector> // vector
+#include <utility> // is_const
 
 namespace ecfw 
 {
