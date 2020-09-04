@@ -1,15 +1,15 @@
 #pragma once
 
-#include <any> // any, any_cast, make_any		
-#include <tuple> // tuple, get, forward_as_tuple
-#include <stack> // stack
-#include <vector> // vector
-#include <cassert> // assert
-#include <algorithm> // generate_n, all_of
-#include <type_traits> // conjunction_v, is_default_constructible, as_const, is_constructible, is_copy_constructible
-#include <unordered_map> // unordered_map
-#include <boost/hana.hpp> // unique, equal, is_subset
-#include <boost/dynamic_bitset.hpp> // dynamic_bitset
+#include <any>	
+#include <tuple>
+#include <stack>
+#include <vector>
+#include <cassert>
+#include <algorithm>
+#include <type_traits>
+#include <unordered_map>
+#include <boost/hana.hpp>
+#include <boost/dynamic_bitset.hpp>
 #include <ecfw/core/view.hpp>
 #include <ecfw/detail/buffer.hpp>
 #include <ecfw/detail/dword.hpp>
@@ -64,7 +64,7 @@ namespace ecfw
 		 * @return An entity identifier.
 		 */
 		template <typename... Ts>
-		uint64_t create() {
+		[[nodiscard]] uint64_t create() {
 			using std::conjunction_v;
 			using std::is_default_constructible;
 			using boost::hana::unique;
@@ -93,12 +93,10 @@ namespace ecfw
 				auto size = m_versions.size();
 				assert(size < 0xFFFFFFFF);
 
-				uint32_t idx = static_cast<uint32_t>(size);
-
 				// Any new entity is effectively a new row in the component table.
 				// However, we refrain from actually allocating space in the component
 				// metadata and component data buffers until components are assigned.
-				entity = idx;
+				entity = static_cast<uint64_t>(size);
 				m_versions.push_back(0);
 			}
 			if constexpr (sizeof...(Ts) > 0)
@@ -162,7 +160,7 @@ namespace ecfw
 		 * @return An entity identiter.
 		 */
 		template <typename... Ts>
-		uint64_t clone(uint64_t original) {
+		[[nodiscard]] uint64_t clone(uint64_t original) {
 			using std::conjunction_v;
 			using std::is_copy_constructible;
 			static_assert(conjunction_v<is_copy_constructible<Ts>...>, 
@@ -224,7 +222,7 @@ namespace ecfw
 		 * @return true If the entity belongs to *this.
 		 * @return false If the entity does not belong to *this.
 		 */
-		bool valid(uint64_t eid) const {
+		[[nodiscard]] bool valid(uint64_t eid) const {
 			auto idx = dtl::lsw(eid);
 			auto ver = dtl::msw(eid);
 			return idx < m_versions.size()
@@ -252,7 +250,7 @@ namespace ecfw
 			typename InIt, 
 			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
 		>
-		bool valid(InIt first, InIt last) const {
+		[[nodiscard]] bool valid(InIt first, InIt last) const {
 			return std::all_of(first, last, 
 				[this](auto e) { 
 					return valid(e); 
@@ -329,7 +327,7 @@ namespace ecfw
 			typename... Ts, 
 			typename = std::enable_if_t<sizeof...(Ts) >= 1>
 		>
-		bool has(uint64_t eid) const {
+		[[nodiscard]] bool has(uint64_t eid) const {
 			using boost::hana::unique;
 			using boost::hana::equal;
 
@@ -381,6 +379,23 @@ namespace ecfw
 		}
 
 		/**
+		 * @brief Removes components from a collection of entities.
+		 * 
+		 * @tparam Ts Component types to remove.
+		 * @tparam InIt Input iterator type.
+		 * @param first Beginning of the range of entities to remove components from.
+		 * @param last One-past the end of the range of entities to remove components from.
+		 */
+		template <
+			typename... Ts,
+			typename InIt,
+			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
+		> void remove(InIt first, InIt last) {
+			for (; first != last; ++first)
+				remove<Ts...>(*first);
+		}
+
+		/**
 		 * @brief Constructs a new component associated with an entity.
 		 * 
 		 * @pre
@@ -397,7 +412,7 @@ namespace ecfw
 			typename T, 
 			typename... Args
 		>
-		T& assign(uint64_t eid, Args&&... args) {
+		[[maybe_unused]] T& assign(uint64_t eid, Args&&... args) {
 			using std::vector;
 			using std::forward;
 			using std::make_any;
@@ -414,10 +429,10 @@ namespace ecfw
 				"All component types must be default constructible.");
 
 			static_assert(conjunction_v<is_move_constructible<T>, is_move_assignable<T>>,
-				"All component types must at least be move constructible and assignable.");
+				"Assigned component types must be at least move constructible/assignable.");
 
 			static_assert(is_constructible_v<T, Args...>, 
-				"Cannot construct component type from the given arguments.");
+				"Cannot construct the component from the given arguments.");
 
 			assert(!has<T>(eid));
 
@@ -479,6 +494,68 @@ namespace ecfw
 		}
 
 		/**
+		 * @brief If the entity does not have the given component type,
+		 * a new component will be assigned to it. Otherwise, replace
+		 * the entity's current component.
+		 * 
+		 * @tparam T Component type to assign or replace.
+		 * @tparam Args Component constructor argument types.
+		 * @param eid Candidate entity.
+		 * @param args Component constructor argument values.
+		 * @return A reference to the newly constructed component.
+		 */
+		template <
+			typename T, 
+			typename... Args
+		>
+		[[maybe_unused]] T& assign_or_replace(uint64_t eid, Args&&... args) {
+			using std::forward;
+			using std::conjunction_v;
+			using std::is_aggregate_v;
+			using std::is_constructible_v;
+			using std::is_move_assignable;
+			using std::is_move_constructible;
+
+			static_assert(conjunction_v<is_move_constructible<T>, is_move_assignable<T>>,
+				"Assigned component types must be at least move constructible/assignable.");
+
+			static_assert(is_constructible_v<T, Args...>, 
+				"Cannot construct the component from the given arguments.");
+
+			if (!has<T>(eid)) {
+				return assign<T>(eid, forward<Args>(args)...);
+			}
+			else {
+				auto idx = dtl::lsw(eid);
+				auto type_id = dtl::type_index_v<T>;
+
+				auto& buffer = any_cast<vector<T>&>(m_buffers[type_id]);
+				if constexpr (is_aggregate_v<T>)
+					buffer[idx] = T{forward<Args>(args)...};
+				else 
+					buffer[idx] = T(forward<Args>(args)...);
+				return buffer[idx];
+			}
+		}
+
+		/**
+		 * @brief Assigns components to a collection of entities.
+		 * 
+		 * @tparam Ts Component types to assign to each entity.
+		 * @tparam InIt Input iterator type. 
+		 * @param first Beginning of the range of entities to assign components to.
+		 * @param last One-past the end of the range of entities to assign components to.
+		 */
+		template <
+			typename... Ts,
+			typename InIt,
+			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
+		> void assign(InIt first, InIt last) {
+			for (; first != last; ++first)
+				assign<Ts...>(*first);
+		}
+
+		/**
 		 * @brief Returns an entity's components
 		 * 
 		 * @tparam Ts Component types to fetch.
@@ -486,7 +563,7 @@ namespace ecfw
 		 * @return Reference to a component or a tuple of references.
 		 */
 		template <typename... Ts>
-		decltype(auto) get(uint64_t eid) {
+		[[nodiscard]] decltype(auto) get(uint64_t eid) {
 			if constexpr (sizeof...(Ts) == 1) {
 				using std::as_const;
 
@@ -503,7 +580,7 @@ namespace ecfw
 
 		/*! @copydoc get */
 		template <typename... Ts>
-		decltype(auto) get(uint64_t eid) const {
+		[[nodiscard]] decltype(auto) get(uint64_t eid) const {
 			assert(has<Ts...>(eid));
 			if constexpr (sizeof...(Ts) == 1) {
 				using std::vector;
@@ -530,7 +607,7 @@ namespace ecfw
 		 * @return The number of active entities.
 		 */
 		template <typename... Ts>
-		size_t size() const {
+		[[nodiscard]] size_t size() const {
 			if constexpr (sizeof...(Ts) > 0) {
 				size_t count = 0;
 				uint32_t size = static_cast<uint32_t>(m_versions.size());
@@ -555,7 +632,7 @@ namespace ecfw
 		 * @return false if there area active entities.
 		 */
 		template <typename... Ts>
-		bool empty() const {
+		[[nodiscard]] bool empty() const {
 			return size<Ts...>() == 0;
 		}
 
@@ -565,9 +642,7 @@ namespace ecfw
 		 * @tparam Ts Component types to reserve space for.
 		 * @param n The number of components to allocated space for.
 		 */
-		template <
-			typename... Ts
-		>
+		template <typename... Ts>
 		void reserve(size_t n) {
 			if constexpr (sizeof...(Ts) == 1) {
 				using std::vector;
@@ -606,7 +681,7 @@ namespace ecfw
 		 * @return An instance of ecfw::view.
 		 */
 		template <typename... Ts>
-		ecfw::view<Ts...> view() {
+		[[nodiscard]] ecfw::view<Ts...> view() {
 			using std::vector;
 			using std::any_cast;
 			using boost::hana::equal;
@@ -615,19 +690,19 @@ namespace ecfw
 			// Check for duplicate types
 			constexpr auto type_list = dtl::type_list_v<Ts...>;
 			static_assert(equal(unique(type_list), type_list),
-				"Duplicate types are not allowed!");
+				"Cannot construct view with duplicate components.");
 
 			accommodate<std::decay_t<Ts>...>();
 
-			return ecfw::view<Ts...>(
+			return ecfw::view<Ts...>{
 				group_by<Ts...>(),
 				any_cast<vector<Ts>&>(m_buffers[dtl::type_index_v<std::decay_t<Ts>>])...
-			);
+			};
 		}
 
 		/*! @copydoc view */
 		template <typename... Ts>
-		ecfw::view<Ts...> view() const {
+		[[nodiscard]] ecfw::view<Ts...> view() const {
 			using std::vector;
 			using std::any_cast;
 			using boost::hana::equal;
@@ -636,14 +711,14 @@ namespace ecfw
 			// Check for duplicate types
 			constexpr auto type_list = dtl::type_list_v<Ts...>;
 			static_assert(equal(unique(type_list), type_list),
-				"Duplicate types are not allowed!");
+				"Cannot construct view with duplicate components.");
 
 			accommodate<std::decay_t<Ts>...>();
 
-			return ecfw::view<Ts...>(
-				group_by<Ts...>(), 
+			return ecfw::view<Ts...>{
+				group_by<Ts...>(),
 				any_cast<vector<Ts>&>(m_buffers[dtl::type_index_v<std::decay_t<Ts>>])...
-			);
+			};
 		}
 
 	private:
@@ -670,7 +745,7 @@ namespace ecfw
 		}
 
 		template <typename... Ts>
-		const dtl::sparse_set& group_by() const {
+		[[nodiscard]] const dtl::sparse_set& group_by() const {
 			using std::max;
 			using std::initializer_list;
 			
