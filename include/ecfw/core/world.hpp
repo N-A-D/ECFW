@@ -670,13 +670,6 @@ namespace ecfw
 		/**
 		 * @brief Returns a view of a given set of components.
 		 * 
-		 * @warning
-		 * A view can only be created from a unique set of 
-		 * components that a world has seen before. That is,
-		 * for each given component type, it has been assigned
-		 * to at least one entity belonging to the constructing
-		 * world.
-		 * 
 		 * @tparam Ts Component types to be viewed.
 		 * @return An instance of ecfw::view.
 		 */
