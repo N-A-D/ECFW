@@ -38,101 +38,101 @@ namespace detail
 				, m_parent(std::addressof(parent))
 			{}
 
-			difference_type operator-(const iterator& rhs) const noexcept {
+			[[nodiscard]] difference_type operator-(const iterator& rhs) const noexcept {
 				assert(is_valid() && rhs.is_valid());
 				assert(is_compatible_with(rhs));
 				return m_it - rhs.m_it;
 			}
 
-			reference operator[](difference_type n) const {
+			[[nodiscard]] reference operator[](difference_type n) const {
 				return *(*this + n);
 			}
 
-			pointer operator->() const {
+			[[nodiscard]] pointer operator->() const {
 				assert(is_valid());
 				return m_it;
 			}
 
-			reference operator*() const {
+			[[nodiscard]] reference operator*() const {
 				return *(operator->());
 			}
 
-			iterator& operator++() {
+			[[maybe_unused]] iterator& operator++() {
 				assert(is_valid());
 				++m_it;
 				return *this;
 			}
 
-			iterator operator++(int) {
+			[[maybe_unused]] iterator operator++(int) {
 				iterator copy(*this);
 				++* this;
 				return copy;
 			}
 
-			iterator& operator+=(difference_type n) {
+			[[maybe_unused]] iterator& operator+=(difference_type n) {
 				assert(is_valid());
 				m_it += n;
 				return *this;
 			}
 
-			iterator operator+(difference_type n) const {
+			[[maybe_unused]] iterator operator+(difference_type n) const {
 				return iterator(*this) += n;
 			}
 
-			iterator& operator--() {
+			[[maybe_unused]] iterator& operator--() {
 				assert(is_valid());
 				--m_it;
 				return *this;
 			}
 
-			iterator operator--(int) {
+			[[maybe_unused]] iterator operator--(int) {
 				iterator copy(*this);
 				--* this;
 				return copy;
 			}
 
-			iterator& operator-=(difference_type n) {
+			[[maybe_unused]] iterator& operator-=(difference_type n) {
 				assert(is_valid());
 				m_it -= n;
 				return *this;
 			}
 
-			iterator operator-(difference_type n) const {
+			[[maybe_unused]] iterator operator-(difference_type n) const {
 				return iterator(*this) -= n;
 			}
 
-			bool operator==(const iterator& rhs) const noexcept {
+			[[nodiscard]] bool operator==(const iterator& rhs) const noexcept {
 				assert(is_compatible_with(rhs));
 				return m_it == rhs.m_it;
 			}
 
-			bool operator!=(const iterator& rhs) const noexcept {
+			[[nodiscard]] bool operator!=(const iterator& rhs) const noexcept {
 				return !(*this == rhs);
 			}
 
-			bool operator<(const iterator& rhs) const noexcept {
+			[[nodiscard]] bool operator<(const iterator& rhs) const noexcept {
 				return m_it < rhs.m_it;
 			}
 
-			bool operator<=(const iterator& rhs) const noexcept {
+			[[nodiscard]] bool operator<=(const iterator& rhs) const noexcept {
 				return *this < rhs || *this == rhs;
 			}
 
-			bool operator>(const iterator& rhs) const noexcept {
+			[[nodiscard]] bool operator>(const iterator& rhs) const noexcept {
 				return rhs < *this;
 			}
 
-			bool operator>=(const iterator& rhs) const noexcept {
+			[[nodiscard]] bool operator>=(const iterator& rhs) const noexcept {
 				return *this > rhs || *this == rhs;
 			}
 
 		private:
 
-			bool is_valid() const noexcept {
+			[[nodiscard]] bool is_valid() const noexcept {
 				return m_it && m_parent;
 			}
 
-			bool is_compatible_with(const iterator& rhs) const noexcept {
+			[[nodiscard]] bool is_compatible_with(const iterator& rhs) const noexcept {
 				return m_parent == rhs.m_parent;
 			}
 
@@ -161,23 +161,23 @@ namespace detail
 			return *this;
 		}
 
-		const_pointer data() const noexcept {
+		[[nodiscard]] const_pointer data() const noexcept {
 			return m_packed.data();
 		}
 
-		const_iterator begin() const noexcept {
+		[[nodiscard]] const_iterator begin() const noexcept {
 			return const_iterator(data(), *this);
 		}
 
-		const_iterator end() const noexcept {
+		[[nodiscard]] const_iterator end() const noexcept {
 			return const_iterator(data() + size(), *this);
 		}
 
-		const_reverse_iterator rbegin() const noexcept {
+		[[nodiscard]] const_reverse_iterator rbegin() const noexcept {
 			return const_reverse_iterator(end());
 		}
 
-		const_reverse_iterator rend() const noexcept {
+		[[nodiscard]] const_reverse_iterator rend() const noexcept {
 			return const_reverse_iterator(begin());
 		}
 
@@ -244,7 +244,7 @@ namespace detail
 			--m_size;
 		}
 
-		bool contains(value_type val) const {
+		[[nodiscard]] bool contains(value_type val) const {
 			size_type block = lsw(val) / block_size;
 			size_type offset = lsw(val) & block_size - 1;
 			// Check if the value's block exists, is allocated, contains a
@@ -256,11 +256,11 @@ namespace detail
 				&& m_packed[m_sparse[block][offset]] == val;
 		}
 
-		size_type size() const noexcept {
+		[[nodiscard]] size_type size() const noexcept {
 			return m_size;
 		}
 
-		bool empty() const noexcept {
+		[[nodiscard]] bool empty() const noexcept {
 			return m_size == 0;
 		}
 
@@ -274,7 +274,7 @@ namespace detail
 		uint32_t m_size{};
 
 		// Collection of elements in the set
-		std::vector<uint64_t> m_packed{};
+		std::vector<value_type> m_packed{};
 
 		// Collection of arrays
 		// Each array contains 2^16 entries which
