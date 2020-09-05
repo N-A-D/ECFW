@@ -587,10 +587,11 @@ namespace ecfw
 			if constexpr (sizeof...(Ts) == 1) {
 				using std::vector;
 				using std::any_cast;
+				using std::decay_t;
 
 				auto idx = dtl::lsw(eid);
-				auto type_id = (dtl::type_index_v<Ts>, ...);
-				const auto& buffer = (any_cast<const vector<Ts>&>(m_buffers[type_id]), ...);
+				auto type_id = (dtl::type_index_v<decay_t<Ts>>, ...);
+				const auto& buffer = (any_cast<const vector<decay_t<Ts>>&>(m_buffers[type_id]), ...);
 				return buffer[idx];
 			}
 			else {
@@ -678,6 +679,7 @@ namespace ecfw
 		template <typename... Ts>
 		[[nodiscard]] ecfw::view<Ts...> view() {
 			using std::vector;
+			using std::decay_t;
 			using std::any_cast;
 			using boost::hana::equal;
 			using boost::hana::unique;
@@ -690,8 +692,8 @@ namespace ecfw
 			accommodate<std::decay_t<Ts>...>();
 
 			return ecfw::view<Ts...>{
-				group_by<Ts...>(),
-				any_cast<vector<Ts>&>(m_buffers[dtl::type_index_v<std::decay_t<Ts>>])...
+				group_by<decay_t<Ts>...>(),
+				any_cast<vector<decay_t<Ts>>&>(m_buffers[dtl::type_index_v<decay_t<Ts>>])...
 			};
 		}
 
@@ -699,7 +701,10 @@ namespace ecfw
 		template <typename... Ts>
 		[[nodiscard]] ecfw::view<Ts...> view() const {
 			using std::vector;
+			using std::decay_t;
 			using std::any_cast;
+			using std::is_const;
+			using std::conjunction_v;
 			using boost::hana::equal;
 			using boost::hana::unique;
 			
@@ -707,12 +712,16 @@ namespace ecfw
 			constexpr auto type_list = dtl::type_list_v<Ts...>;
 			static_assert(equal(unique(type_list), type_list),
 				"Cannot construct view with duplicate components.");
+			
+			// Check that all requested types are const
+			static_assert(conjunction_v<is_const<Ts>...>,
+				"Creating views from a const world requires all requested types are const.");
 
 			accommodate<std::decay_t<Ts>...>();
 
 			return ecfw::view<Ts...>{
-				group_by<Ts...>(),
-				any_cast<vector<Ts>&>(m_buffers[dtl::type_index_v<std::decay_t<Ts>>])...
+				group_by<decay_t<Ts>...>(),
+				any_cast<const vector<decay_t<Ts>>&>(m_buffers[dtl::type_index_v<decay_t<Ts>>])...
 			};
 		}
 

@@ -1699,6 +1699,24 @@ TEST(world, reserve_component_storage) {
     }
 }
 
+TEST(world, view_creation) {
+    struct C0 { bool state{false}; };
+    struct C1 { bool state{false}; };
+    struct C2 { bool state{false}; };
+    ecfw::world world{};
+
+    (void)world.create<C0, C1, C2>();
+
+    auto view = world.view<C0, const C1, C2>();
+
+    ASSERT_EQ(view.size(), 1);
+
+    const ecfw::world& cref = world;
+    auto readonly_view = cref.view<const C0, const C1, const C2>();
+
+    ASSERT_EQ(view.size(), 1);
+}
+
 TEST(single_component_view, componen_retrieval) {
     struct B0 {
         B0() {}
@@ -1829,15 +1847,15 @@ TEST(multi_component_view, component_retrieval) {
     };
     ecfw::world world{};
     auto entity = world.create<B0, B1, B2>();
-    auto view = world.view<B0, B1, B2>();
+    auto view = world.view<B0, const B1, B2>();
 
     auto&& [b0, b1, b2] = view.get(entity);
     ASSERT_FALSE(b0);
     ASSERT_FALSE(b1);
     ASSERT_FALSE(b2);
     ASSERT_FALSE(view.get<B0>(entity));
-    ASSERT_FALSE(view.get<B1>(entity));
-    auto&& [bb1, bb2] = view.get<B1, B2>(entity);
+    ASSERT_FALSE(view.get<const B1>(entity));
+    auto&& [bb1, bb2] = view.get<const B1, B2>(entity);
     ASSERT_FALSE(bb1);
     ASSERT_FALSE(bb2);
 }
