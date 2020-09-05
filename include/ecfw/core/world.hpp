@@ -509,7 +509,9 @@ namespace ecfw
 			typename... Args
 		>
 		[[maybe_unused]] T& assign_or_replace(uint64_t eid, Args&&... args) {
+			using std::vector;
 			using std::forward;
+			using std::any_cast;
 			using std::conjunction_v;
 			using std::is_aggregate_v;
 			using std::is_constructible_v;
@@ -552,7 +554,7 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
 		> void assign(InIt first, InIt last) {
 			for (; first != last; ++first)
-				assign<Ts...>(*first);
+				(assign<Ts>(*first), ...);
 		}
 
 		/**
@@ -742,16 +744,13 @@ namespace ecfw
 			using std::max;
 			using std::initializer_list;
 			
-			// Find the largest type id. This will the size of the filter.
+			// Find the largest type id. Size of the filter is +1.
 			auto type_ids = { dtl::type_index_v<Ts>... };
 			size_t largest_type_id = max(type_ids);
 
 			// Ensure we're not working with any unknown components.
 			// Type indices are created in sequential order upon discovery by 
-			// any world. Any known component is one that has been assigned
-			// to an entity is some way. Therefore, any unknown component
-			// will not have buffer metadata or a data buffer associated with it
-			// and cannot be viewed.
+			// any world either by assignment or view creation.
 			assert(largest_type_id < m_metadatas.size());
 
 			// Build the filter in order to find an existing group or to create one.
