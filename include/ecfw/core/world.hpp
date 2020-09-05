@@ -804,7 +804,7 @@ namespace ecfw
 		std::vector<uint32_t> m_versions{};
 
 		// Component metadata; one bitset for each component type. A bitset is only 
-		// allocated for a compoentn when it's first assigned to an entity. Moreover,
+		// allocated for a component when it's first assigned to an entity. Moreover,
 		// only enough space is allocated within the bitset to accommodate the entity 
 		// to which it the component is assigned.
 		mutable std::vector<boost::dynamic_bitset<>> m_metadatas{};
