@@ -1399,6 +1399,12 @@ TEST(world, component_retrieval) {
 
     ASSERT_FALSE(cc0);
     ASSERT_FALSE(cc1);
+
+    const ecfw::world& cref = world;
+
+    auto [x, y] = world.get<const C0, const C1>(entity);
+    ASSERT_FALSE(x);
+    ASSERT_FALSE(y);
 }
 
 TEST(world, component_removal_no_existing_views) {
@@ -1858,6 +1864,15 @@ TEST(multi_component_view, component_retrieval) {
     auto&& [bb1, bb2] = view.get<const B1, B2>(entity);
     ASSERT_FALSE(bb1);
     ASSERT_FALSE(bb2);
+
+    const auto& cref = world;
+    auto  const_view = cref.view<const B0, const B1, const B2>();
+    auto&& [cb0, cb1, cb2] = const_view.get(entity);
+    ASSERT_FALSE(cb0);
+    ASSERT_FALSE(cb1);
+    ASSERT_FALSE(cb2);
+    ASSERT_FALSE(const_view.get<const B0>(entity));
+    ASSERT_FALSE(const_view.get<const B1>(entity));
 }
 
 TEST(multi_component_view, sequential_forward_iteration) {
