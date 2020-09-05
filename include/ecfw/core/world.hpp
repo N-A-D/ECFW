@@ -593,6 +593,11 @@ namespace ecfw
 				using std::vector;
 				using std::decay_t;
 				using std::any_cast;
+				using std::is_const;
+				using std::conjunction_v;
+
+				static_assert(conjunction_v<is_const<Ts>...>, 
+					"const world cannot return nonconst component reference(s).");
 
 				auto idx = dtl::lsw(eid);
 				auto type_id = (dtl::type_index_v<Ts>, ...);
@@ -720,7 +725,7 @@ namespace ecfw
 			
 			// Check that all requested types are const
 			static_assert(conjunction_v<is_const<Ts>...>,
-				"Creating views from a const world requires all requested types are const.");
+				"const world cannot create view of nonconst component(s).");
 
 			accommodate<std::decay_t<Ts>...>();
 
