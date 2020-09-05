@@ -567,9 +567,14 @@ namespace ecfw
 		template <typename... Ts>
 		[[nodiscard]] decltype(auto) get(uint64_t eid) {
 			if constexpr (sizeof...(Ts) == 1) {
-				using std::as_const;
+				using std::vector;
+				using std::decay_t;
+				using std::any_cast;
 
-				return (const_cast<Ts&>(as_const(*this). template get<Ts>(eid)), ...);
+				auto idx = dtl::lsw(eid);
+				auto type_id = (dtl::type_index_v<Ts>,...);
+				auto& buffer = (any_cast<vector<decay_t<Ts>>&>(m_buffers[type_id]),...);
+				return buffer[idx];
 			}
 			else {
 				using std::forward_as_tuple;
@@ -586,11 +591,11 @@ namespace ecfw
 			assert(has<Ts...>(eid));
 			if constexpr (sizeof...(Ts) == 1) {
 				using std::vector;
-				using std::any_cast;
 				using std::decay_t;
+				using std::any_cast;
 
 				auto idx = dtl::lsw(eid);
-				auto type_id = (dtl::type_index_v<decay_t<Ts>>, ...);
+				auto type_id = (dtl::type_index_v<Ts>, ...);
 				const auto& buffer = (any_cast<const vector<decay_t<Ts>>&>(m_buffers[type_id]), ...);
 				return buffer[idx];
 			}
@@ -692,7 +697,7 @@ namespace ecfw
 			accommodate<std::decay_t<Ts>...>();
 
 			return ecfw::view<Ts...>{
-				group_by<decay_t<Ts>...>(),
+				group_by<Ts...>(),
 				any_cast<vector<decay_t<Ts>>&>(m_buffers[dtl::type_index_v<decay_t<Ts>>])...
 			};
 		}
@@ -720,7 +725,7 @@ namespace ecfw
 			accommodate<std::decay_t<Ts>...>();
 
 			return ecfw::view<Ts...>{
-				group_by<decay_t<Ts>...>(),
+				group_by<Ts...>(),
 				any_cast<const vector<decay_t<Ts>>&>(m_buffers[dtl::type_index_v<decay_t<Ts>>])...
 			};
 		}
