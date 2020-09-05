@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef> // size_t
+#include <type_traits>
 
 namespace ecfw
 {
@@ -20,7 +21,7 @@ namespace detail
 	};
 
 	template <typename T>
-	size_t type_index_v = detail::type_index<T>::value;
+	size_t type_index_v = detail::type_index<std::decay_t<T>>::value;
 
 } // namespace detail
 } // namespace 
