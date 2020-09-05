@@ -431,9 +431,6 @@ namespace ecfw
 			static_assert(conjunction_v<is_move_constructible<T>, is_move_assignable<T>>,
 				"Assigned component types must be at least move constructible/assignable.");
 
-			static_assert(is_constructible_v<T, Args...>, 
-				"Cannot construct the component from the given arguments.");
-
 			assert(!has<T>(eid));
 
 			accommodate<T>();
@@ -457,8 +454,11 @@ namespace ecfw
 			// Construct the component 
 			if constexpr (is_aggregate_v<T>)
 				buffer[idx] = T{forward<Args>(args)...};
-			else 
+			else {
+				static_assert(is_constructible_v<T, Args...>, 
+					"Cannot construct the component from the given arguments.");
 				buffer[idx] = T(forward<Args>(args)...);
+			}
 
 			// Add the entity to all newly applicable groups.
 			// Each time an entity is assigned a new component, it must
