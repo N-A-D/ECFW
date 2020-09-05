@@ -174,7 +174,11 @@ TEST(world, create_single_entity_with_existing_views) {
     ASSERT_EQ(v0.size(), 1);
     ASSERT_EQ(v1.size(), 1);
     ASSERT_EQ(v2.size(), 1);
-    world.create<C0, C1>();
+    auto entity1 = world.create<C0, C1>();
+    index = lsw(entity1);
+    version = msw(entity1);
+    ASSERT_EQ(index, 1);
+    ASSERT_EQ(version, 0);
     ASSERT_EQ(v0.size(), 2);
     ASSERT_EQ(v1.size(), 2);
     ASSERT_EQ(v2.size(), 2);
@@ -590,7 +594,13 @@ TEST(world, recycle_single_entity_with_existing_views) {
     ASSERT_EQ(v1.size(), 1);
     ASSERT_EQ(v2.size(), 1);
 
-    world.create<C0, C1>();
+    // Ensure the entity's index & version are both 0
+    auto entity1 = world.create<C0, C1>();
+    index = lsw(entity);
+    version = msw(entity);
+    ASSERT_EQ(index, 0);
+    ASSERT_EQ(version, 0);
+
     ASSERT_EQ((world.size<C0>()), 2);
     ASSERT_EQ((world.size<C1>()), 2);
     ASSERT_EQ((world.size<C0, C1>()), 2);
@@ -1093,7 +1103,12 @@ TEST(world, destroy_single_entity_with_existing_views) {
     ASSERT_EQ(v1.size(), 1);
     ASSERT_EQ(v2.size(), 1);
 
-    world.create<C0, C1>();
+    auto entity1 = world.create<C0, C1>();
+    index = lsw(entity1);
+    version = msw(entity1);
+    ASSERT_EQ(index, 1);
+    ASSERT_EQ(version, 0);
+
     ASSERT_EQ((world.size<C0>()), 2);
     ASSERT_EQ((world.size<C1>()), 2);
     ASSERT_EQ((world.size<C0, C1>()), 2);
@@ -1243,14 +1258,16 @@ TEST(world, component_assignment_no_existing_views) {
 
     world.create_n(std::back_inserter(entities), NUM_ENTITIES);
 
-    for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C0>(entity, true));
+    world.assign<C0, C1, C2>(entities.begin(), entities.end());
 
     for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C1>(entity, true));
+        ASSERT_FALSE((world.get<C0>(entity)));
 
     for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C2>(entity, true));
+        ASSERT_FALSE((world.get<C1>(entity)));
+
+    for (auto entity : entities)
+        ASSERT_FALSE((world.get<C2>(entity)));
 
     ASSERT_EQ((world.size<C0, C1, C2>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -1300,14 +1317,16 @@ TEST(world, component_assignment_existing_views) {
 
     world.create_n(std::back_inserter(entities), NUM_ENTITIES);
 
-    for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C0>(entity, true));
+    world.assign<C0, C1, C2>(entities.begin(), entities.end());
 
     for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C1>(entity, true));
+        ASSERT_FALSE((world.get<C0>(entity)));
 
     for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C2>(entity, true));
+        ASSERT_FALSE((world.get<C1>(entity)));
+
+    for (auto entity : entities)
+        ASSERT_FALSE((world.get<C2>(entity)));
 
     ASSERT_EQ((world.size<C0, C1, C2>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -1408,14 +1427,16 @@ TEST(world, component_removal_no_existing_views) {
 
     world.create_n(std::back_inserter(entities), NUM_ENTITIES);
 
-    for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C0>(entity, true));
+    world.assign<C0, C1, C2>(entities.begin(), entities.end());
 
     for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C1>(entity, true));
+        ASSERT_FALSE((world.get<C0>(entity)));
 
     for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C2>(entity, true));
+        ASSERT_FALSE((world.get<C1>(entity)));
+
+    for (auto entity : entities)
+        ASSERT_FALSE((world.get<C2>(entity)));
 
     ASSERT_EQ((world.size<C0, C1, C2>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -1438,8 +1459,7 @@ TEST(world, component_removal_no_existing_views) {
     ASSERT_EQ(v5.size(), NUM_ENTITIES);   
     ASSERT_EQ(v6.size(), NUM_ENTITIES); 
 
-    for (auto entity : entities)
-        world.remove<C0>(entity);
+    world.remove<C0>(entities.begin(), entities.end());
 
     ASSERT_EQ((world.size<C0, C1, C2>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -1457,8 +1477,7 @@ TEST(world, component_removal_no_existing_views) {
     ASSERT_EQ(v5.size(), NUM_ENTITIES);   
     ASSERT_EQ(v6.size(), NUM_ENTITIES); 
 
-    for (auto entity : entities)
-        world.remove<C1>(entity);
+    world.remove<C1>(entities.begin(), entities.end());
 
     ASSERT_EQ((world.size<C0, C1, C2>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -1476,8 +1495,7 @@ TEST(world, component_removal_no_existing_views) {
     ASSERT_EQ(v5.size(), 0);   
     ASSERT_EQ(v6.size(), NUM_ENTITIES); 
 
-    for (auto entity : entities)
-        world.remove<C2>(entity);
+    world.remove<C2>(entities.begin(), entities.end());
     
     ASSERT_EQ((world.size<C0, C1, C2>()), 0);
     ASSERT_EQ((world.size<C0, C1>()), 0);
@@ -1522,14 +1540,16 @@ TEST(world, component_removal_existing_views) {
 
     world.create_n(std::back_inserter(entities), NUM_ENTITIES);
 
-    for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C0>(entity, true));
+    world.assign<C0, C1, C2>(entities.begin(), entities.end());
 
     for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C1>(entity, true));
+        ASSERT_FALSE((world.get<C0>(entity)));
 
     for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C2>(entity, true));
+        ASSERT_FALSE((world.get<C1>(entity)));
+
+    for (auto entity : entities)
+        ASSERT_FALSE((world.get<C2>(entity)));
 
     ASSERT_EQ((world.size<C0, C1, C2>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -1554,14 +1574,16 @@ TEST(world, component_removal_existing_views) {
 
     world.create_n(std::begin(entities), NUM_ENTITIES);
 
-    for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C0>(entity, true));
+    world.assign<C0, C1, C2>(entities.begin(), entities.end());
 
     for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C1>(entity, true));
+        ASSERT_FALSE((world.get<C0>(entity)));
 
     for (auto entity : entities)
-        ASSERT_TRUE(world.assign<C2>(entity, true));
+        ASSERT_FALSE((world.get<C1>(entity)));
+
+    for (auto entity : entities)
+        ASSERT_FALSE((world.get<C2>(entity)));
 
     ASSERT_EQ((world.size<C0, C1, C2>()), 2 * NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), 2 * NUM_ENTITIES);
@@ -1579,8 +1601,7 @@ TEST(world, component_removal_existing_views) {
     ASSERT_EQ(v5.size(), 2 * NUM_ENTITIES);   
     ASSERT_EQ(v6.size(), 2 * NUM_ENTITIES); 
 
-    for (auto entity : entities)
-        world.remove<C0>(entity);
+    world.remove<C0>(entities.begin(), entities.end());
 
     ASSERT_EQ((world.size<C0, C1, C2>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -1598,8 +1619,7 @@ TEST(world, component_removal_existing_views) {
     ASSERT_EQ(v5.size(), 2 * NUM_ENTITIES);   
     ASSERT_EQ(v6.size(), 2 * NUM_ENTITIES); 
 
-    for (auto entity : entities)
-        world.remove<C1>(entity);
+    world.remove<C1>(entities.begin(), entities.end());
 
     ASSERT_EQ((world.size<C0, C1, C2>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -1617,8 +1637,7 @@ TEST(world, component_removal_existing_views) {
     ASSERT_EQ(v5.size(), NUM_ENTITIES);   
     ASSERT_EQ(v6.size(), 2 * NUM_ENTITIES); 
 
-    for (auto entity : entities)
-        world.remove<C2>(entity);
+    world.remove<C2>(entities.begin(), entities.end());
     
     ASSERT_EQ((world.size<C0, C1, C2>()), NUM_ENTITIES);
     ASSERT_EQ((world.size<C0, C1>()), NUM_ENTITIES);
@@ -1635,6 +1654,18 @@ TEST(world, component_removal_existing_views) {
     ASSERT_EQ(v4.size(), NUM_ENTITIES);   
     ASSERT_EQ(v5.size(), NUM_ENTITIES);   
     ASSERT_EQ(v6.size(), NUM_ENTITIES); 
+}
+
+TEST(world, component_replacement) {
+    struct C0 {
+        C0(bool value = false) : value(value) {}
+        operator bool() const noexcept {return value;}
+        bool value{false};
+    };
+    ecfw::world world{};
+    auto entity = world.create();
+    ASSERT_FALSE((world.assign_or_replace<C0>(entity)));
+    ASSERT_TRUE((world.assign_or_replace<C0>(entity, true)));
 }
 
 TEST(world, reserve_component_storage) {
