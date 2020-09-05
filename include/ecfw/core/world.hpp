@@ -698,7 +698,7 @@ namespace ecfw
 
 			return ecfw::view<Ts...>{
 				group_by<Ts...>(),
-				any_cast<vector<decay_t<Ts>>&>(m_buffers[dtl::type_index_v<decay_t<Ts>>])...
+				any_cast<vector<decay_t<Ts>>&>(m_buffers[dtl::type_index_v<Ts>])...
 			};
 		}
 
@@ -726,7 +726,7 @@ namespace ecfw
 
 			return ecfw::view<Ts...>{
 				group_by<Ts...>(),
-				any_cast<const vector<decay_t<Ts>>&>(m_buffers[dtl::type_index_v<decay_t<Ts>>])...
+				any_cast<const vector<decay_t<Ts>>&>(m_buffers[dtl::type_index_v<Ts>])...
 			};
 		}
 
