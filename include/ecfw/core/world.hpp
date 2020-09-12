@@ -55,11 +55,7 @@ namespace ecfw
 
 		/**
 		 * @brief Constructs a new entity.
-		 * 
-		 * @pre 
-		 * Each given component type must satisfy:
-		 * std::is_default_constructible_v<T> == true
-		 * 
+		 *  
 		 * @tparam Ts Components types to initialize the entity with.
 		 * @return An entity identifier.
 		 */
@@ -108,10 +104,6 @@ namespace ecfw
 		 * @brief Assigns each element in the range [first, first + n) an
 		 * entity created by *this.
 		 * 
-		 * @pre 
-		 * Each given component type must satisfy:
-		 * std::is_default_constructible_v<T> == true.
-		 * 
 		 * @tparam Ts Component types to initialize each entity with.
 		 * @tparam OutIt An output iterator type.
 		 * @param out An output iterator.
@@ -123,7 +115,8 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
 		>
 		void create_n(OutIt out, size_t n) {
-			std::generate_n(out, n, [this]() mutable {
+			using std::generate_n;
+			generate_n(out, n, [this]() mutable {
 				return create<Ts...>(); 
 			});
 		}
@@ -143,17 +136,14 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<FwdIt>>
 		>
 		void create(FwdIt first, FwdIt last) {
-			std::generate(first, last, [this]() mutable {
+			using std::generate;
+			generate(first, last, [this]() mutable {
 				return create<Ts...>();
 			});
 		}
 
 		/**
 		 * @brief Constructs a new entity as a clone of another.
-		 * 
-		 * @pre
-		 * Each given component must satisfy: 
-		 * std::is_copy_constructible_v<T> == true
 		 * 
 		 * @tparam Ts Component types to copy.
 		 * @param original The entity to copy from.
@@ -174,10 +164,6 @@ namespace ecfw
 		 * @brief Assigns each element in the range [first, first + n) a 
 		 * clone created by *this from original.
 		 * 
-		 * @pre
-		 * Each given component must satisfy: 
-		 * std::is_copy_constructible_v<T> == true
-		 * 
 		 * @tparam Ts Component types to copy for each entity.
 		 * @tparam OutIt An output iterator type.
 		 * @param original The entity to copy from.
@@ -190,7 +176,8 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
 		>
 		void clone_n(uint64_t original, OutIt out, size_t n) {
-			std::generate_n(out, n, [this, original]() mutable {
+			using std::generate_n;
+			generate_n(out, n, [this, original]() mutable {
 				 return clone<Ts...>(original); 
 			});
 		}
@@ -210,7 +197,8 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<FwdIt>>
 		> 
 		void clone(uint64_t original, FwdIt first, FwdIt last) {
-			std::generate(first, last, [this, original]() mutable {
+			using std::generate;
+			generate(first, last, [this, original]() mutable {
 				return clone<Ts...>(original);
 			});
 		}
@@ -251,19 +239,12 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
 		>
 		[[nodiscard]] bool valid(InIt first, InIt last) const {
-			return std::all_of(first, last, 
-				[this](auto e) { 
-					return valid(e); 
-				}
-			);
+			using std::all_of;
+			return all_of(first, last, [this](auto e) { return valid(e); });
 		}
 
 		/**
 		 * @brief Destroys an entity.
-		 * 
-		 * @warning 
-		 * Upon destruction, all references to the entity's
-		 * components become invalid.
 		 * 
 		 * @param eid The entity to destroy.
 		 */
@@ -297,10 +278,6 @@ namespace ecfw
 
 		/**
 		 * @brief Destroys a collection of entities.
-		 * 
-		 * @warning 
-		 * Upon destruction, all references to the components become invalid for 
-		 * each entity destroyed.
 		 * 
 		 * @tparam InIt An input iterator type.
 		 * @param first An iterator to the beginning of a range.
@@ -355,8 +332,7 @@ namespace ecfw
 		 * @param eid The entity to remove from.
 		 */
 		template <
-			typename... Ts,
-			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+			typename... Ts
 		>
 		void remove(uint64_t eid) {
 			assert(has<Ts...>(eid));
@@ -397,10 +373,6 @@ namespace ecfw
 
 		/**
 		 * @brief Constructs a new component associated with an entity.
-		 * 
-		 * @pre
-		 * The given component type must satisfy the following:
-		 * std::is_constructible_v<T, Args...> == true.
 		 * 
 		 * @tparam T Component type.
 		 * @tparam Args Component constructor parameter types. 
@@ -494,6 +466,23 @@ namespace ecfw
 		}
 
 		/**
+		 * @brief Assigns components to a collection of entities.
+		 * 
+		 * @tparam Ts Component types to assign to each entity.
+		 * @tparam InIt Input iterator type. 
+		 * @param first Beginning of the range of entities to assign components to.
+		 * @param last One-past the end of the range of entities to assign components to.
+		 */
+		template <
+			typename... Ts,
+			typename InIt,
+			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
+		> void assign(InIt first, InIt last) {
+			for (; first != last; ++first)
+				(assign<Ts>(*first), ...);
+		}
+
+		/**
 		 * @brief If the entity does not have the given component type,
 		 * a new component will be assigned to it. Otherwise, replace
 		 * the entity's current component.
@@ -518,9 +507,6 @@ namespace ecfw
 			using std::is_move_assignable;
 			using std::is_move_constructible;
 
-			static_assert(conjunction_v<is_move_constructible<T>, is_move_assignable<T>>,
-				"Assigned component types must be at least move constructible/assignable.");
-
 			static_assert(is_constructible_v<T, Args...>, 
 				"Cannot construct the component from the given arguments.");
 
@@ -541,23 +527,6 @@ namespace ecfw
 		}
 
 		/**
-		 * @brief Assigns components to a collection of entities.
-		 * 
-		 * @tparam Ts Component types to assign to each entity.
-		 * @tparam InIt Input iterator type. 
-		 * @param first Beginning of the range of entities to assign components to.
-		 * @param last One-past the end of the range of entities to assign components to.
-		 */
-		template <
-			typename... Ts,
-			typename InIt,
-			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
-		> void assign(InIt first, InIt last) {
-			for (; first != last; ++first)
-				(assign<Ts>(*first), ...);
-		}
-
-		/**
 		 * @brief Returns an entity's components
 		 * 
 		 * @tparam Ts Component types to fetch.
@@ -573,7 +542,8 @@ namespace ecfw
 
 				auto idx = dtl::lsw(eid);
 				auto type_id = (dtl::type_index_v<Ts>,...);
-				auto& buffer = (any_cast<vector<decay_t<Ts>>&>(m_buffers[type_id]),...);
+				auto& buffer = 
+					(any_cast<vector<decay_t<Ts>>&>(m_buffers[type_id]), ...);
 				return buffer[idx];
 			}
 			else {
@@ -601,7 +571,8 @@ namespace ecfw
 
 				auto idx = dtl::lsw(eid);
 				auto type_id = (dtl::type_index_v<Ts>, ...);
-				const auto& buffer = (any_cast<const vector<decay_t<Ts>>&>(m_buffers[type_id]), ...);
+				const auto& buffer = 
+					(any_cast<const vector<decay_t<Ts>>&>(m_buffers[type_id]), ...);
 				return buffer[idx];
 			}
 			else {
@@ -703,7 +674,8 @@ namespace ecfw
 
 			return ecfw::view<Ts...>{
 				group_by<Ts...>(),
-				any_cast<vector<decay_t<Ts>>&>(m_buffers[dtl::type_index_v<Ts>])...
+				any_cast<vector<decay_t<Ts>>&>(
+					m_buffers[dtl::type_index_v<Ts>])...
 			};
 		}
 
@@ -731,7 +703,8 @@ namespace ecfw
 
 			return ecfw::view<Ts...>{
 				group_by<Ts...>(),
-				any_cast<const vector<decay_t<Ts>>&>(m_buffers[dtl::type_index_v<Ts>])...
+				any_cast<const vector<decay_t<Ts>>&>(
+					m_buffers[dtl::type_index_v<Ts>])...
 			};
 		}
 
@@ -804,16 +777,17 @@ namespace ecfw
 		std::vector<uint32_t> m_versions{};
 
 		// Component metadata; one bitset for each component type. A bitset is only 
-		// allocated for a component when it's first assigned to an entity. Moreover,
-		// only enough space is allocated within the bitset to accommodate the entity 
-		// to which it the component is assigned.
+		// allocated for a component when it's first assigned to an entity, when
+		// a view is created, or when space is reserved for a component1. W.r.t 
+		// assignment, only enough space within the bitset is allocated to 
+		// accommodate at most the entity involved in the assignment. 
 		mutable std::vector<boost::dynamic_bitset<>> m_metadatas{};
 
 		// Component data. space is allocated similarly to the buffer metadata.
 		mutable std::vector<std::any> m_buffers{};
 
 		// Filtered groups of entities. Each filter represents a common
-		// set of components each of the entities in the group must possess.
+		// set of components each entity of the group possesses.
 		mutable std::unordered_map<boost::dynamic_bitset<>, dtl::sparse_set> m_groups{};
 
 	};
