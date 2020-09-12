@@ -145,18 +145,22 @@ namespace ecfw
 		/**
 		 * @brief Constructs a new entity as a clone of another.
 		 * 
-		 * @tparam Ts Component types to copy.
+		 * @tparam T First component type to copy for each entity.
+		 * @tparam Ts Component types to copy for each entity.
 		 * @param original The entity to copy from.
 		 * @return An entity identiter.
 		 */
-		template <typename... Ts>
+		template <
+			typename T,
+			typename... Ts
+		>
 		[[nodiscard]] uint64_t clone(uint64_t original) {
 			using std::conjunction_v;
 			using std::is_copy_constructible;
 			static_assert(conjunction_v<is_copy_constructible<Ts>...>, 
 				"Cloning components requires copy constructible component types.");
 			uint64_t entity = create();
-			(assign<Ts>(entity, get<Ts>(original)), ...);
+			(assign<T>(entity, get<T>(original)), ..., assign<Ts>(entity, get<Ts>(original)));
 			return entity;
 		}
 
@@ -164,6 +168,7 @@ namespace ecfw
 		 * @brief Assigns each element in the range [first, first + n) a 
 		 * clone created by *this from original.
 		 * 
+		 * @tparam T First component type to copy for each entity.
 		 * @tparam Ts Component types to copy for each entity.
 		 * @tparam OutIt An output iterator type.
 		 * @param original The entity to copy from.
@@ -171,6 +176,7 @@ namespace ecfw
 		 * @param n The number of entities to construct.
 		 */
 		template <
+			typename T,
 			typename... Ts, 
 			typename OutIt, 
 			typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
@@ -178,7 +184,7 @@ namespace ecfw
 		void clone_n(uint64_t original, OutIt out, size_t n) {
 			using std::generate_n;
 			generate_n(out, n, [this, original]() mutable {
-				 return clone<Ts...>(original); 
+				 return clone<T, Ts...>(original); 
 			});
 		}
 
@@ -186,12 +192,14 @@ namespace ecfw
 		 * @brief Assigns each element in the range [first, last) a
 		 * clone created by *this from original
 		 * 
-		 * @tparam Ts Component types to copy for each entity.
+		 * @tparam T First component type to copy for each entity.
+		 * @tparam Ts Other component types to copy for each entity.
 		 * @tparam FwdIt Forward iterator type.
 		 * @param first Beginning of the range of elements to generate.
 		 * @param last One-past the end of the range of elements to generate.
 		 */
 		template <
+			typename T,
 			typename... Ts,
 			typename FwdIt,
 			typename = std::enable_if_t<dtl::is_iterator_v<FwdIt>>
@@ -199,7 +207,7 @@ namespace ecfw
 		void clone(uint64_t original, FwdIt first, FwdIt last) {
 			using std::generate;
 			generate(first, last, [this, original]() mutable {
-				return clone<Ts...>(original);
+				return clone<T, Ts...>(original);
 			});
 		}
 
@@ -332,7 +340,8 @@ namespace ecfw
 		 * @param eid The entity to remove from.
 		 */
 		template <
-			typename... Ts
+			typename... Ts,
+			typename = std::enable_if_t<sizeof...(Ts) >= 1>
 		>
 		void remove(uint64_t eid) {
 			assert(has<Ts...>(eid));
@@ -742,7 +751,7 @@ namespace ecfw
 
 			// Ensure we're not working with any unknown components.
 			// Type indices are created in sequential order upon discovery by 
-			// any world either by assignment or view creation.
+			// any world either by assignment, view creation, or storage reservation.
 			assert(largest_type_id < m_metadatas.size());
 
 			// Build the filter in order to find an existing group or to create one.
