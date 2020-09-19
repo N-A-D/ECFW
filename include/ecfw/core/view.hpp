@@ -44,7 +44,7 @@ namespace detail {
 	 * @brief Non-owning collection of entities which share a common
 	 * set of components.
 	 * 
-	 * @tparam Ts Component types common among all entities a part of *this.
+	 * @tparam Ts Component types common among all entities viewed by *this.
 	 */
 	template <typename... Ts>
 	class view final {
@@ -218,7 +218,7 @@ namespace detail {
 	/**
 	 * @brief Non-owning collection of entities which share a common component.
 	 * 
-	 * @tparam T Component type common among all entities a part of *this.
+	 * @tparam T Component type common among all entities viewed by *this.
 	 */
 	template <typename T>
 	class view<T> final {
