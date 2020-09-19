@@ -68,7 +68,7 @@ namespace ecfw
 
 			// Ensure that each given component is default constructible
 			static_assert(conjunction_v<is_default_constructible<Ts>...>, 
-				"Assigning components through world::create requires default constructible types");
+				"Provided type(s) must be default constructible.");
 
 			// Check for any duplicate types
 			constexpr auto type_list = dtl::type_list_v<Ts...>;
@@ -158,7 +158,7 @@ namespace ecfw
 			using std::conjunction_v;
 			using std::is_copy_constructible;
 			static_assert(conjunction_v<is_copy_constructible<Ts>...>, 
-				"Cloning components requires copy constructible component types.");
+				"Provided type(s) must be copy constructible.");
 			uint64_t entity = create();
 			(assign<T>(entity, get<T>(original)), ..., assign<Ts>(entity, get<Ts>(original)));
 			return entity;
@@ -228,13 +228,6 @@ namespace ecfw
 		/**
 		 * @brief Checks if a collection of entities belong to *this.
 		 * 
-		 * This member function is equivalent to the following
-		 * snippet:
-		 * @code
-		 * for (auto entity : entities)
-		 *     world.valid(entity);
-		 * @endcode
-		 * 
 		 * @tparam InIt An input iterator type.
 		 * @param first The beginning of the sequence to verify
 		 * @param last One-past the end of the sequence
@@ -248,7 +241,9 @@ namespace ecfw
 		>
 		[[nodiscard]] bool valid(InIt first, InIt last) const {
 			using std::all_of;
-			return all_of(first, last, [this](auto e) { return valid(e); });
+			return all_of(first, last, [this](auto e) {
+				return valid(e); 
+			});
 		}
 
 		/**
@@ -313,15 +308,9 @@ namespace ecfw
 			typename = std::enable_if_t<sizeof...(Ts) >= 1>
 		>
 		[[nodiscard]] bool has(uint64_t eid) const {
-			using boost::hana::unique;
-			using boost::hana::equal;
-
-			constexpr auto type_list = dtl::type_list_v<Ts...>;
-			static_assert(equal(unique(type_list), type_list),
-				"Duplicate types are not allowed!");
-
-			assert(valid(eid));
 			if constexpr (sizeof...(Ts) == 1) {
+				if (!valid(eid))
+					return false;
 				auto idx = dtl::lsw(eid);
 				auto type_id = (dtl::type_index_v<Ts>, ...);
 
@@ -331,6 +320,29 @@ namespace ecfw
 			}
 			else
 				return (has<Ts>(eid) && ...);
+		}
+
+		/**
+		 * @brief Checks if a range of entities own a given set of components.
+		 * 
+		 * @tparam Ts Component types to check for each entity.
+		 * @tparam InIt Input iterator type.
+		 * @param first An iterator to the beginning of a range of entities.
+		 * @param last An iterator to one-past the end of a range of entities.
+		 * @return true If all entities in the range have the given components.
+		 * @return false If at least one entity does not have all of the given
+		 * components.
+		 */
+		template <
+			typename... Ts,
+			typename InIt,
+			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
+		> 
+		[[nodiscard]] bool has(InIt first, InIt last) {
+			using std::all_of;
+			return all_of(first, last, [this](auto e) { 
+				return has<Ts...>(e); 
+			});
 		}
 
 		/**
@@ -344,7 +356,16 @@ namespace ecfw
 			typename = std::enable_if_t<sizeof...(Ts) >= 1>
 		>
 		void remove(uint64_t eid) {
+			using boost::hana::equal;
+			using boost::hana::unique;
+
+			assert(valid(eid));
 			assert(has<Ts...>(eid));
+
+			constexpr auto type_list = dtl::type_list_v<Ts...>;
+			static_assert(
+				equal(unique(type_list), type_list),
+				"Duplicate types are not allowed.");
 
 			if constexpr (sizeof...(Ts) == 1) {
 				auto idx = dtl::lsw(eid);
@@ -407,11 +428,13 @@ namespace ecfw
 			using std::is_default_constructible_v;
 
 			static_assert(is_default_constructible_v<T>,
-				"All component types must be default constructible.");
+				"Provided type is not default constructible.");
 
-			static_assert(conjunction_v<is_move_constructible<T>, is_move_assignable<T>>,
-				"Assigned component types must be at least move constructible/assignable.");
+			static_assert(
+				conjunction_v<is_move_constructible<T>, is_move_assignable<T>>,
+				"Provided type needs to be moveable at least.");
 
+			assert(valid(eid));
 			assert(!has<T>(eid));
 
 			accommodate<T>();
@@ -487,6 +510,14 @@ namespace ecfw
 			typename InIt,
 			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
 		> void assign(InIt first, InIt last) {
+			using boost::hana::equal;
+			using boost::hana::unique;
+
+			constexpr auto type_list = dtl::type_list_v<Ts...>;
+			static_assert(
+				equal(unique(type_list), type_list),
+				"Duplicate types are not allowed.");
+
 			for (; first != last; ++first)
 				(assign<Ts>(*first), ...);
 		}
@@ -519,6 +550,8 @@ namespace ecfw
 			static_assert(is_constructible_v<T, Args...>, 
 				"Cannot construct the component from the given arguments.");
 
+			assert(valid(eid));
+
 			if (!has<T>(eid)) {
 				return assign<T>(eid, forward<Args>(args)...);
 			}
@@ -542,7 +575,10 @@ namespace ecfw
 		 * @param eid The entity to fetch for.
 		 * @return Reference to a component or a tuple of references.
 		 */
-		template <typename... Ts>
+		template <
+			typename... Ts,
+			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+		>
 		[[nodiscard]] decltype(auto) get(uint64_t eid) {
 			if constexpr (sizeof...(Ts) == 1) {
 				using std::vector;
@@ -565,7 +601,10 @@ namespace ecfw
 		}
 
 		/*! @copydoc get */
-		template <typename... Ts>
+		template <
+			typename... Ts,
+			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+		>
 		[[nodiscard]] decltype(auto) get(uint64_t eid) const {
 			assert(has<Ts...>(eid));
 			if constexpr (sizeof...(Ts) == 1) {
