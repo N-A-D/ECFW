@@ -4,6 +4,8 @@
     "cmake.installPrefix": "${workspaceFolder}/install/${buildType}",
     "cmake.configureSettings": { 
         "BUILD_ECFW_TESTS": "TRUE", 
-        "BUILD_ECFW_BENCHMARKS": "TRUE" 
+        "BUILD_ECFW_BENCHMARKS": "TRUE",
+        "CMAKE_TOOLCHAIN_FILE": "${env:VCPKG_TOOLCHAIN_FILE}",
+        "VCPKG_TARGET_TRIPLET": "${env:VCPKG_DEFAULT_TRIPLET}"
     },
 }
