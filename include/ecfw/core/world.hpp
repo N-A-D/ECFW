@@ -669,7 +669,8 @@ namespace ecfw
 		}
 
 		/**
-		 * @brief Preallocates storage space for the given component types.
+		 * @brief Reserves storage space for the given component types if any.
+		 * Otherwise, reserves storage space for entities.
 		 * 
 		 * @tparam Ts Component types to reserve space for.
 		 * @param n The number of components to allocated space for.
