@@ -1723,6 +1723,62 @@ TEST(world, view_creation) {
     ASSERT_EQ(view.size(), 1);
 }
 
+TEST(world, view_creation_consistency) {
+    using std::equal;
+
+    struct C0 { bool state{false}; };
+    struct C1 { bool state{false}; };
+    struct C2 { bool state{false}; };
+
+    ecfw::world world{};
+    std::vector<uint64_t> entities(NUM_ENTITIES);
+
+    auto v0 = world.view<C0, C1, C2>();
+    auto v1 = world.view<C0, C2, C1>();
+    auto v2 = world.view<C1, C0, C2>();
+    auto v3 = world.view<C1, C2, C0>();
+    auto v4 = world.view<C2, C0, C1>();
+    auto v5 = world.view<C2, C1, C0>();
+
+    world.create(entities.begin(), entities.end());
+
+    for (size_t i = 0; i < entities.size(); ++i)
+        world.assign<C0>(entities[i]);
+    
+    for (size_t i = 0; i < entities.size() / 2; ++i)
+        world.assign<C1>(entities[i]);
+
+    for (size_t i = 0; i < entities.size() / 4; ++i)
+        world.assign<C2>(entities[i]);
+
+    ASSERT_EQ(v0.size(), NUM_ENTITIES / 4);
+    ASSERT_EQ(v1.size(), NUM_ENTITIES / 4);
+    ASSERT_EQ(v2.size(), NUM_ENTITIES / 4);
+    ASSERT_EQ(v3.size(), NUM_ENTITIES / 4);
+    ASSERT_EQ(v4.size(), NUM_ENTITIES / 4);
+    ASSERT_EQ(v5.size(), NUM_ENTITIES / 4);
+
+    ASSERT_TRUE(equal(v0.begin(), v0.end(), v1.begin(), v1.end()));
+    ASSERT_TRUE(equal(v0.begin(), v0.end(), v2.begin(), v2.end()));
+    ASSERT_TRUE(equal(v0.begin(), v0.end(), v3.begin(), v3.end()));
+    ASSERT_TRUE(equal(v0.begin(), v0.end(), v4.begin(), v4.end()));
+    ASSERT_TRUE(equal(v0.begin(), v0.end(), v5.begin(), v5.end()));
+
+    ASSERT_TRUE(equal(v1.begin(), v1.end(), v2.begin(), v2.end()));
+    ASSERT_TRUE(equal(v1.begin(), v1.end(), v3.begin(), v3.end()));
+    ASSERT_TRUE(equal(v1.begin(), v1.end(), v4.begin(), v4.end()));
+    ASSERT_TRUE(equal(v1.begin(), v1.end(), v5.begin(), v5.end()));
+
+    ASSERT_TRUE(equal(v2.begin(), v2.end(), v3.begin(), v3.end()));
+    ASSERT_TRUE(equal(v2.begin(), v2.end(), v4.begin(), v4.end()));
+    ASSERT_TRUE(equal(v2.begin(), v2.end(), v5.begin(), v5.end()));
+
+    ASSERT_TRUE(equal(v3.begin(), v3.end(), v4.begin(), v4.end()));
+    ASSERT_TRUE(equal(v3.begin(), v3.end(), v5.begin(), v5.end()));
+
+    ASSERT_TRUE(equal(v4.begin(), v4.end(), v5.begin(), v5.end()));
+}
+
 TEST(single_component_view, componen_retrieval) {
     struct B0 {
         B0() {}
