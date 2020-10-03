@@ -12,6 +12,36 @@ using namespace std::literals;
 
 const size_t NUM_ENTITIES = 100;
 
+TEST(world, has_all) {
+    struct A {};
+    struct B {};
+    ecfw::world world{};
+    auto e0 = world.create<A, B>();
+    ASSERT_TRUE((world.all<A, B>(e0)));
+}
+
+TEST(world, has_any) {
+    struct A {};
+    struct B {};
+    struct C {};
+    ecfw::world world{};
+    auto e0 = world.create<C>();
+    ASSERT_TRUE((world.any<A, B, C>(e0)));
+    auto e1 = world.create();
+    ASSERT_FALSE((world.any<A, B, C>(e1)));
+}
+
+TEST(world, has_none) {
+    struct A {};
+    struct B {};
+    struct C {};
+    ecfw::world world{};
+    auto e0 = world.create();
+    ASSERT_TRUE((world.none<A, B, C>(e0)));
+    auto e1 = world.create<B>();
+    ASSERT_FALSE((world.none<A, B, C>(e1)));
+}
+
 TEST(world, create_single_entity_no_starting_components) {
     using ecfw::detail::lsw;
     using ecfw::detail::msw;

@@ -295,53 +295,72 @@ namespace ecfw
 		}
 		
 		/**
-		 * @brief Checks if an entity owns a given set of components.
+		 * @brief Checks if *this associates a given component type
+		 * with a given entity.
 		 * 
-		 * @tparam Ts Component types to check for.
-		 * @param eid The entity to check. 
-		 * @return true If the entity has each component.
-		 * @return false If the entity does not have each component.
+		 * @tparam T Component type to check.
+		 * @param eid The entity to check.
+		 * @return true If *this associates a given component type
+		 * with a given entity.
+		 * @return false If *this does not associate a given component
+		 * type with a given entity.
 		 */
-		template <
-			typename... Ts, 
-			typename = std::enable_if_t<sizeof...(Ts) >= 1>
-		>
-		[[nodiscard]] bool has(uint64_t eid) const {
-			if constexpr (sizeof...(Ts) == 1) {
-				if (!valid(eid))
-					return false;
-				auto idx = dtl::lsw(eid);
-				auto type_id = (dtl::type_index_v<Ts>, ...);
-
-				return type_id < m_metadatas.size()
-					&& idx < m_metadatas[type_id].size()
-					&& m_metadatas[type_id].test(idx);
-			}
-			else
-				return (has<Ts>(eid) && ...);
+		template <typename T>
+		[[nodiscard]] bool contains(uint64_t eid) const {
+			if (!valid(eid)) return false;
+			auto idx = dtl::lsw(eid);
+			auto tid = dtl::type_index_v<T>;
+			return tid < m_metadatas.size()
+				&& idx < m_metadatas[tid].size()
+				&& m_metadatas[tid].test(idx);
 		}
 
 		/**
-		 * @brief Checks if a range of entities own a given set of components.
+		 * @brief Checks if a given entity has all of the 
+		 * given component types.
 		 * 
-		 * @tparam Ts Component types to check for each entity.
-		 * @tparam InIt Input iterator type.
-		 * @param first An iterator to the beginning of a range of entities.
-		 * @param last An iterator to one-past the end of a range of entities.
-		 * @return true If all entities in the range have the given components.
-		 * @return false If at least one entity does not have all of the given
-		 * components.
+		 * @tparam Ts Component types to check.
+		 * @param eid The entity to check for.
+		 * @return true If the given entity has all of the 
+		 * given component types.
+		 * @return false If the given entity does not have
+		 * all of the given component types.
 		 */
-		template <
-			typename... Ts,
-			typename InIt,
-			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
-		> 
-		[[nodiscard]] bool has(InIt first, InIt last) {
-			using std::all_of;
-			return all_of(first, last, [this](auto e) { 
-				return has<Ts...>(e); 
-			});
+		template <typename... Ts>
+		[[nodiscard]] bool all(uint64_t eid) const {
+			return (contains<Ts>(eid) && ...);
+		}
+
+		/**
+		 * @brief Checks if a given entity has at least one
+		 * of the given component types.
+		 * 
+		 * @tparam Ts Component types to check.
+		 * @param eid The entity to check.
+		 * @return true If the given entity has at least one
+		 * of the given component types.
+		 * @return false If the given entity has none of the 
+		 * given component types.
+		 */
+		template <typename... Ts>
+		[[nodiscard]] bool any(uint64_t eid) const {
+			return (contains<Ts>(eid) || ...);
+		}
+
+		/**
+		 * @brief Checks if a given entity has none of the given
+		 * component types.
+		 * 
+		 * @tparam Ts Component types to check.
+		 * @param eid The entity to check.
+		 * @return true If the given entity has none of the 
+		 * given component types.
+		 * @return false If the given entity has at least one
+		 * of the given component types.
+		 */
+		template <typename... Ts>
+		[[nodiscard]] bool none(uint64_t eid) const {
+			return !any<Ts...>(eid);
 		}
 
 		/**
@@ -358,8 +377,9 @@ namespace ecfw
 			using boost::hana::equal;
 			using boost::hana::unique;
 
-			assert(valid(eid));
-			assert(has<Ts...>(eid));
+			assert(valid(eid) && "The entity does not belong to *this.");
+			assert(all<Ts...>(eid) 
+				&& "The entity does have all of the components given.");
 
 			constexpr auto type_list = dtl::type_list_v<Ts...>;
 			static_assert(
@@ -433,8 +453,9 @@ namespace ecfw
 				conjunction_v<is_move_constructible<T>, is_move_assignable<T>>,
 				"Provided type needs to be moveable at least.");
 
-			assert(valid(eid));
-			assert(!has<T>(eid));
+			assert(valid(eid) && "The entity does not belong to *this.");
+			assert(!contains<T>(eid) 
+				&& "*this does not associate the component with the entity.");
 
 			accommodate<T>();
 
@@ -549,9 +570,9 @@ namespace ecfw
 			static_assert(is_constructible_v<T, Args...>, 
 				"Cannot construct the component from the given arguments.");
 
-			assert(valid(eid));
+			assert(valid(eid) && "The entity does not belong to *this.");
 
-			if (!has<T>(eid)) {
+			if (!contains<T>(eid)) {
 				return assign<T>(eid, forward<Args>(args)...);
 			}
 			else {
@@ -579,6 +600,8 @@ namespace ecfw
 			typename = std::enable_if_t<sizeof...(Ts) >= 1>
 		>
 		[[nodiscard]] decltype(auto) get(uint64_t eid) {
+			assert(all<Ts...>(eid)
+				&& "The entity does not have all of the components given.");
 			if constexpr (sizeof...(Ts) == 1) {
 				using std::vector;
 				using std::decay_t;
@@ -605,7 +628,8 @@ namespace ecfw
 			typename = std::enable_if_t<sizeof...(Ts) >= 1>
 		>
 		[[nodiscard]] decltype(auto) get(uint64_t eid) const {
-			assert(has<Ts...>(eid));
+			assert(all<Ts...>(eid)
+				&& "The entity does not have all of the components given.");
 			if constexpr (sizeof...(Ts) == 1) {
 				using std::vector;
 				using std::decay_t;
@@ -644,7 +668,7 @@ namespace ecfw
 				uint32_t size = static_cast<uint32_t>(m_versions.size());
 				for (uint32_t idx = 0; idx != size; ++idx) {
 					uint64_t entity = dtl::concat(m_versions[idx], idx);
-					if (has<Ts...>(entity))
+					if (all<Ts...>(entity))
 						++count;
 				}
 				return count;
@@ -809,7 +833,7 @@ namespace ecfw
 			uint32_t size = static_cast<uint32_t>(m_versions.size());
 			for (uint32_t idx = 0; idx != size; ++idx) {
 				auto entity = dtl::concat(m_versions[idx], idx);
-				if (has<Ts...>(entity))
+				if (all<Ts...>(entity))
 					group.insert(entity);
 			}
 			it = m_groups.emplace_hint(it, filter, std::move(group));
