@@ -8,4 +8,10 @@
         "CMAKE_TOOLCHAIN_FILE": "${env:VCPKG_TOOLCHAIN_FILE}",
         "VCPKG_TARGET_TRIPLET": "${env:VCPKG_DEFAULT_TRIPLET}"
     },
+    "files.associations": {
+        "*.jinja2": "jinja-html",
+        "*.conf": "ini",
+        "iterator": "cpp",
+        "algorithm": "cpp"
+    },
 }
