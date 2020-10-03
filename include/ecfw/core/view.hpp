@@ -10,7 +10,8 @@
 
 namespace ecfw
 {
-namespace detail {
+namespace detail 
+{
 
 	/**
 	 * @brief Determines the index to an element in an iterable.
