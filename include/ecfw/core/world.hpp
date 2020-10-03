@@ -22,7 +22,7 @@ namespace ecfw
 {
 
 	/**
-	 * @brief Heterogeneous structure of arrays.
+	 * @brief Entity manager.
 	 * 
 	 */
 	class world final {
@@ -266,10 +266,9 @@ namespace ecfw
 			m_free_list.push(idx);
 
 			// Destroy all of the entity's components
-			for (auto type_id = 0; type_id != m_metadatas.size(); ++type_id) {
-				auto& metadata = m_metadatas[type_id];
-				if (idx < metadata.size() && metadata.test(idx)) 
-					m_metadatas[type_id].reset(idx);
+			for (auto& metadata : m_metadatas) {
+				if (idx < metadata.size() && metadata.test(idx))
+					metadata.reset(idx);
 			}
 
 			// Remove the entity from all groups it's a part of.
