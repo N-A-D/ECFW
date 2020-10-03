@@ -388,15 +388,15 @@ namespace ecfw
 
 			if constexpr (sizeof...(Ts) == 1) {
 				auto idx = dtl::lsw(eid);
-				auto type_id = (dtl::type_index_v<Ts>, ...);
+				auto tid = (dtl::type_index_v<Ts>, ...);
 
 				// Remove component metadata for the entity.
-				m_metadatas[type_id].reset(idx);
+				m_metadatas[tid].reset(idx);
 
 				// Remove the entity from all groups which require
 				// the recently removed component type
 				for (auto& [filter, group] : m_groups)
-					if (type_id < filter.size() && filter.test(type_id))
+					if (tid < filter.size() && filter.test(tid))
 						group.erase(eid);
 			}
 			else
@@ -460,16 +460,16 @@ namespace ecfw
 			accommodate<T>();
 
 			auto idx = dtl::lsw(eid);
-			auto type_id = dtl::type_index_v<T>;
+			auto tid = dtl::type_index_v<T>;
 
 			// Ensure there exists component metadata for the entity.
-			if (idx >= m_metadatas[type_id].size())
-				m_metadatas[type_id].resize(idx + 1);
+			if (idx >= m_metadatas[tid].size())
+				m_metadatas[tid].resize(idx + 1);
 
 			// Logically add the component to the entity.
-			m_metadatas[type_id].set(idx);
+			m_metadatas[tid].set(idx);
 
-			auto& buffer = any_cast<vector<T>&>(m_buffers[type_id]);
+			auto& buffer = any_cast<vector<T>&>(m_buffers[tid]);
 
 			// Ensure there physically exists memory for the new component
 			if (idx >= buffer.size())
@@ -494,7 +494,7 @@ namespace ecfw
 				if (group.contains(eid))
 					continue;
 				// Skip groups which do not include the new component.
-				if (type_id >= filter.size() || !filter.test(type_id))
+				if (tid >= filter.size() || !filter.test(tid))
 					continue;
 
 				// In order to check if an entity belongs to a group
@@ -577,9 +577,9 @@ namespace ecfw
 			}
 			else {
 				auto idx = dtl::lsw(eid);
-				auto type_id = dtl::type_index_v<T>;
+				auto tid = dtl::type_index_v<T>;
 
-				auto& buffer = any_cast<vector<T>&>(m_buffers[type_id]);
+				auto& buffer = any_cast<vector<T>&>(m_buffers[tid]);
 				if constexpr (is_aggregate_v<T>)
 					buffer[idx] = T{forward<Args>(args)...};
 				else 
@@ -608,9 +608,9 @@ namespace ecfw
 				using std::any_cast;
 
 				auto idx = dtl::lsw(eid);
-				auto type_id = (dtl::type_index_v<Ts>,...);
+				auto tid = (dtl::type_index_v<Ts>,...);
 				auto& buffer = 
-					(any_cast<vector<decay_t<Ts>>&>(m_buffers[type_id]), ...);
+					(any_cast<vector<decay_t<Ts>>&>(m_buffers[tid]), ...);
 				return buffer[idx];
 			}
 			else {
@@ -641,9 +641,9 @@ namespace ecfw
 					"const world cannot return nonconst component reference(s).");
 
 				auto idx = dtl::lsw(eid);
-				auto type_id = (dtl::type_index_v<Ts>, ...);
+				auto tid = (dtl::type_index_v<Ts>, ...);
 				const auto& buffer = 
-					(any_cast<const vector<decay_t<Ts>>&>(m_buffers[type_id]), ...);
+					(any_cast<const vector<decay_t<Ts>>&>(m_buffers[tid]), ...);
 				return buffer[idx];
 			}
 			else {
@@ -708,13 +708,13 @@ namespace ecfw
 
 				accommodate<Ts...>();
 
-				auto type_id = (dtl::type_index_v<Ts>, ...);
+				auto tid = (dtl::type_index_v<Ts>, ...);
 				
 				// Ensure there exists component metadata up to index n.
-				m_metadatas[type_id].reserve(n);
+				m_metadatas[tid].reserve(n);
 				
 				// Ensure there physically exists memory for n components.
-				(any_cast<vector<Ts>&>(m_buffers[type_id]).reserve(n), ...);
+				(any_cast<vector<Ts>&>(m_buffers[tid]).reserve(n), ...);
 			}
 			else if constexpr (sizeof...(Ts) > 1){
 				(reserve<Ts>(n), ...);
@@ -788,16 +788,16 @@ namespace ecfw
 				using std::vector;
 				using std::make_any;
 
-				auto type_id = (dtl::type_index_v<Ts>, ...);
+				auto tid = (dtl::type_index_v<Ts>, ...);
 
-				if (type_id >= m_metadatas.size())
-					m_metadatas.resize(type_id + 1);
+				if (tid >= m_metadatas.size())
+					m_metadatas.resize(tid + 1);
 				
-				if (type_id >= m_buffers.size())
-					m_buffers.resize(type_id + 1);
+				if (tid >= m_buffers.size())
+					m_buffers.resize(tid + 1);
 				
-				if (!m_buffers[type_id].has_value())
-					m_buffers[type_id] = (make_any<vector<Ts>>(), ...);
+				if (!m_buffers[tid].has_value())
+					m_buffers[tid] = (make_any<vector<Ts>>(), ...);
 			}
 			else
 				(accommodate<Ts>(), ...);
@@ -809,18 +809,18 @@ namespace ecfw
 			using std::initializer_list;
 			
 			// Find the largest type id. Size of the filter is +1.
-			auto type_ids = { dtl::type_index_v<Ts>... };
-			size_t largest_type_id = max(type_ids);
+			auto tids = { dtl::type_index_v<Ts>... };
+			size_t largest_tid = max(tids);
 
 			// Ensure we're not working with any unknown components.
 			// Type indices are created in sequential order upon discovery by 
 			// any world either by assignment, view creation, or storage reservation.
-			assert(largest_type_id < m_metadatas.size());
+			assert(largest_tid < m_metadatas.size());
 
 			// Build the filter in order to find an existing group or to create one.
-			boost::dynamic_bitset<> filter(largest_type_id + 1);
-			for (auto type_id : type_ids)
-				filter.set(type_id);
+			boost::dynamic_bitset<> filter(largest_tid + 1);
+			for (auto tid : tids)
+				filter.set(tid);
 
 			// Check if there exists a group identified by our filter.
 			// If so, return it to the caller.
