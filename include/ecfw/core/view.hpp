@@ -108,7 +108,8 @@ namespace detail
 		}
 
 		/**
-		 * @brief Returns an iterator to the element following the last element of the view.
+		 * @brief Returns an iterator to the element following the 
+		 * last element of the view.
 		 * 
 		 * @return Iterator to the element following the last element.
 		 */
@@ -117,7 +118,8 @@ namespace detail
 		}
 
 		/**
-		 * @brief Returns a reverse iterator to the first element of the reversed view.
+		 * @brief Returns a reverse iterator to the first element 
+		 * of the reversed view.
 		 * 
 		 * @return Reverse iterator to the first element.
 		 */
@@ -126,18 +128,19 @@ namespace detail
 		}
 
 		/**
-		 * @brief Returns a reverse iterataor to the element following the last element
-		 * of the reversed view.
+		 * @brief Returns a reverse iterataor to the element following
+		 * the last element of the reversed view.
 		 * 
-		 * @return Reverse iterator to the element following the last element.
+		 * @return Reverse iterator to the element following the last 
+		 *  element.
 		 */
 		[[nodiscard]] const_reverse_iterator rend() const noexcept {
 			return m_entities->rend();
 		}
 
 		/**
-		 * @brief Checks if there is an entity with identifier equivalent to eid
-		 * in the container.
+		 * @brief Checks if there is an entity with identifier equivalent 
+		 * to eid in the container.
 		 * 
 		 * @param eid The entity to look for.
 		 * @return true If there is such an entity.
@@ -157,7 +160,8 @@ namespace detail
 		}
 
 		/**
-		 * @brief Checks if the view has no entities, i.e., whether begin() == end().
+		 * @brief Checks if the view has no entities, 
+		 * i.e., whether begin() == end().
 		 * 
 		 * @return true If the view is empty.
 		 * @return false If the view is not empty.
@@ -169,7 +173,8 @@ namespace detail
 		/**
 		 * @brief Returns an entity's components.
 		 * 
-		 * @note All components are returned when no specific components are specified.
+		 * @note All components are returned when no specific 
+		 * components are specified.
 		 * 
 		 * @tparam Cs The component types to retrieve.
 		 * @param eid The entity to fetch for.
@@ -199,7 +204,8 @@ namespace detail
 				"Cannot return unviewed types!");
 
 			if constexpr (sizeof...(Cs) == 1)
-				return (m_buffers[dtl::index_of(dtl::type_v<Cs>, viewed_types)]->at(idx), ...);
+				return (m_buffers[
+					dtl::index_of(dtl::type_v<Cs>, viewed_types)]->at(idx), ...);
 			else if constexpr (sizeof...(Cs) > 1)
 				return forward_as_tuple(get<Cs>(idx)...);
 			else 
@@ -274,7 +280,8 @@ namespace detail
 		}
 
 		/**
-		 * @brief Returns an iterator to the element following the last element of the view.
+		 * @brief Returns an iterator to the element following the last
+		 * element of the view.
 		 * 
 		 * @return Iterator to the element following the last element.
 		 */
@@ -283,7 +290,8 @@ namespace detail
 		}
 
 		/**
-		 * @brief Returns a reverse iterator to the first element of the reversed view.
+		 * @brief Returns a reverse iterator to the first element of 
+		 * the reversed view.
 		 * 
 		 * @return Reverse iterator to the first element.
 		 */
@@ -292,18 +300,19 @@ namespace detail
 		}
 
 		/**
-		 * @brief Returns a reverse iterataor to the element following the last element
-		 * of the reversed view.
+		 * @brief Returns a reverse iterataor to the element following 
+		 * the last element of the reversed view.
 		 * 
-		 * @return Reverse iterator to the element following the last element.
+		 * @return Reverse iterator to the element following the last
+		 * element.
 		 */
 		[[nodiscard]] const_reverse_iterator rend() const noexcept {
 			return m_entities->rend();
 		}
 
 		/**
-		 * @brief Checks if there is an entity with identifier equivalent to eid
-		 * in the container.
+		 * @brief Checks if there is an entity with identifier equivalent 
+		 * to eid in the container.
 		 * 
 		 * @param eid The entity to look for.
 		 * @return true If there is such an entity.
