@@ -68,6 +68,7 @@ namespace ecfw
 			using boost::hana::unique;
 			using boost::hana::equal;
 
+			// Check for any const components. Can't construct those.
 			static_assert(conjunction_v<negation<is_const<Ts>>...>);
 
 			// Ensure that each given component is default constructible
@@ -102,7 +103,7 @@ namespace ecfw
 				(assign<Ts>(entity), ...);
 			return entity;
 		}
-
+		
 		/**
 		 * @brief Assigns each element in the range [first, first + n)
 		 * an entity created by *this.
@@ -307,26 +308,6 @@ namespace ecfw
 				destroy(*first);
 		}
 		
-		/**
-		 * @brief Checks if *this associates a given component type
-		 * with a given entity.
-		 * 
-		 * @tparam T Component type to check.
-		 * @param eid The entity to check.
-		 * @return true If *this associates a given component type
-		 * with a given entity.
-		 * @return false If *this does not associate a given component
-		 * type with a given entity.
-		 */
-		template <typename T>
-		[[nodiscard]] bool contains(uint64_t eid) const {
-			if (!valid(eid)) return false;
-			auto idx = dtl::lsw(eid);
-			auto tid = dtl::type_index_v<T>;
-			return tid < m_metabuffers.size()
-				&& idx < m_metabuffers[tid].size()
-				&& m_metabuffers[tid].test(idx);
-		}
 
 		/**
 		 * @brief Checks if a given entity has all of the 
@@ -340,40 +321,19 @@ namespace ecfw
 		 * all of the given component types.
 		 */
 		template <typename... Ts>
-		[[nodiscard]] bool all(uint64_t eid) const {
-			return (contains<Ts>(eid) && ...);
-		}
-
-		/**
-		 * @brief Checks if a given entity has at least one
-		 * of the given component types.
-		 * 
-		 * @tparam Ts Component types to check.
-		 * @param eid The entity to check.
-		 * @return true If the given entity has at least one
-		 * of the given component types.
-		 * @return false If the given entity has none of the 
-		 * given component types.
-		 */
-		template <typename... Ts>
-		[[nodiscard]] bool any(uint64_t eid) const {
-			return (contains<Ts>(eid) || ...);
-		}
-
-		/**
-		 * @brief Checks if a given entity has none of the given
-		 * component types.
-		 * 
-		 * @tparam Ts Component types to check.
-		 * @param eid The entity to check.
-		 * @return true If the given entity has none of the 
-		 * given component types.
-		 * @return false If the given entity has at least one
-		 * of the given component types.
-		 */
-		template <typename... Ts>
-		[[nodiscard]] bool none(uint64_t eid) const {
-			return !any<Ts...>(eid);
+		[[nodiscard]] bool has(uint64_t eid) const {
+			if (!valid(eid))
+				return false;
+			if constexpr (sizeof...(Ts) == 1) {
+				auto idx = dtl::lsw(eid);
+				auto tid = (dtl::type_index_v<Ts>, ...);
+				return tid < m_metabuffers.size()
+					&& idx < m_metabuffers[tid].size()
+					&& m_metabuffers[tid].test(idx);
+			}
+			else {
+				return (has<Ts>(eid) && ...);
+			}
 		}
 
 		/**
@@ -396,7 +356,7 @@ namespace ecfw
 			static_assert(conjunction_v<negation<is_const<Ts>>...>);
 
 			assert(valid(eid) && "The entity does not belong to *this.");
-			assert(all<Ts...>(eid) 
+			assert(has<Ts...>(eid) 
 				&& "The entity does have all of the components given.");
 
 			constexpr auto type_list = dtl::type_list_v<Ts...>;
@@ -477,7 +437,7 @@ namespace ecfw
 			static_assert(is_moveable);
 
 			assert(valid(eid) && "The entity does not belong to *this.");
-			assert(!contains<T>(eid) 
+			assert(!has<T>(eid) 
 				&& "*this does not associate the component with the entity.");
 
 			accommodate<T>();
@@ -598,7 +558,7 @@ namespace ecfw
 
 			assert(valid(eid) && "The entity does not belong to *this.");
 
-			if (!contains<T>(eid)) {
+			if (!has<T>(eid)) {
 				return assign<T>(eid, forward<Args>(args)...);
 			}
 			else {
@@ -609,6 +569,7 @@ namespace ecfw
 				if constexpr (is_aggregate_v<T>)
 					buffer[idx] = T{forward<Args>(args)...};
 				else 
+					static_assert(is_constructible_v<T, Args...>);
 					buffer[idx] = T(forward<Args>(args)...);
 				return buffer[idx];
 			}
@@ -626,7 +587,7 @@ namespace ecfw
 			typename = std::enable_if_t<sizeof...(Ts) >= 1>
 		>
 		[[nodiscard]] decltype(auto) get(uint64_t eid) {
-			assert(all<Ts...>(eid)
+			assert(has<Ts...>(eid)
 				&& "The entity does not have all of the components given.");
 			if constexpr (sizeof...(Ts) == 1) {
 				using std::any_cast;
@@ -654,7 +615,7 @@ namespace ecfw
 
 			static_assert(conjunction_v<is_const<Ts>...>);
 
-			assert(all<Ts...>(eid)
+			assert(has<Ts...>(eid)
 				&& "The entity does not have all of the components given.");
 			if constexpr (sizeof...(Ts) == 1) {
 				using std::any_cast;
@@ -683,7 +644,7 @@ namespace ecfw
 				uint32_t size = static_cast<uint32_t>(m_versions.size());
 				for (uint32_t idx = 0; idx != size; ++idx) {
 					uint64_t entity = dtl::concat(m_versions[idx], idx);
-					if (all<Ts...>(entity))
+					if (has<Ts...>(entity))
 						++count;
 				}
 				return count;
@@ -818,7 +779,7 @@ namespace ecfw
 		}
 
 		
-		using group_filter_type = boost::dynamic_bitset<>;
+		using group_key_type = boost::dynamic_bitset<>;
 
 		template <typename... Ts>
 		[[nodiscard]] const dtl::sparse_set& group_by() const {
@@ -826,7 +787,7 @@ namespace ecfw
 			using std::move;
 			using std::initializer_list;
 			
-			// Find the largest type id. Size of the filter is +1.
+			// Find the largest type id. Size of the group id is +1.
 			auto tids = { dtl::type_index_v<Ts>... };
 			size_t largest_tid = max(tids);
 
@@ -838,7 +799,7 @@ namespace ecfw
 
 			// Build the filter in order to find an existing 
 			// group or to create one.
-			group_filter_type filter(largest_tid + 1);
+			group_key_type filter(largest_tid + 1);
 			for (auto tid : tids)
 				filter.set(tid);
 
@@ -853,7 +814,7 @@ namespace ecfw
 			uint32_t size = static_cast<uint32_t>(m_versions.size());
 			for (uint32_t idx = 0; idx != size; ++idx) {
 				auto entity = dtl::concat(m_versions[idx], idx);
-				if (all<Ts...>(entity))
+				if (has<Ts...>(entity))
 					group.insert(entity);
 			}
 			it = m_groups.emplace_hint(it, filter, move(group));
@@ -883,7 +844,7 @@ namespace ecfw
 
 		// Filtered groups of entities. Each filter represents a common
 		// set of components each entity of the group possesses.
-		mutable std::unordered_map<group_filter_type, dtl::sparse_set> m_groups{};
+		mutable std::unordered_map<group_key_type, dtl::sparse_set> m_groups{};
 
 	};
 
