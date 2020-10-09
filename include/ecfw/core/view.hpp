@@ -49,14 +49,8 @@ namespace detail
 	 */
 	template <typename... Ts>
 	class view final {
-		static_assert(
-			bh::equal(
-				bh::unique(dtl::type_list_v<Ts...>), 
-				dtl::type_list_v<Ts...>
-			),
-			"Cannot create a view with duplicate components."
-		);		
-
+		static constexpr auto viewed = dtl::type_list_v<Ts...>;
+		static_assert(bh::equal(bh::unique(viewed), viewed));		
 	public:
 		friend class world;
 
@@ -182,6 +176,7 @@ namespace detail
 		 */
 		template <typename... Cs>
 		[[nodiscard]] decltype(auto) get(uint64_t eid) const {
+			assert(contains(eid));
 			auto idx = dtl::lsw(eid);
 			return unchecked_get<Cs...>(idx);
 		}
@@ -195,17 +190,16 @@ namespace detail
 			using boost::hana::equal;
 			using boost::hana::is_subset;
 			
-			constexpr auto requested_types = dtl::type_list_v<Cs...>;
-			static_assert(equal(unique(requested_types), requested_types),
-				"Duplicate types are not allowed!");
+			constexpr auto requested = dtl::type_list_v<Cs...>;
+			static_assert(equal(unique(requested), requested));
 
-			constexpr auto viewed_types = dtl::type_list_v<Ts...>;
-			static_assert(is_subset(requested_types, viewed_types),
-				"Cannot return unviewed types!");
+			static_assert(is_subset(requested, viewed));
 
-			if constexpr (sizeof...(Cs) == 1)
-				return (m_buffers[
-					dtl::index_of(dtl::type_v<Cs>, viewed_types)]->at(idx), ...);
+			if constexpr (sizeof...(Cs) == 1) {
+				auto& buffer = 
+					(m_buffers[dtl::index_of(dtl::type_v<Cs>, viewed)], ...);
+				return buffer->at(idx);
+			}
 			else if constexpr (sizeof...(Cs) > 1)
 				return forward_as_tuple(get<Cs>(idx)...);
 			else 
