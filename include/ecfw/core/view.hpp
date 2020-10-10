@@ -196,9 +196,9 @@ namespace detail
 			static_assert(is_subset(requested, viewed));
 
 			if constexpr (sizeof...(Cs) == 1) {
-				auto& buffer = 
+				auto buffer = 
 					(m_buffers[dtl::index_of(dtl::type_v<Cs>, viewed)], ...);
-				return buffer->at(idx);
+				return (*buffer)[idx];
 			}
 			else if constexpr (sizeof...(Cs) > 1)
 				return forward_as_tuple(get<Cs>(idx)...);
@@ -344,7 +344,7 @@ namespace detail
 		[[nodiscard]] T& get(uint64_t eid) const {
 			assert(contains(eid));
 			auto idx = dtl::lsw(eid);
-			return m_buffer->at(idx);
+			return (*m_buffer)[idx];
 		}
 
 	private:
