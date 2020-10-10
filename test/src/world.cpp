@@ -8,7 +8,6 @@
 #include <ecfw/detail/dword.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include <ecfw/core/event.hpp>
-using namespace std::literals;
 
 const size_t NUM_ENTITIES = 100;
 
