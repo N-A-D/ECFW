@@ -421,8 +421,6 @@ namespace ecfw
 			using std::any_cast;
 			using std::make_unique;
 			using std::conjunction_v;
-			using std::is_aggregate_v;
-			using std::is_constructible_v;
 			using std::is_move_assignable;
 			using std::is_move_constructible;
 			using std::is_default_constructible_v;
@@ -458,15 +456,6 @@ namespace ecfw
 			if (idx >= buffer.size())
 				buffer.resize(idx + 1);
 
-			// Construct the component 
-			if constexpr (is_aggregate_v<T>)
-				buffer[idx] = T{forward<Args>(args)...};
-			else {
-				static_assert(is_constructible_v<T, Args...>, 
-					"Cannot construct the component from the given arguments.");
-				buffer[idx] = T(forward<Args>(args)...);
-			}
-
 			// Add the entity to all newly applicable groups.
 			// Each time an entity is assigned a new component, it must
 			// be added to any existing group which shares a common set
@@ -496,8 +485,9 @@ namespace ecfw
 				if (has_all)
 					group.insert(eid);
 			}
-
-			return buffer[idx];
+			
+			// Construct and return the component.
+			return construct(buffer, idx, forward<Args>(args)...);
 		}
 
 		/**
@@ -547,14 +537,8 @@ namespace ecfw
 			using std::is_const;
 			using std::negation_v;
 			using std::any_cast;
-			using std::is_aggregate_v;
-			using std::is_constructible_v;
-			using std::is_move_assignable;
-			using std::is_move_constructible;
 
 			static_assert(negation_v<is_const<T>>);
-
-			static_assert(is_constructible_v<T, Args...>);
 
 			assert(valid(eid) && "The entity does not belong to *this.");
 
@@ -564,14 +548,8 @@ namespace ecfw
 			else {
 				auto idx = dtl::lsw(eid);
 				auto tid = dtl::type_index_v<T>;
-
 				auto& buffer = any_cast<dtl::buffer_type<T>&>(m_buffers[tid]);
-				if constexpr (is_aggregate_v<T>)
-					buffer[idx] = T{forward<Args>(args)...};
-				else 
-					static_assert(is_constructible_v<T, Args...>);
-					buffer[idx] = T(forward<Args>(args)...);
-				return buffer[idx];
+				return construct(buffer, idx, forward<Args>(args)...);
 			}
 		}
 
@@ -757,6 +735,21 @@ namespace ecfw
 
 	private:
 
+		template <typename T, typename... Args>
+		[[nodiscard]] T& construct(std::vector<T>& buffer, uint32_t idx, Args&&... args) {
+			using std::forward;
+			using std::is_aggregate_v;
+			using std::is_constructible_v;
+
+			if constexpr (is_aggregate_v<T>)
+				buffer[idx] = T{forward<Args>(args)...};
+			else {
+				static_assert(is_constructible_v<T, Args...>);
+				buffer[idx] = T(forward<Args>(args)...);
+			}
+			return buffer[idx];
+		}
+
 		template <typename... Ts>
 		void accommodate() const {
 			if constexpr (sizeof...(Ts) == 1) {
@@ -778,7 +771,6 @@ namespace ecfw
 				(accommodate<Ts>(), ...);
 		}
 
-		
 		using group_key_type = boost::dynamic_bitset<>;
 
 		template <typename... Ts>
