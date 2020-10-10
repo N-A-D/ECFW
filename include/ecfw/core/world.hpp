@@ -366,7 +366,10 @@ namespace ecfw
 				m_metabuffers[tid].reset(idx);
 
 				// Remove the entity from all groups which require
-				// the recently removed component type
+				// the recently removed component type. We do not 
+				// need to check if the group has the entity because
+				// it'll check if it contains any given key before
+				// doing an erase.
 				for (auto& [filter, group] : m_groups)
 					if (tid < filter.size() && filter.test(tid))
 						group.erase(eid);
