@@ -118,11 +118,10 @@ namespace ecfw
 			typename OutIt, 
 			typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
 		>
-		void create_n(OutIt out, size_t n) {
-			using std::generate_n;
-			generate_n(out, n, [this]() mutable {
-				return create<Ts...>(); 
-			});
+		[[maybe_unused]] OutIt create_n(OutIt out, size_t n) {
+			for (size_t i = 0; i < n; ++i)
+				*out++ = create<Ts...>();
+			return out;
 		}
 
 		/**
@@ -140,10 +139,9 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<FwdIt>>
 		>
 		void create(FwdIt first, FwdIt last) {
-			using std::generate;
-			generate(first, last, [this]() mutable {
-				return create<Ts...>();
-			});
+			for (; first != last; ++first) {
+				*first = create<Ts...>();
+			}
 		}
 
 		/**
@@ -195,10 +193,8 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
 		>
 		void clone_n(uint64_t original, OutIt out, size_t n) {
-			using std::generate_n;
-			generate_n(out, n, [this, original]() mutable {
-				 return clone<T, Ts...>(original); 
-			});
+			for (size_t i = 0; i < n; ++i)
+				*out++ = clone<T, Ts...>(original);
 		}
 
 		/**
@@ -218,10 +214,8 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<FwdIt>>
 		> 
 		void clone(uint64_t original, FwdIt first, FwdIt last) {
-			using std::generate;
-			generate(first, last, [this, original]() mutable {
-				return clone<T, Ts...>(original);
-			});
+			for (; first != last; ++first)
+				*first = clone<T, Ts...>();
 		}
 
 		/**
@@ -509,9 +503,7 @@ namespace ecfw
 			using boost::hana::unique;
 
 			constexpr auto type_list = dtl::type_list_v<Ts...>;
-			static_assert(
-				equal(unique(type_list), type_list),
-				"Duplicate types are not allowed.");
+			static_assert(equal(unique(type_list), type_list));
 
 			for (; first != last; ++first)
 				(assign<Ts>(*first), ...);
@@ -771,7 +763,10 @@ namespace ecfw
 				(accommodate<Ts>(), ...);
 		}
 
-		using group_key_type = boost::dynamic_bitset<>;
+		using group_map_type = 
+			std::unordered_map<boost::dynamic_bitset<>, dtl::sparse_set>;
+		using group_key_type = typename group_map_type::key_type;
+		using group_mapped_type = typename group_map_type::mapped_type;
 
 		template <typename... Ts>
 		[[nodiscard]] const dtl::sparse_set& group_by() const {
@@ -802,7 +797,7 @@ namespace ecfw
 				return it->second;
 
 			// Build the initial group of entities.
-			dtl::sparse_set group{};
+			group_mapped_type group{};
 			uint32_t size = static_cast<uint32_t>(m_versions.size());
 			for (uint32_t idx = 0; idx != size; ++idx) {
 				auto entity = dtl::concat(m_versions[idx], idx);
@@ -836,7 +831,7 @@ namespace ecfw
 
 		// Filtered groups of entities. Each filter represents a common
 		// set of components each entity of the group possesses.
-		mutable std::unordered_map<group_key_type, dtl::sparse_set> m_groups{};
+		mutable group_map_type m_groups{};
 
 	};
 
