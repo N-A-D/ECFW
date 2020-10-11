@@ -182,6 +182,14 @@ namespace detail
 		 */
 		template <typename... Cs>
 		[[nodiscard]] decltype(auto) get(uint64_t eid) const {
+			using boost::hana::unique;
+			using boost::hana::equal;
+			using boost::hana::is_subset;
+			
+			constexpr auto requested = dtl::type_list_v<Cs...>;
+			static_assert(equal(unique(requested), requested));
+			static_assert(is_subset(requested, viewed));
+
 			assert(contains(eid));
 			auto idx = dtl::lsw(eid);
 			return unchecked_get<Cs...>(idx);
@@ -192,14 +200,6 @@ namespace detail
 		template <typename... Cs>
 		[[nodiscard]] decltype(auto) unchecked_get(uint32_t idx) const {
 			using std::forward_as_tuple;
-			using boost::hana::unique;
-			using boost::hana::equal;
-			using boost::hana::is_subset;
-			
-			constexpr auto requested = dtl::type_list_v<Cs...>;
-			static_assert(equal(unique(requested), requested));
-
-			static_assert(is_subset(requested, viewed));
 
 			if constexpr (sizeof...(Cs) == 1) {
 				auto buffer = 
