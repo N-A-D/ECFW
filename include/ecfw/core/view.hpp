@@ -277,7 +277,7 @@ namespace detail
 		view& operator=(view&&) = default;
 
 		/**
-		 * @brief Returns an iterator to the first element of the vector.
+		 * @brief Returns an iterator to the first element of the view.
 		 * 
 		 * @return Iterator to the first element.
 		 */
