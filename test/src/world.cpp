@@ -7,7 +7,6 @@
 #include <ecfw/core/world.hpp>
 #include <ecfw/detail/dword.hpp>
 #include <boost/range/adaptor/reversed.hpp>
-#include <ecfw/core/event.hpp>
 
 const size_t NUM_ENTITIES = 100;
 
