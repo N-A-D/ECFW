@@ -603,9 +603,9 @@ TEST(world, recycle_single_entity_with_existing_views) {
 
     // Ensure the entity's index & version are both 0
     auto entity1 = world.create<C0, C1>();
-    index = lsw(entity);
-    version = msw(entity);
-    ASSERT_EQ(index, 0);
+    index = lsw(entity1);
+    version = msw(entity1);
+    ASSERT_EQ(index, 1);
     ASSERT_EQ(version, 0);
 
     ASSERT_EQ((world.size<C0>()), 2);
