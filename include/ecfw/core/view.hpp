@@ -67,6 +67,12 @@ namespace detail
 		using reverse_iterator		 = dtl::sparse_set::reverse_iterator;
 
 		/**
+		 * @brief Default constructor.
+		 * 
+		 */
+		view() = default;
+
+		/**
 		 * @brief Default copy constructor.
 		 * 
 		 */
@@ -237,6 +243,12 @@ namespace detail
 		using iterator				 = dtl::sparse_set::iterator;
 		using const_reverse_iterator = dtl::sparse_set::const_reverse_iterator;
 		using reverse_iterator		 = dtl::sparse_set::reverse_iterator;
+
+		/**
+		 * @brief Default constructor.
+		 * 
+		 */
+		view() = default;
 
 		/**
 		 * @brief Default copy constructor.
