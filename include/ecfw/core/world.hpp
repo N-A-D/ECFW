@@ -150,7 +150,12 @@ namespace ecfw
 			using std::conjunction_v;
 			using std::is_copy_constructible;
 
-			static_assert(conjunction_v<is_copy_constructible<Ts>...>);
+			static_assert(
+				conjunction_v<
+					is_copy_constructible<T>, 
+					is_copy_constructible<Ts>...
+				>
+			);
 
 			uint64_t entity = create();
 			(assign<T>(entity, get<T>(original)), 
