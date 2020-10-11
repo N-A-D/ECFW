@@ -5,6 +5,30 @@
 
 using sparse_set = ecfw::detail::sparse_set;
 
+TEST(sparse_set, move_semantics) {
+	sparse_set ss{};
+
+	std::vector<uint64_t> data{ 15000, 30000, 45000, 60000, 75000, 90000, 105000 };
+
+	std::mt19937 gen{ std::random_device{}() };
+	std::shuffle(data.begin(), data.end(), gen);
+
+	for (auto item : data)
+		ss.insert(item);
+
+	ASSERT_TRUE(std::all_of(data.begin(), data.end(), [&ss](auto item) { return ss.contains(item); }));
+	ASSERT_TRUE(std::equal(data.begin(), data.end(), ss.begin(), ss.end()));
+	ASSERT_EQ(ss.size(), data.size());
+	ASSERT_FALSE(ss.empty());
+
+	sparse_set thief0{std::move(ss)};
+	ASSERT_TRUE(ss.empty());
+	ASSERT_TRUE(std::equal(data.begin(), data.end(), thief0.begin(), thief0.end()));
+	sparse_set thief1 = std::move(thief0);
+	ASSERT_TRUE(thief0.empty());
+	ASSERT_TRUE(std::equal(data.begin(), data.end(), thief1.begin(), thief1.end()));
+}
+
 TEST(sparse_set, nonexisting_element_insertion) {
 	sparse_set ss{};
 
