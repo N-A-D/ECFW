@@ -731,7 +731,9 @@ namespace ecfw
 	private:
 
 		template <typename T, typename... Args>
-		[[nodiscard]] T& construct(std::vector<T>& buffer, uint32_t idx, Args&&... args) {
+		[[nodiscard]] T& construct(
+			std::vector<T>& buffer, uint32_t idx, Args&&... args) {
+				
 			using std::forward;
 			using std::is_aggregate_v;
 			using std::is_constructible_v;
