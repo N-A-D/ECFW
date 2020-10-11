@@ -61,18 +61,8 @@ namespace ecfw
 		 */
 		template <typename... Ts>
 		[[nodiscard]] uint64_t create() {
-			using std::is_const;
-			using std::negation;
-			using std::conjunction_v;
-			using std::is_default_constructible;
 			using boost::hana::unique;
 			using boost::hana::equal;
-
-			// Check for any const components. Can't construct those.
-			static_assert(conjunction_v<negation<is_const<Ts>>...>);
-
-			// Ensure that each given component is default constructible
-			static_assert(conjunction_v<is_default_constructible<Ts>...>);
 
 			// Check for any duplicate types
 			constexpr auto type_list = dtl::type_list_v<Ts...>;
@@ -157,15 +147,8 @@ namespace ecfw
 			typename... Ts
 		>
 		[[nodiscard]] uint64_t clone(uint64_t original) {
-			using std::is_const;
-			using std::negation;
 			using std::conjunction_v;
 			using std::is_copy_constructible;
-
-			constexpr auto all_non_const = 
-				conjunction_v<negation<is_const<T>>, negation<is_const<Ts>>...>;
-
-			static_assert(all_non_const);
 
 			static_assert(conjunction_v<is_copy_constructible<Ts>...>);
 
@@ -830,8 +813,9 @@ namespace ecfw
 		mutable std::vector<dtl::metabuffer_type> m_metabuffers{};
 
 		// Component data. Space is allocated similarly to the 
-		// metabuffers collection. We use a std::any to erase the 
-		// type of the buffer_type.
+		// metabuffers collection. We use a std::any to hide
+		// the buffer type until we're in a context where we can
+		// deduce the type of the buffer.
 		mutable std::vector<std::any> m_buffers{};
 
 		// Filtered groups of entities. Each filter represents a common
