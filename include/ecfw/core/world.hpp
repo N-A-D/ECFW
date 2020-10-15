@@ -180,9 +180,10 @@ namespace ecfw
 			typename OutIt, 
 			typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
 		>
-		void clone_n(uint64_t original, OutIt out, size_t n) {
+		OutIt clone_n(uint64_t original, OutIt out, size_t n) {
 			for (size_t i = 0; i < n; ++i)
 				*out++ = clone<T, Ts...>(original);
+			return out;
 		}
 
 		/**
