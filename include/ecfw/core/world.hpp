@@ -783,7 +783,7 @@ namespace ecfw
 		}
 
 		template <typename T>
-		auto& buffer() {
+		dtl::buffer_type<T>& buffer() {
 			using std::any_cast;
 			auto tid = dtl::type_index_v<T>;
 			assert(tid < m_buffers.size());
