@@ -12,7 +12,7 @@
 #include <boost/dynamic_bitset.hpp>
 #include <ecfw/core/view.hpp>
 #include <ecfw/detail/buffer.hpp>
-#include <ecfw/detail/dword.hpp>
+#include <ecfw/detail/entity.hpp>
 #include <ecfw/detail/sparse_set.hpp>
 #include <ecfw/detail/type_index.hpp>
 #include <ecfw/detail/type_traits.hpp>
@@ -75,7 +75,7 @@ namespace ecfw
 				uint32_t idx = m_free_list.top();
 				m_free_list.pop();
 				uint32_t ver = m_versions[idx];
-				entity = dtl::concat(ver, idx);
+				entity = dtl::make_entity(ver, idx);
 			}
 			else {
 				// Ensure it is still possible to create new entities
@@ -215,8 +215,8 @@ namespace ecfw
 		 * @return false If the entity does not belong to *this.
 		 */
 		[[nodiscard]] bool valid(uint64_t eid) const {
-			auto idx = dtl::lsw(eid);
-			auto ver = dtl::msw(eid);
+			auto idx = dtl::index(eid);
+			auto ver = dtl::version(eid);
 			return idx < m_versions.size()
 				&& m_versions[idx] == ver;
 		}
@@ -251,8 +251,8 @@ namespace ecfw
 			assert(valid(eid));
 			
 			// Split the entity into its index and version
-			auto idx = dtl::lsw(eid);
-			[[maybe_unused]] auto ver = dtl::msw(eid);
+			auto idx = dtl::index(eid);
+			[[maybe_unused]] auto ver = dtl::version(eid);
 			
 			// Ensure the entity can still be reused
 			assert(ver < 0xFFFFFFFF);
@@ -311,7 +311,7 @@ namespace ecfw
 			if (!valid(eid))
 				return false;
 			if constexpr (sizeof...(Ts) == 1) {
-				auto idx = dtl::lsw(eid);
+				auto idx = dtl::index(eid);
 				auto tid = (dtl::type_index_v<Ts>, ...);
 				return tid < m_metabuffers.size()
 					&& idx < m_metabuffers[tid].size()
@@ -351,7 +351,7 @@ namespace ecfw
 				"Duplicate types are not allowed.");
 
 			if constexpr (sizeof...(Ts) == 1) {
-				auto idx = dtl::lsw(eid);
+				auto idx = dtl::index(eid);
 				auto tid = (dtl::type_index_v<Ts>, ...);
 
 				// Remove component metabuffer for the entity.
@@ -426,7 +426,7 @@ namespace ecfw
 
 			accommodate<T>();
 
-			auto idx = dtl::lsw(eid);
+			auto idx = dtl::index(eid);
 			auto tid = dtl::type_index_v<T>;
 
 			// Ensure there exists component metabuffer for the entity.
@@ -529,7 +529,7 @@ namespace ecfw
 				return assign<T>(eid, forward<Args>(args)...);
 			}
 			else {
-				auto idx = dtl::lsw(eid);
+				auto idx = dtl::index(eid);
 				return construct(buffer<T>(), idx, forward<Args>(args)...);
 			}
 		}
@@ -549,7 +549,7 @@ namespace ecfw
 			assert(has<Ts...>(eid)
 				&& "The entity does not have all of the components given.");
 			if constexpr (sizeof...(Ts) == 1) {
-				auto idx = dtl::lsw(eid);
+				auto idx = dtl::index(eid);
 				return (buffer<Ts>()[idx], ...);
 			}
 			else {
@@ -572,7 +572,7 @@ namespace ecfw
 			assert(has<Ts...>(eid)
 				&& "The entity does not have all of the components given.");
 			if constexpr (sizeof...(Ts) == 1) {
-				auto idx = dtl::lsw(eid);
+				auto idx = dtl::index(eid);
 				return (buffer<Ts>()[idx], ...);
 			}
 			else {
@@ -620,7 +620,7 @@ namespace ecfw
 		[[nodiscard]] size_t count() const { // rename to count
 			using std::count_if;
 			auto unary_predicate = [i = 0,this](auto v) mutable { 
-				auto entity = dtl::concat(v, i++);
+				auto entity = dtl::make_entity(v, i++);
 				return has<T, Ts...>(entity); 
 			};
 			auto ret = count_if(
@@ -865,7 +865,7 @@ namespace ecfw
 			// Build the initial group of entities.
 			group_mapped_type group{};
 			auto unary_function = [i = 0,this,&group](auto v) mutable {
-				auto entity = dtl::concat(v, i++);
+				auto entity = dtl::make_entity(v, i++);
 				if (has<Ts...>(entity))
 					group.insert(entity);
 			};

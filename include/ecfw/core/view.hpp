@@ -4,7 +4,7 @@
 #include <type_traits>	  // is_const, conditional, conditional_t
 #include <boost/hana.hpp> // equal, unique, is_subset
 #include <ecfw/detail/buffer.hpp>
-#include <ecfw/detail/dword.hpp>
+#include <ecfw/detail/entity.hpp>
 #include <ecfw/detail/sparse_set.hpp>
 #include <ecfw/detail/type_list.hpp>
 
@@ -191,7 +191,7 @@ namespace detail
 			static_assert(is_subset(requested, viewed));
 
 			assert(contains(eid));
-			auto idx = dtl::lsw(eid);
+			auto idx = dtl::index(eid);
 			return unchecked_get<Cs...>(idx);
 		}
 
@@ -355,7 +355,7 @@ namespace detail
 		 */
 		[[nodiscard]] T& get(uint64_t eid) const {
 			assert(contains(eid));
-			auto idx = dtl::lsw(eid);
+			auto idx = dtl::index(eid);
 			return (*m_buffer)[idx];
 		}
 

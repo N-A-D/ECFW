@@ -4,7 +4,7 @@
 #include <memory>   // unique_ptr
 #include <cassert>  // assert
 #include <iterator> // reverse_iterator, random_access_iterator_tag
-#include <ecfw/detail/dword.hpp>
+#include <ecfw/detail/entity.hpp>
 
 namespace ecfw
 {
@@ -191,10 +191,10 @@ namespace detail
 				return;
 
 			// Get the block for this value
-			size_type block = lsw(val) / block_size;
+			size_type block = detail::index(val) / block_size;
 
 			// Get the block offset for this value
-			size_type offset = lsw(val) & block_size - 1;
+			size_type offset = detail::index(val) & block_size - 1;
 
 			// Ensure there is enough room in the sparse vector
 			if (block >= m_sparse.size())
@@ -222,10 +222,10 @@ namespace detail
 				return;
 
 			// Get the block for this value
-			size_type block = lsw(val) / block_size;
+			size_type block = detail::index(val) / block_size;
 
 			// Get the block offset for this value
-			size_type offset = lsw(val) & block_size - 1;
+			size_type offset = detail::index(val) & block_size - 1;
 
 			// Get the pointer to this value in the packed vector
 			uint32_t index = m_sparse[block][offset];
@@ -234,8 +234,8 @@ namespace detail
 			m_packed[index] = m_packed[m_size - 1];
 
 			// Compute the block and offset for the moved value
-			block = lsw(m_packed[index]) / block_size;
-			offset = lsw(m_packed[index]) & block_size - 1;
+			block = detail::index(m_packed[index]) / block_size;
+			offset = detail::index(m_packed[index]) & block_size - 1;
 
 			// Ensure the sparse vector can find the moved value
 			m_sparse[block][offset] = index;
@@ -245,8 +245,8 @@ namespace detail
 		}
 
 		[[nodiscard]] bool contains(value_type val) const {
-			size_type block = lsw(val) / block_size;
-			size_type offset = lsw(val) & block_size - 1;
+			size_type block = detail::index(val) / block_size;
+			size_type offset = detail::index(val) & block_size - 1;
 			// Check if the value's block exists, is allocated, contains a
 			// pointer which fits within the packed vector, and matches the
 			// stored value
