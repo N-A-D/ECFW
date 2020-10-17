@@ -180,7 +180,7 @@ namespace ecfw
 			typename OutIt, 
 			typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
 		>
-		OutIt clone_n(uint64_t original, OutIt out, size_t n) {
+		[[nodiscard]] OutIt clone_n(uint64_t original, OutIt out, size_t n) {
 			for (size_t i = 0; i < n; ++i)
 				*out++ = clone<T, Ts...>(original);
 			return out;
@@ -303,7 +303,10 @@ namespace ecfw
 		 * @return false If the given entity does not have
 		 * all of the given component types.
 		 */
-		template <typename... Ts>
+		template <
+			typename... Ts,
+			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+		>
 		[[nodiscard]] bool has(uint64_t eid) const {
 			if (!valid(eid))
 				return false;
@@ -400,12 +403,9 @@ namespace ecfw
 			typename... Args
 		>
 		[[maybe_unused]] T& assign(uint64_t eid, Args&&... args) {
+			using std::forward;
 			using std::is_const;
 			using std::negation_v;
-			using std::forward;
-			using std::make_any;
-			using std::any_cast;
-			using std::make_unique;
 			using std::conjunction_v;
 			using std::is_move_assignable;
 			using std::is_move_constructible;
@@ -436,11 +436,11 @@ namespace ecfw
 			// Logically add the component to the entity.
 			m_metabuffers[tid].set(idx);
 
-			auto& buffer = any_cast<dtl::buffer_type<T>&>(m_buffers[tid]);
+			auto& component_buffer = buffer<T>();
 
 			// Ensure there physically exists memory for the new component
-			if (idx >= buffer.size())
-				buffer.resize(idx + 1);
+			if (idx >= component_buffer.size())
+				component_buffer.resize(idx + 1);
 
 			// Add the entity to all newly applicable groups.
 			// Each time an entity is assigned a new component, it must
@@ -473,7 +473,7 @@ namespace ecfw
 			}
 			
 			// Construct and return the component.
-			return construct(buffer, idx, forward<Args>(args)...);
+			return construct(component_buffer, idx, forward<Args>(args)...);
 		}
 
 		/**
@@ -520,7 +520,6 @@ namespace ecfw
 			using std::forward;
 			using std::is_const;
 			using std::negation_v;
-			using std::any_cast;
 
 			static_assert(negation_v<is_const<T>>);
 
@@ -531,9 +530,7 @@ namespace ecfw
 			}
 			else {
 				auto idx = dtl::lsw(eid);
-				auto tid = dtl::type_index_v<T>;
-				auto& buffer = any_cast<dtl::buffer_type<T>&>(m_buffers[tid]);
-				return construct(buffer, idx, forward<Args>(args)...);
+				return construct(buffer<T>(), idx, forward<Args>(args)...);
 			}
 		}
 
@@ -552,13 +549,8 @@ namespace ecfw
 			assert(has<Ts...>(eid)
 				&& "The entity does not have all of the components given.");
 			if constexpr (sizeof...(Ts) == 1) {
-				using std::any_cast;
-
 				auto idx = dtl::lsw(eid);
-				auto tid = (dtl::type_index_v<Ts>,...);
-				auto& buffer = 
-					(any_cast<dtl::buffer_type<Ts>&>(m_buffers[tid]), ...);
-				return buffer[idx];
+				return (buffer<Ts>()[idx], ...);
 			}
 			else {
 				using std::forward_as_tuple;				
@@ -580,53 +572,117 @@ namespace ecfw
 			assert(has<Ts...>(eid)
 				&& "The entity does not have all of the components given.");
 			if constexpr (sizeof...(Ts) == 1) {
-				using std::any_cast;
 				auto idx = dtl::lsw(eid);
-				auto tid = (dtl::type_index_v<Ts>, ...);
-				const auto& buffer = 
-					(any_cast<dtl::buffer_type<Ts>&>(m_buffers[tid]), ...);
-				return buffer[idx];
+				return (buffer<Ts>()[idx], ...);
 			}
 			else {
 				using std::forward_as_tuple;
 				return forward_as_tuple(get<Ts>(eid)...);
 			}
 		}
-
+		
 		/**
-		 * @brief Returns the number of active entities.
+		 * @brief Returns the number of created entities.
 		 * 
-		 * @tparam Ts Components types the entities must have.
-		 * @return The number of active entities.
+		 * @return The number of created entities.
 		 */
-		template <typename... Ts>
-		[[nodiscard]] size_t size() const {
-			if constexpr (sizeof...(Ts) > 0) {
-				size_t count = 0;
-				uint32_t size = static_cast<uint32_t>(m_versions.size());
-				for (uint32_t idx = 0; idx != size; ++idx) {
-					uint64_t entity = dtl::concat(m_versions[idx], idx);
-					if (has<Ts...>(entity))
-						++count;
-				}
-				return count;
-			}
-			else {
-				return static_cast<size_t>(m_versions.size())
-					- static_cast<size_t>(m_free_list.size());
-			}
+		[[nodiscard]] size_t num_entities() const noexcept {
+			return static_cast<size_t>(m_versions.size());
 		}
 
 		/**
-		 * @brief Checks if *this does not have any active entities.
+		 * @brief Returns the number of entities that have not been destroyed.
 		 * 
-		 * @tparam Ts Component types the entities must have.
-		 * @return true if there are no active entities.
-		 * @return false if there area active entities.
+		 * @return The number of entities that have not been destroyed.
 		 */
-		template <typename... Ts>
+		[[nodiscard]] size_t num_alive() const noexcept {
+			assert(num_entities() >= num_reusable());
+			return num_entities() - num_reusable();
+		}
+
+		/**
+		 * @brief Returns the number of entities that can use reused.
+		 * 
+		 * @return The number entities that can be reused.
+		 */
+		[[nodiscard]] size_t num_reusable() const noexcept {
+			return static_cast<size_t>(m_free_list.size());
+		}
+
+		/**
+		 * @brief Returns the number of entities which have the given 
+		 * components.
+		 * 
+		 * @tparam Ts Components types the entities must have.
+		 * @return The number of entities which have the components.
+		 */
+		template <typename T, typename... Ts>
+		[[nodiscard]] size_t count() const { // rename to count
+			using std::count_if;
+			auto unary_predicate = [i = 0,this](auto v) mutable { 
+				auto entity = dtl::concat(v, i++);
+				return has<T, Ts...>(entity); 
+			};
+			auto ret = 
+				count_if(m_versions.begin(), m_versions.end(), unary_predicate);
+			return static_cast<size_t>(ret);
+		}
+
+		template <typename T>
+		[[nodiscard]] size_t max_size() const  {
+			return buffer<T>().max_size();
+		}
+
+		/**
+		 * @brief Returns the number of elements in the component vector for 
+		 * the given type.
+		 * 
+		 * @tparam T Component type of the component vector.
+		 * @return The number of elements in the compnent vector.
+		 */
+		template <typename T>
+		[[nodiscard]] size_t size() const {
+			return buffer<T>().size();
+		}
+
+		/**
+		 * @brief Checks if the component vector for a given type is empty.
+		 * 
+		 * @tparam T Component type of the component vector.
+		 * @return true if the component vector is empty.
+		 * @return false if the component vector is not empty.
+		 */
+		template <typename T>
 		[[nodiscard]] bool empty() const {
-			return size<Ts...>() == 0;
+			return buffer<T>().empty();
+		}
+
+		/**
+		 * @brief Returns the capacity of the component vector for a given type.
+		 * 
+		 * @tparam T Component type of the component vector.
+		 * @return The capacity of the component vector.
+		 */
+		template <typename T>
+		[[nodiscard]] size_t capacity() const {
+			return buffer<T>().capacity();
+		}
+
+		/**
+		 * @brief Requests the removal of unused capacity from the component
+		 * vectors associated with a given set of component types.
+		 * 
+		 * @tparam Ts Component types of the component vectors.
+		 */
+		template <
+			typename... Ts,
+			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+		>
+		void shrink_to_fit() {
+			if constexpr (sizeof...(Ts) == 1)
+				(buffer<Ts>().shrink_to_fit(), ...);
+			else 
+				(shrink_to_fit<Ts>(), ...);
 		}
 
 		/**
@@ -636,7 +692,10 @@ namespace ecfw
 		 * @tparam Ts Component types to reserve space for.
 		 * @param n The number of components to allocated space for.
 		 */
-		template <typename... Ts>
+		template <
+			typename... Ts,
+			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+		>
 		void reserve(size_t n) {
 			using std::is_const;
 			using std::negation;
@@ -657,14 +716,11 @@ namespace ecfw
 				m_metabuffers[tid].reserve(n);
 				
 				// Ensure there physically exists memory for n components.
-				(any_cast<dtl::buffer_type<Ts>&>(
-					m_buffers[tid]).reserve(n), ...);
+				(buffer<Ts>().reserve(n), ...);
 			}
-			else if constexpr (sizeof...(Ts) > 1){
+			else {
 				(reserve<Ts>(n), ...);
 			}
-			else 
-				m_versions.reserve(n);
 		}
 
 		/**
@@ -673,7 +729,10 @@ namespace ecfw
 		 * @tparam Ts Component types to be viewed.
 		 * @return An instance of ecfw::view.
 		 */
-		template <typename... Ts>
+		template <
+			typename... Ts,
+			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+		>
 		[[nodiscard]] ecfw::view<Ts...> view() {
 			using std::any_cast;
 			using boost::hana::equal;
@@ -685,15 +744,14 @@ namespace ecfw
 
 			accommodate<Ts...>();
 
-			return ecfw::view<Ts...>{
-				group_by<Ts...>(),
-				any_cast<dtl::buffer_type<Ts>&>(
-					m_buffers[dtl::type_index_v<Ts>])...
-			};
+			return ecfw::view<Ts...>{ group_by<Ts...>(), buffer<Ts>()... };
 		}
 
 		/*! @copydoc view */
-		template <typename... Ts>
+		template <
+			typename... Ts,
+			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+		>
 		[[nodiscard]] ecfw::view<Ts...> view() const {
 			using std::any_cast;
 			using std::is_const;
@@ -710,14 +768,27 @@ namespace ecfw
 
 			accommodate<Ts...>();
 
-			return ecfw::view<Ts...>{
-				group_by<Ts...>(),
-				any_cast<dtl::buffer_type<Ts>&>(
-					m_buffers[dtl::type_index_v<Ts>])...
-			};
+			return ecfw::view<Ts...>{ group_by<Ts...>(), buffer<Ts>()... };
 		}
 
 	private:
+
+		// Expects T to be const
+		template <typename T>
+		const dtl::buffer_type<T>& buffer() const{
+			using std::any_cast;
+			auto tid = dtl::type_index_v<T>;
+			assert(tid < m_buffers.size());
+			return any_cast<dtl::buffer_type<T>&>(m_buffers[tid]);
+		}
+
+		template <typename T>
+		auto& buffer() {
+			using std::any_cast;
+			auto tid = dtl::type_index_v<T>;
+			assert(tid < m_buffers.size());
+			return any_cast<dtl::buffer_type<T>&>(m_buffers[tid]);
+		}
 
 		template <typename T, typename... Args>
 		[[nodiscard]] T& construct(
@@ -766,6 +837,7 @@ namespace ecfw
 		[[nodiscard]] const dtl::sparse_set& group_by() const {
 			using std::max;
 			using std::move;
+			using std::for_each;
 			using std::initializer_list;
 			
 			// Find the largest type id. Size of the group id is +1.
@@ -792,12 +864,12 @@ namespace ecfw
 
 			// Build the initial group of entities.
 			group_mapped_type group{};
-			uint32_t size = static_cast<uint32_t>(m_versions.size());
-			for (uint32_t idx = 0; idx != size; ++idx) {
-				auto entity = dtl::concat(m_versions[idx], idx);
+			auto unary_function = [i = 0,this,&group](auto v) mutable {
+				auto entity = dtl::concat(v, i++);
 				if (has<Ts...>(entity))
 					group.insert(entity);
-			}
+			};
+			for_each(m_versions.begin(), m_versions.end(), unary_function);
 			it = m_groups.emplace_hint(it, filter, move(group));
 			return it->second;
 		}
