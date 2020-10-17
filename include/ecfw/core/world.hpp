@@ -623,14 +623,14 @@ namespace ecfw
 				auto entity = dtl::concat(v, i++);
 				return has<T, Ts...>(entity); 
 			};
-			auto ret = 
-				count_if(m_versions.begin(), m_versions.end(), unary_predicate);
+			auto ret = count_if(
+				m_versions.begin(), m_versions.end(), unary_predicate);
 			return static_cast<size_t>(ret);
 		}
 
 		template <typename T>
 		[[nodiscard]] size_t max_size() const  {
-			return buffer<T>().max_size();
+			return static_cast<size_t>(buffer<T>().max_size());
 		}
 
 		/**
@@ -642,7 +642,7 @@ namespace ecfw
 		 */
 		template <typename T>
 		[[nodiscard]] size_t size() const {
-			return buffer<T>().size();
+			return static_cast<size_t>(buffer<T>().size());
 		}
 
 		/**
@@ -665,7 +665,7 @@ namespace ecfw
 		 */
 		template <typename T>
 		[[nodiscard]] size_t capacity() const {
-			return buffer<T>().capacity();
+			return static_cast<size_t>(buffer<T>().capacity());
 		}
 
 		/**
