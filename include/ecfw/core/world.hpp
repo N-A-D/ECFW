@@ -89,7 +89,7 @@ namespace ecfw
 				entity = static_cast<uint64_t>(size);
 				m_versions.push_back(0);
 			}
-			if constexpr (sizeof...(Ts) > 0)
+			if constexpr (sizeof...(Ts) >= 1)
 				(assign<Ts>(entity), ...);
 			return entity;
 		}
@@ -148,14 +148,9 @@ namespace ecfw
 		>
 		[[nodiscard]] uint64_t clone(uint64_t original) {
 			using std::conjunction_v;
-			using std::is_copy_constructible;
 
 			static_assert(
-				conjunction_v<
-					is_copy_constructible<T>, 
-					is_copy_constructible<Ts>...
-				>
-			);
+				conjunction_v<dtl::is_copyable<T>, dtl::is_copyable<Ts>...>);
 
 			uint64_t entity = create();
 			(assign<T>(entity, get<T>(original)), 
@@ -333,13 +328,9 @@ namespace ecfw
 			typename = std::enable_if_t<sizeof...(Ts) >= 1>
 		>
 		void remove(uint64_t eid) {
-			using std::is_const;
-			using std::negation;
 			using std::conjunction_v;
 			using boost::hana::equal;
 			using boost::hana::unique;
-
-			static_assert(conjunction_v<negation<is_const<Ts>>...>);
 
 			assert(valid(eid) && "The entity does not belong to *this.");
 			assert(has<Ts...>(eid) 
@@ -404,21 +395,11 @@ namespace ecfw
 		>
 		[[maybe_unused]] T& assign(uint64_t eid, Args&&... args) {
 			using std::forward;
-			using std::is_const;
-			using std::negation_v;
-			using std::conjunction_v;
-			using std::is_move_assignable;
-			using std::is_move_constructible;
 			using std::is_default_constructible_v;
-
-			static_assert(negation_v<is_const<T>>);
 
 			static_assert(is_default_constructible_v<T>);
 
-			constexpr auto is_moveable = 
-				conjunction_v<is_move_constructible<T>, is_move_assignable<T>>;
-
-			static_assert(is_moveable);
+			static_assert(dtl::is_movable_v<T>);
 
 			assert(valid(eid) && "The entity does not belong to *this.");
 			assert(!has<T>(eid) 
@@ -518,10 +499,6 @@ namespace ecfw
 		>
 		[[maybe_unused]] T& assign_or_replace(uint64_t eid, Args&&... args) {
 			using std::forward;
-			using std::is_const;
-			using std::negation_v;
-
-			static_assert(negation_v<is_const<T>>);
 
 			assert(valid(eid) && "The entity does not belong to *this.");
 
@@ -697,12 +674,6 @@ namespace ecfw
 			typename = std::enable_if_t<sizeof...(Ts) >= 1>
 		>
 		void reserve(size_t n) {
-			using std::is_const;
-			using std::negation;
-			using std::conjunction_v;
-
-			static_assert(conjunction_v<negation<is_const<Ts>>...>);
-
 			if constexpr (sizeof...(Ts) == 1) {
 				using std::make_any;
 				using std::any_cast;
@@ -734,7 +705,6 @@ namespace ecfw
 			typename = std::enable_if_t<sizeof...(Ts) >= 1>
 		>
 		[[nodiscard]] ecfw::view<Ts...> view() {
-			using std::any_cast;
 			using boost::hana::equal;
 			using boost::hana::unique;
 
@@ -753,7 +723,6 @@ namespace ecfw
 			typename = std::enable_if_t<sizeof...(Ts) >= 1>
 		>
 		[[nodiscard]] ecfw::view<Ts...> view() const {
-			using std::any_cast;
 			using std::is_const;
 			using std::conjunction_v;
 			using boost::hana::equal;
@@ -775,19 +744,23 @@ namespace ecfw
 
 		// Expects T to be const
 		template <typename T>
-		const dtl::buffer_type<T>& buffer() const{
+		const std::vector<std::decay_t<T>>& buffer() const{
+			using std::decay_t;
 			using std::any_cast;
+
 			auto tid = dtl::type_index_v<T>;
 			assert(tid < m_buffers.size());
-			return any_cast<dtl::buffer_type<T>&>(m_buffers[tid]);
+			return any_cast<const std::vector<decay_t<T>>&>(m_buffers[tid]);
 		}
 
 		template <typename T>
-		dtl::buffer_type<T>& buffer() {
+		std::vector<std::decay_t<T>>& buffer() {
+			using std::decay_t;
 			using std::any_cast;
+			
 			auto tid = dtl::type_index_v<T>;
 			assert(tid < m_buffers.size());
-			return any_cast<dtl::buffer_type<T>&>(m_buffers[tid]);
+			return any_cast<std::vector<decay_t<T>>&>(m_buffers[tid]);
 		}
 
 		template <typename T, typename... Args>
@@ -810,6 +783,8 @@ namespace ecfw
 		template <typename... Ts>
 		void accommodate() const {
 			if constexpr (sizeof...(Ts) == 1) {
+				using std::vector;
+				using std::decay_t;
 				using std::make_any;
 
 				auto tid = (dtl::type_index_v<Ts>, ...);
@@ -822,7 +797,7 @@ namespace ecfw
 				
 				if (!m_buffers[tid].has_value())
 					m_buffers[tid] = 
-						(make_any<dtl::buffer_type<Ts>>(), ...);
+						(make_any<vector<decay_t<Ts>>>(), ...);
 			}
 			else
 				(accommodate<Ts>(), ...);
