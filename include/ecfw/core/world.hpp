@@ -605,6 +605,13 @@ namespace ecfw
 			return static_cast<size_t>(ret);
 		}
 
+		/**
+		 * @brief Returns the maximum number of elements the component vector
+		 * for a given component type is able to hold.
+		 * 
+		 * @tparam T Component type to check.
+		 * @return The maximum number of elements.
+		 */
 		template <typename T>
 		[[nodiscard]] size_t max_size() const  {
 			return static_cast<size_t>(buffer<T>().max_size());
