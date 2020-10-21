@@ -742,9 +742,8 @@ namespace ecfw
 
 	private:
 
-		// Expects T to be const
 		template <typename T>
-		const std::vector<std::decay_t<T>>& buffer() const{
+		[[nodiscard]] const std::vector<std::decay_t<T>>& buffer() const {
 			using std::decay_t;
 			using std::any_cast;
 
@@ -754,7 +753,7 @@ namespace ecfw
 		}
 
 		template <typename T>
-		std::vector<std::decay_t<T>>& buffer() {
+		[[nodiscard]] std::vector<std::decay_t<T>>& buffer() {
 			using std::decay_t;
 			using std::any_cast;
 			
