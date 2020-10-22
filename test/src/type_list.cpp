@@ -9,10 +9,12 @@ TEST(type_list, is_unique)
     constexpr auto unique_list = dtl::type_list_v<int, char, bool>;
     constexpr auto list = dtl::type_list_v<int, char, bool, int, bool>;
 
-    static_assert(dtl::is_unique(unique_list), "");
+    static_assert(dtl::is_unique(unique_list));
+    static_assert(dtl::is_unique(dtl::type_list_v<>));
     static_assert(!dtl::is_unique(list));
 
     ASSERT_TRUE(dtl::is_unique(unique_list));
+    ASSERT_TRUE(dtl::is_unique(dtl::type_list_v<>));
     ASSERT_FALSE(dtl::is_unique(list));
 }
 
