@@ -25,6 +25,7 @@ endmacro()
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 
 package_add_test(type_traits ${SOURCE_DIR}/type_traits.cpp)
+package_add_test(type_list ${SOURCE_DIR}/type_list.cpp)
 package_add_test(type_index ${SOURCE_DIR}/type_index.cpp)
 package_add_test(sparse_set ${SOURCE_DIR}/sparse_set.cpp)
 package_add_test(entity ${SOURCE_DIR}/entity.cpp)
