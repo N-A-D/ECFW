@@ -61,12 +61,8 @@ namespace ecfw
 		 */
 		template <typename... Ts>
 		[[nodiscard]] uint64_t create() {
-			using boost::hana::unique;
-			using boost::hana::equal;
-
-			// Check for any duplicate types
-			constexpr auto type_list = dtl::type_list_v<Ts...>;
-			static_assert(equal(unique(type_list), type_list));
+			// Check for duplicate component types
+			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
 
 			uint64_t entity{};
 
@@ -129,9 +125,8 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<FwdIt>>
 		>
 		void create(FwdIt first, FwdIt last) {
-			for (; first != last; ++first) {
+			for (; first != last; ++first)
 				*first = create<Ts...>();
-			}
 		}
 
 		/**
@@ -148,6 +143,9 @@ namespace ecfw
 		>
 		[[nodiscard]] uint64_t clone(uint64_t original) {
 			using std::conjunction_v;
+
+			// Check for duplicate component types.
+			static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
 
 			static_assert(
 				conjunction_v<dtl::is_copyable<T>, dtl::is_copyable<Ts>...>);
@@ -232,9 +230,7 @@ namespace ecfw
 		>
 		[[nodiscard]] bool valid(InIt first, InIt last) const {
 			using std::all_of;
-			return all_of(first, last, [this](auto e) {
-				return valid(e); 
-			});
+			return all_of(first, last, [this](auto e) { return valid(e); });
 		}
 
 		/**
@@ -328,18 +324,12 @@ namespace ecfw
 			typename = std::enable_if_t<sizeof...(Ts) >= 1>
 		>
 		void remove(uint64_t eid) {
-			using std::conjunction_v;
-			using boost::hana::equal;
-			using boost::hana::unique;
+			// Check for duplicate component types
+			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
 
 			assert(valid(eid) && "The entity does not belong to *this.");
 			assert(has<Ts...>(eid) 
 				&& "The entity does have all of the components given.");
-
-			constexpr auto type_list = dtl::type_list_v<Ts...>;
-			static_assert(
-				equal(unique(type_list), type_list),
-				"Duplicate types are not allowed.");
 
 			if constexpr (sizeof...(Ts) == 1) {
 				auto idx = dtl::index(eid);
@@ -472,11 +462,8 @@ namespace ecfw
 			typename InIt,
 			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
 		> void assign(InIt first, InIt last) {
-			using boost::hana::equal;
-			using boost::hana::unique;
-
-			constexpr auto type_list = dtl::type_list_v<Ts...>;
-			static_assert(equal(unique(type_list), type_list));
+			// Check for duplicate component types
+			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
 
 			for (; first != last; ++first)
 				(assign<Ts>(*first), ...);
@@ -523,6 +510,9 @@ namespace ecfw
 			typename = std::enable_if_t<sizeof...(Ts) >= 1>
 		>
 		[[nodiscard]] decltype(auto) get(uint64_t eid) {
+			// Check for duplicate component types
+			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
+
 			assert(has<Ts...>(eid)
 				&& "The entity does not have all of the components given.");
 			if constexpr (sizeof...(Ts) == 1) {
@@ -543,6 +533,9 @@ namespace ecfw
 		[[nodiscard]] decltype(auto) get(uint64_t eid) const {
 			using std::is_const;
 			using std::conjunction_v;
+
+			// Check for duplicate component types
+			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
 
 			static_assert(conjunction_v<is_const<Ts>...>);
 
@@ -712,12 +705,8 @@ namespace ecfw
 			typename = std::enable_if_t<sizeof...(Ts) >= 1>
 		>
 		[[nodiscard]] ecfw::view<Ts...> view() {
-			using boost::hana::equal;
-			using boost::hana::unique;
-
-			// Check for duplicate types
-			constexpr auto type_list = dtl::type_list_v<Ts...>;
-			static_assert(equal(unique(type_list), type_list));
+			// Check for duplicate component types
+			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
 
 			accommodate<Ts...>();
 
@@ -732,12 +721,9 @@ namespace ecfw
 		[[nodiscard]] ecfw::view<Ts...> view() const {
 			using std::is_const;
 			using std::conjunction_v;
-			using boost::hana::equal;
-			using boost::hana::unique;
-			
-			// Check for duplicate types
-			constexpr auto type_list = dtl::type_list_v<Ts...>;
-			static_assert(equal(unique(type_list), type_list));
+
+			// Check for duplicate component types
+			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
 			
 			// Check that all requested types are const
 			static_assert(conjunction_v<is_const<Ts>...>);
