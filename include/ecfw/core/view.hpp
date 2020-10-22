@@ -10,36 +10,7 @@
 
 namespace ecfw
 {
-namespace detail 
-{
-
-	/**
-	 * @brief Determines the index to an element in an iterable.
-	 *
-	 * @note
-	 * Taken from:
-	 * https://stackoverflow.com/questions/33979592/boost-hana-get-index-of-first-matching
-	 *
-	 * @tparam T Element type.
-	 * @tparam Iterable Iterable sequence type.
-	 * @param element An element to search for.
-	 * @param iterable An iterable sequence to search in.
-	 * @return An index to the first occurrence of the element. Otherwise,
-	 * the length of the iterable sequence.
-	 */
-	template <typename T, typename Iterable>
-	constexpr auto index_of(const T& element, const Iterable& iterable) {
-		auto size = decltype(boost::hana::size(iterable)){};
-		auto dropped = decltype(boost::hana::size(
-			boost::hana::drop_while(iterable, boost::hana::not_equal.to(element))
-		)){};
-		return size - dropped;
-	}
-
-} // namespace detail
-
 	namespace dtl = detail;
-	namespace bh = boost::hana;
 
 	/**
 	 * @brief Non-owning collection of entities which share a common
@@ -50,7 +21,7 @@ namespace detail
 	template <typename... Ts>
 	class view final {
 		static constexpr auto viewed = dtl::type_list_v<Ts...>;
-		static_assert(bh::equal(bh::unique(viewed), viewed));		
+		static_assert(dtl::is_unique(viewed));		
 	public:
 		friend class world;
 
@@ -182,12 +153,10 @@ namespace detail
 		 */
 		template <typename... Cs>
 		[[nodiscard]] decltype(auto) get(uint64_t eid) const {
-			using boost::hana::unique;
-			using boost::hana::equal;
 			using boost::hana::is_subset;
 			
 			constexpr auto requested = dtl::type_list_v<Cs...>;
-			static_assert(equal(unique(requested), requested));
+			static_assert(dtl::is_unique(requested));
 			static_assert(is_subset(requested, viewed));
 
 			assert(contains(eid));
