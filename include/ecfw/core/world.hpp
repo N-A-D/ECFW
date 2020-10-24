@@ -226,7 +226,7 @@ namespace ecfw
 		> 
 		void clone(uint64_t original, FwdIt first, FwdIt last) {
 			for (; first != last; ++first)
-				*first = clone<T, Ts...>();
+				*first = clone<T, Ts...>(original);
 		}
 
 		/**
