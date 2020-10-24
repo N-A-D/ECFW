@@ -664,7 +664,8 @@ namespace ecfw
 		}
 
 		/**
-		 * @brief Returns the capacity of the component vector for a given type.
+		 * @brief Returns the number of elements that can be held in currently
+		 * allocated storage for the given type.
 		 * 
 		 * @tparam T Component type of the component vector.
 		 * @return The capacity of the component vector.
@@ -765,9 +766,6 @@ namespace ecfw
 	private:
 
 		template <typename T>
-		bool has_buffer() const noexcept {}
-
-		template <typename T>
 		[[nodiscard]] const std::vector<std::decay_t<T>>& buffer() const {
 			using std::decay_t;
 			using std::any_cast;
@@ -779,12 +777,9 @@ namespace ecfw
 
 		template <typename T>
 		[[nodiscard]] std::vector<std::decay_t<T>>& buffer() {
-			using std::decay_t;
-			using std::any_cast;
-			
-			auto tid = dtl::type_index_v<T>;
-			assert(tid < m_buffers.size());
-			return any_cast<std::vector<decay_t<T>>&>(m_buffers[tid]);
+			using std::as_const;
+			using return_type = std::vector<std::decay_t<T>>&;
+			return const_cast<return_type>(as_const(*this).template buffer<T>());
 		}
 
 		template <typename T, typename... Args>
