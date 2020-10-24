@@ -424,10 +424,11 @@ namespace ecfw
 			assert(!has<T>(eid) 
 				&& "*this does not associate the component with the entity.");
 
-			accommodate<T>();
-
 			auto idx = dtl::index(eid);
 			auto tid = dtl::type_index_v<T>;
+
+			// Retrieve the component buffer for the given type.
+			auto& component_buffer = buffer<T>();
 
 			// Ensure there exists component metabuffer for the entity.
 			if (idx >= m_metabuffers[tid].size())
@@ -436,11 +437,13 @@ namespace ecfw
 			// Logically add the component to the entity.
 			m_metabuffers[tid].set(idx);
 
-			auto& component_buffer = buffer<T>();
-
 			// Ensure there physically exists memory for the new component
 			if (idx >= component_buffer.size())
 				component_buffer.resize(idx + 1);
+
+			// Construct the component.
+			auto& component = 
+				construct(component_buffer, idx, forward<Args>(args)...);
 
 			// Add the entity to all newly applicable groups.
 			// Each time an entity is assigned a new component, it must
@@ -471,9 +474,7 @@ namespace ecfw
 				if (has_all)
 					group.insert(eid);
 			}
-			
-			// Construct and return the component.
-			return construct(component_buffer, idx, forward<Args>(args)...);
+			return component;
 		}
 
 		/**
@@ -705,19 +706,13 @@ namespace ecfw
 		>
 		void reserve(size_t n) {
 			if constexpr (sizeof...(Ts) == 1) {
-				using std::make_any;
-				using std::any_cast;
-				using std::make_unique;
-
-				accommodate<Ts...>();
-
 				auto tid = (dtl::type_index_v<Ts>, ...);
 				
-				// Ensure there exists component metabuffer up to index n.
-				m_metabuffers[tid].reserve(n);
-				
-				// Ensure there physically exists memory for n components.
+				// Reserve memory in the compnent buffer.
 				(buffer<Ts>().reserve(n), ...);
+
+				// Reserve memory in the component metabuffer.
+				m_metabuffers[tid].reserve(n);
 			}
 			else {
 				(reserve<Ts>(n), ...);
@@ -738,9 +733,7 @@ namespace ecfw
 			// Check for duplicate component types
 			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
 
-			accommodate<Ts...>();
-
-			return ecfw::view<Ts...>{ group_by<Ts...>(), buffer<Ts>()... };
+			return ecfw::view<Ts...>{ buffer<Ts>()..., group_by<Ts...>() };
 		}
 
 		/*! @copydoc view */
@@ -758,20 +751,29 @@ namespace ecfw
 			// Check that all requested types are const
 			static_assert(conjunction_v<is_const<Ts>...>);
 
-			accommodate<Ts...>();
-
-			return ecfw::view<Ts...>{ group_by<Ts...>(), buffer<Ts>()... };
+			return ecfw::view<Ts...>{ buffer<Ts>()..., group_by<Ts...>() };
 		}
 
 	private:
 
 		template <typename T>
 		[[nodiscard]] const std::vector<std::decay_t<T>>& buffer() const {
+			using std::vector;
 			using std::decay_t;
 			using std::any_cast;
+			using std::make_any;
 
 			auto tid = dtl::type_index_v<T>;
-			assert(tid < m_buffers.size());
+			
+			if (tid >= m_metabuffers.size())
+				m_metabuffers.resize(tid + 1);
+			
+			if (tid >= m_buffers.size())
+				m_buffers.resize(tid + 1);
+			
+			if (!m_buffers[tid].has_value())
+				m_buffers[tid] = make_any<vector<decay_t<T>>>();
+
 			return any_cast<const std::vector<decay_t<T>>&>(m_buffers[tid]);
 		}
 
@@ -797,29 +799,6 @@ namespace ecfw
 				buffer[idx] = T(forward<Args>(args)...);
 			}
 			return buffer[idx];
-		}
-
-		template <typename... Ts>
-		void accommodate() const {
-			if constexpr (sizeof...(Ts) == 1) {
-				using std::vector;
-				using std::decay_t;
-				using std::make_any;
-
-				auto tid = (dtl::type_index_v<Ts>, ...);
-
-				if (tid >= m_metabuffers.size())
-					m_metabuffers.resize(tid + 1);
-				
-				if (tid >= m_buffers.size())
-					m_buffers.resize(tid + 1);
-				
-				if (!m_buffers[tid].has_value())
-					m_buffers[tid] = 
-						(make_any<vector<decay_t<Ts>>>(), ...);
-			}
-			else
-				(accommodate<Ts>(), ...);
 		}
 
 		using group_map_type = 

@@ -181,9 +181,9 @@ namespace ecfw
 				return forward_as_tuple(get<Ts>(idx)...);
 		}
 
-		view(const dtl::sparse_set& entities, dtl::buffer_type<Ts>&... buffers)
-			: m_entities(std::addressof(entities))
-			, m_buffers(std::addressof(buffers)...)
+		view(dtl::buffer_type<Ts>&... buffers, const dtl::sparse_set& entities)
+			: m_buffers(std::addressof(buffers)...)
+			, m_entities(std::addressof(entities))
 		{}
 
 		const dtl::sparse_set* m_entities{};
@@ -330,9 +330,9 @@ namespace ecfw
 
 	private:
 
-		view(const dtl::sparse_set& es, dtl::buffer_type<T>& b)
-			: m_entities(std::addressof(es))
-			, m_buffer(std::addressof(b))
+		view(dtl::buffer_type<T>& b, const dtl::sparse_set& es)
+			: m_buffer(std::addressof(b))
+			, m_entities(std::addressof(es))
 		{}
 
 		const dtl::sparse_set* m_entities{};
