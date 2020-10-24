@@ -343,7 +343,7 @@ namespace ecfw
 		}
 
 		/**
-		 * @brief Destroys components associated with an entity.
+		 * @brief Removes components from an entity.
 		 * 
 		 * @tparam Ts Component types to remove.
 		 * @param eid The entity to remove from.
