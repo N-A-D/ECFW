@@ -628,8 +628,9 @@ namespace ecfw
 		}
 
 		/**
-		 * @brief Returns the maximum number of elements the component vector
-		 * for a given component type is able to hold.
+		 * @brief Returns the maximum number of elements of the given type that
+		 * *this is able to hold due to system or library implementation 
+		 * limitations.
 		 * 
 		 * @tparam T Component type to check.
 		 * @return The maximum number of elements.
@@ -640,8 +641,7 @@ namespace ecfw
 		}
 
 		/**
-		 * @brief Returns the number of elements in the component vector for 
-		 * the given type.
+		 * @brief Returns the number of constructed elements of the given type.
 		 * 
 		 * @tparam T Component type of the component vector.
 		 * @return The number of elements in the compnent vector.
@@ -652,7 +652,7 @@ namespace ecfw
 		}
 
 		/**
-		 * @brief Checks if the component vector for a given type is empty.
+		 * @brief Checks if there are any constructed elements of the given type.
 		 * 
 		 * @tparam T Component type of the component vector.
 		 * @return true if the component vector is empty.
@@ -667,8 +667,8 @@ namespace ecfw
 		 * @brief Returns the number of elements that can be held in currently
 		 * allocated storage for the given type.
 		 * 
-		 * @tparam T Component type of the component vector.
-		 * @return The capacity of the component vector.
+		 * @tparam T The given component type.
+		 * @return The number of elements that can be held.
 		 */
 		template <typename T>
 		[[nodiscard]] size_t capacity() const {
@@ -676,10 +676,10 @@ namespace ecfw
 		}
 
 		/**
-		 * @brief Requests the removal of unused capacity from the component
-		 * vectors associated with a given set of component types.
+		 * @brief Requests the removal of unused capacity for each of the given
+		 * types.
 		 * 
-		 * @tparam Ts Component types of the component vectors.
+		 * @tparam Ts Component types to remove unused capacity for.
 		 */
 		template <
 			typename... Ts,
