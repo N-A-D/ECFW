@@ -689,8 +689,10 @@ namespace ecfw
 		void shrink_to_fit() {
 			if constexpr (sizeof...(Ts) == 1)
 				(buffer<Ts>().shrink_to_fit(), ...);
-			else 
+			else {
+				static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
 				(shrink_to_fit<Ts>(), ...);
+			}
 		}
 
 		/**
@@ -714,6 +716,7 @@ namespace ecfw
 				m_metabuffers[tid].reserve(n);
 			}
 			else {
+				static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
 				(reserve<Ts>(n), ...);
 			}
 		}
