@@ -91,6 +91,18 @@ namespace ecfw
 		}
 		
 		/**
+		 * @brief Creates n-many entities.
+		 * 
+		 * @tparam Ts Any initial components the entity should start with.
+		 * @param n The number of entities to create.
+		 */
+		template <typename... Ts>
+		void create(size_t n) {
+			for (size_t i = 0; i < n; ++i)
+				(void)create<Ts...>();
+		}
+
+		/**
 		 * @brief Assigns each element in the range [first, first + n)
 		 * an entity created by *this.
 		 * 
@@ -104,7 +116,7 @@ namespace ecfw
 			typename OutIt, 
 			typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
 		>
-		[[maybe_unused]] OutIt create_n(OutIt out, size_t n) {
+		[[maybe_unused]] OutIt create(OutIt out, size_t n) {
 			for (size_t i = 0; i < n; ++i)
 				*out++ = create<Ts...>();
 			return out;
@@ -157,6 +169,23 @@ namespace ecfw
 		}
 
 		/**
+		 * @brief Clones n-many entities.
+		 * 
+		 * @tparam T The first component type to copy from the original.
+		 * @tparam Ts The other component types to copy from the original.
+		 * @param original The entity to copy from.
+		 * @param n The number of clones to create.
+		 */
+		template <
+			typename T,
+			typename... Ts
+		> 
+		void clone(uint64_t original, size_t n) {
+			for (size_t i = 0; i < n; ++i)
+				(void)clone<T, Ts...>(original);
+		}
+
+		/**
 		 * @brief Assigns each element in the range [first, first + n) a 
 		 * clone created by *this from original.
 		 * 
@@ -173,7 +202,7 @@ namespace ecfw
 			typename OutIt, 
 			typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
 		>
-		[[maybe_unused]] OutIt clone_n(uint64_t original, OutIt out, size_t n) {
+		[[maybe_unused]] OutIt clone(uint64_t original, OutIt out, size_t n) {
 			for (size_t i = 0; i < n; ++i)
 				*out++ = clone<T, Ts...>(original);
 			return out;
@@ -734,6 +763,9 @@ namespace ecfw
 		}
 
 	private:
+
+		template <typename T>
+		bool has_buffer() const noexcept {}
 
 		template <typename T>
 		[[nodiscard]] const std::vector<std::decay_t<T>>& buffer() const {
