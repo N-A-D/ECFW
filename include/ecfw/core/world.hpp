@@ -353,7 +353,7 @@ namespace ecfw
 				// Have the entity leave all groups which no longer
 				// share a common set of components. Only consider
 				// groups which require the removed component.
-				leave_groups_by<T>(eid);
+				leave_groups_guided_by<T>(eid);
 			}
 			else {
 				// Check for duplicate component types
@@ -419,7 +419,7 @@ namespace ecfw
 			// Look for an add the entity to any group which 
 			// shares a common set of compnents. Lead the search
 			// using the newly assigned component.
-			join_groups_by<T>(eid);
+			join_groups_guided_by<T>(eid);
 
 			// Retrieve the component buffer for the given type.
 			auto& component_buffer = buffer<T>();
@@ -702,7 +702,7 @@ namespace ecfw
 	private:
 
 		template <typename T>
-		void join_groups_by(uint64_t eid) {
+		void join_groups_guided_by(uint64_t eid) {
 			auto idx = dtl::index(eid);
 			auto tid = dtl::type_index_v<T>;
 
@@ -740,7 +740,7 @@ namespace ecfw
 		}
 
 		template <typename T>
-		void leave_groups_by(uint64_t eid) {
+		void leave_groups_guided_by(uint64_t eid) {
 			auto tid = dtl::type_index_v<T>;
 
 			// Remove the entity from all groups which require the given 
