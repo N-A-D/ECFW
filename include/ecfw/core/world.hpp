@@ -316,7 +316,8 @@ namespace ecfw
 		 * @brief Checks if a given entity has all of the 
 		 * given component types.
 		 * 
-		 * @tparam Ts Component types to check.
+		 * @tparam T The first component type to check.
+		 * @tparam Ts The other component types to check.
 		 * @param eid The entity to check for.
 		 * @return true If the given entity has all of the 
 		 * given component types.
@@ -324,45 +325,43 @@ namespace ecfw
 		 * all of the given component types.
 		 */
 		template <
-			typename... Ts,
-			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+			typename T,
+			typename... Ts
 		>
 		[[nodiscard]] bool has(uint64_t eid) const {
 			if (!valid(eid))
 				return false;
-			if constexpr (sizeof...(Ts) == 1) {
+			if constexpr (sizeof...(Ts) == 0) {
 				auto idx = dtl::index(eid);
-				auto tid = (dtl::type_index_v<Ts>, ...);
+				auto tid = dtl::type_index_v<T>;
 				return tid < m_metabuffers.size()
 					&& idx < m_metabuffers[tid].size()
 					&& m_metabuffers[tid].test(idx);
 			}
 			else {
-				return (has<Ts>(eid) && ...);
+				// Check for duplicate component types
+				static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
+				return (has<T>(eid) && ... && has<Ts>(eid));
 			}
 		}
 
 		/**
 		 * @brief Removes components from an entity.
 		 * 
-		 * @tparam Ts Component types to remove.
+		 * @tparam T The first component type to remove.
+		 * @tparam Ts The other component types to remove.
 		 * @param eid The entity to remove from.
 		 */
 		template <
-			typename... Ts,
-			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+			typename T,
+			typename... Ts
 		>
 		void remove(uint64_t eid) {
-			// Check for duplicate component types
-			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
-
-			assert(valid(eid) && "The entity does not belong to *this.");
-			assert(has<Ts...>(eid) 
-				&& "The entity does have all of the components given.");
-
-			if constexpr (sizeof...(Ts) == 1) {
+			if constexpr (sizeof...(Ts) == 0) {
+				assert(valid(eid));
+				assert(has<T>(eid));
 				auto idx = dtl::index(eid);
-				auto tid = (dtl::type_index_v<Ts>, ...);
+				auto tid = dtl::type_index_v<T>;
 
 				// Remove component metabuffer for the entity.
 				m_metabuffers[tid].reset(idx);
@@ -376,14 +375,18 @@ namespace ecfw
 					if (tid < filter.size() && filter.test(tid))
 						group.erase(eid);
 			}
-			else
-				(remove<Ts>(eid), ...);
+			else {
+				// Check for duplicate component types
+				static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
+				(remove<T>(eid), ..., remove<Ts>(eid));
+			}
 		}
 
 		/**
 		 * @brief Removes components from a collection of entities.
 		 * 
-		 * @tparam Ts Component types to remove.
+		 * @tparam T The first component type to remove.
+		 * @tparam Ts The other component types to remove.
 		 * @tparam InIt Input iterator type.
 		 * @param first Beginning of the range of entities to remove 
 		 * components from.
@@ -391,12 +394,13 @@ namespace ecfw
 		 * remove components from.
 		 */
 		template <
+			typename T,
 			typename... Ts,
 			typename InIt,
 			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
 		> void remove(InIt first, InIt last) {
 			for (; first != last; ++first)
-				remove<Ts...>(*first);
+				remove<T, Ts...>(*first);
 		}
 
 		/**
@@ -480,7 +484,8 @@ namespace ecfw
 		/**
 		 * @brief Assigns components to a collection of entities.
 		 * 
-		 * @tparam Ts Component types to assign to each entity.
+		 * @tparam T The first component type to assign.
+		 * @tparam Ts The other component types to assign.
 		 * @tparam InIt Input iterator type. 
 		 * @param first Beginning of the range of entities to assign 
 		 * components to.
@@ -488,6 +493,7 @@ namespace ecfw
 		 * assign components to.
 		 */
 		template <
+			typename T,
 			typename... Ts,
 			typename InIt,
 			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
@@ -496,7 +502,7 @@ namespace ecfw
 			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
 
 			for (; first != last; ++first)
-				(assign<Ts>(*first), ...);
+				(assign<T>(*first), ..., assign<Ts>(*first));
 		}
 
 		/**
@@ -529,55 +535,45 @@ namespace ecfw
 		}
 
 		/**
-		 * @brief Returns an entity's components
+		 * @brief Returns an entity's components.
 		 * 
-		 * @tparam Ts Component types to fetch.
+		 * @tparam T The first component to retrieve.
+		 * @tparam Ts The other component types to retrieve.
 		 * @param eid The entity to fetch for.
 		 * @return Reference to a component or a tuple of references.
 		 */
 		template <
-			typename... Ts,
-			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+			typename T,
+			typename... Ts
 		>
 		[[nodiscard]] decltype(auto) get(uint64_t eid) {
-			// Check for duplicate component types
-			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
-
-			assert(has<Ts...>(eid)
-				&& "The entity does not have all of the components given.");
-			if constexpr (sizeof...(Ts) == 1) {
-				auto idx = dtl::index(eid);
-				return (buffer<Ts>()[idx], ...);
+			if constexpr (sizeof...(Ts) == 0) {
+				assert(has<T>(eid));
+				return buffer<T>()[dtl::index(eid)];
 			}
 			else {
-				using std::forward_as_tuple;				
-				return forward_as_tuple(get<Ts>(eid)...);
+				static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
+				using std::forward_as_tuple;
+				return forward_as_tuple(get<T>(eid), get<Ts>(eid)...);
 			}
 		}
 
 		/*! @copydoc get */
 		template <
-			typename... Ts,
-			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+			typename T,
+			typename... Ts
 		>
 		[[nodiscard]] decltype(auto) get(uint64_t eid) const {
-			using std::is_const;
-			using std::conjunction_v;
-
-			// Check for duplicate component types
-			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
-
-			static_assert(conjunction_v<is_const<Ts>...>);
-
-			assert(has<Ts...>(eid)
-				&& "The entity does not have all of the components given.");
-			if constexpr (sizeof...(Ts) == 1) {
-				auto idx = dtl::index(eid);
-				return (buffer<Ts>()[idx], ...);
+			if constexpr (sizeof...(Ts) == 0) {
+				using std::is_const_v;
+				static_assert(is_const_v<T>);
+				assert(has<T>(eid));
+				return buffer<T>()[dtl::index(eid)];
 			}
 			else {
+				static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
 				using std::forward_as_tuple;
-				return forward_as_tuple(get<Ts>(eid)...);
+				return forward_as_tuple(get<T>(eid), get<Ts>(eid)...);
 			}
 		}
 		
@@ -680,18 +676,21 @@ namespace ecfw
 		 * @brief Requests the removal of unused capacity for each of the given
 		 * types.
 		 * 
-		 * @tparam Ts Component types to remove unused capacity for.
+		 * @tparam T The first component type to remove unused capacity for.
+		 * @tparam Ts The other component types to remove unused capacity for.
 		 */
 		template <
-			typename... Ts,
-			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+			typename T,
+			typename... Ts
 		>
 		void shrink_to_fit() {
-			if constexpr (sizeof...(Ts) == 1)
-				(buffer<Ts>().shrink_to_fit(), ...);
+			if constexpr (sizeof...(Ts) == 0) {
+				buffer<T>().shrink_to_fit();
+				m_metabuffers[dtl::type_index_v<T>].shrink_to_fit();
+			}
 			else {
-				static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
-				(shrink_to_fit<Ts>(), ...);
+				static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
+				(shrink_to_fit<T>(), ..., shrink_to_fit<Ts>());
 			}
 		}
 
@@ -702,58 +701,60 @@ namespace ecfw
 		 * @param n The number of components to allocated space for.
 		 */
 		template <
-			typename... Ts,
-			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+			typename T,
+			typename... Ts
 		>
 		void reserve(size_t n) {
-			if constexpr (sizeof...(Ts) == 1) {
-				auto tid = (dtl::type_index_v<Ts>, ...);
-				
+			if constexpr (sizeof...(Ts) == 0) {
 				// Reserve memory in the compnent buffer.
-				(buffer<Ts>().reserve(n), ...);
-
+				buffer<T>().reserve(n);
 				// Reserve memory in the component metabuffer.
-				m_metabuffers[tid].reserve(n);
+				m_metabuffers[dtl::type_index_v<T>].reserve(n);
 			}
 			else {
-				static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
-				(reserve<Ts>(n), ...);
+				static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
+				(reserve<T>(n), ..., reserve<Ts>(n));
 			}
 		}
 
 		/**
 		 * @brief Returns a view of a given set of components.
 		 * 
-		 * @tparam Ts Component types to be viewed.
+		 * @tparam T The first compnent types to view.
+		 * @tparam Ts The other component types to view.
 		 * @return An instance of ecfw::view.
 		 */
 		template <
-			typename... Ts,
-			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+			typename T,
+			typename... Ts
 		>
-		[[nodiscard]] ecfw::view<Ts...> view() {
+		[[nodiscard]] ecfw::view<T, Ts...> view() {
 			// Check for duplicate component types
-			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
+			static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
 
-			return ecfw::view<Ts...>{ buffer<Ts>()..., group_by<Ts...>() };
+			return ecfw::view<T, Ts...> { 
+				buffer<T>(), buffer<Ts>()..., group_by<T, Ts...>() 
+			};
 		}
 
 		/*! @copydoc view */
 		template <
-			typename... Ts,
-			typename = std::enable_if_t<sizeof...(Ts) >= 1>
+			typename T,
+			typename... Ts
 		>
-		[[nodiscard]] ecfw::view<Ts...> view() const {
+		[[nodiscard]] ecfw::view<T, Ts...> view() const {
 			using std::is_const;
 			using std::conjunction_v;
 
 			// Check for duplicate component types
-			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
+			static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
 			
 			// Check that all requested types are const
-			static_assert(conjunction_v<is_const<Ts>...>);
+			static_assert(conjunction_v<is_const<T>, is_const<Ts>...>);
 
-			return ecfw::view<Ts...>{ buffer<Ts>()..., group_by<Ts...>() };
+			return ecfw::view<T, Ts...> { 
+				buffer<T>(), buffer<Ts>()..., group_by<T, Ts...>() 
+			};
 		}
 
 	private:
@@ -808,7 +809,7 @@ namespace ecfw
 		using group_key_type = typename group_map_type::key_type;
 		using group_mapped_type = typename group_map_type::mapped_type;
 
-		template <typename... Ts>
+		template <typename T, typename... Ts>
 		[[nodiscard]] const dtl::sparse_set& group_by() const {
 			using std::max;
 			using std::move;
@@ -816,7 +817,7 @@ namespace ecfw
 			using std::initializer_list;
 			
 			// Find the largest type id. Size of the group id is +1.
-			auto tids = { dtl::type_index_v<Ts>... };
+			auto tids = { dtl::type_index_v<T>, dtl::type_index_v<Ts>... };
 			size_t largest_tid = max(tids);
 
 			// Ensure we're not working with any unknown components.
@@ -841,7 +842,7 @@ namespace ecfw
 			group_mapped_type group{};
 			auto unary_function = [i = 0,this,&group](auto v) mutable {
 				auto entity = dtl::make_entity(v, i++);
-				if (has<Ts...>(entity))
+				if (has<T, Ts...>(entity))
 					group.insert(entity);
 			};
 			for_each(m_versions.begin(), m_versions.end(), unary_function);
