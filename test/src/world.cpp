@@ -12,23 +12,6 @@ const size_t NUM_ENTITIES = 100;
 
 namespace dtl = ecfw::detail;
 
-TEST(world, has_all) {
-    struct A {};
-    struct B {};
-    ecfw::world world{};
-    auto e0 = world.create<A, B>();
-    ASSERT_TRUE((world.has<A, B>(e0)));
-}
-
-TEST(world, create_multiple_entities_with_no_starting_components)  {
-    ecfw::world world{};
-
-    world.create(NUM_ENTITIES);
-    ASSERT_EQ(world.num_alive(), NUM_ENTITIES);
-    ASSERT_EQ(world.num_entities(), NUM_ENTITIES);
-    ASSERT_EQ(world.num_reusable(), 0);
-}
-
 TEST(world, create_multiple_entities_with_starting_components) {
     struct C0 {};
     struct C1 {};
@@ -44,32 +27,8 @@ TEST(world, create_multiple_entities_with_starting_components) {
     ASSERT_EQ((world.count<C0, C1>()), NUM_ENTITIES);
 }
 
-TEST(world, 
-    create_multiple_entities_with_no_starting_components_with_existing_views) {
-    struct C0 {};
-    struct C1 {};
-
-    ecfw::world world{};
-
-    auto c0_view = world.view<C0>();
-    auto c1_view = world.view<C1>();
-    auto c0c1_view = world.view<C0, C1>();
-
-    
-    world.create(NUM_ENTITIES);
-    ASSERT_EQ(world.num_alive(), NUM_ENTITIES);
-    ASSERT_EQ(world.num_entities(), NUM_ENTITIES);
-    ASSERT_EQ(world.num_reusable(), 0);
-    ASSERT_EQ((world.count<C0>()), 0);
-    ASSERT_EQ((world.count<C1>()), 0);
-    ASSERT_EQ((world.count<C0, C1>()), 0);
-
-    ASSERT_EQ(c0_view.size(), 0);
-    ASSERT_EQ(c1_view.size(), 0);
-    ASSERT_EQ(c0c1_view.size(), 0);
-}
-
-TEST(world, create_multiple_entities_with_starting_components_with_existing_views) {
+TEST(
+    world, create_multiple_entities_with_starting_components_with_existing_views) {
     struct C0 {};
     struct C1 {};
 
@@ -1054,28 +1013,6 @@ TEST(world, recycle_batch_with_existing_views) {
     ASSERT_EQ((world.count<C0, C1>()),NUM_ENTITIES);
 }
 
-TEST(world, recycle_multiple_entities_no_starting_components) {
-    ecfw::world world{};
-
-    std::vector<uint64_t> entities{};
-    world.create(std::back_inserter(entities), NUM_ENTITIES);
-    ASSERT_EQ(world.num_alive(), NUM_ENTITIES);
-    ASSERT_EQ(world.num_entities(), NUM_ENTITIES);
-    ASSERT_EQ(world.num_reusable(), 0);
-
-    world.destroy(entities.begin(), entities.end());
-
-    ASSERT_EQ(world.num_alive(), 0);
-    ASSERT_EQ(world.num_entities(), NUM_ENTITIES);
-    ASSERT_EQ(world.num_reusable(), NUM_ENTITIES);    
-
-    world.create(NUM_ENTITIES);
-
-    ASSERT_EQ(world.num_alive(), NUM_ENTITIES);
-    ASSERT_EQ(world.num_entities(), NUM_ENTITIES);
-    ASSERT_EQ(world.num_reusable(), 0);
-}
-
 TEST(world, recycle_multiple_entities_with_starting_components) {
     struct C0 {};
     struct C1 {};
@@ -1099,38 +1036,6 @@ TEST(world, recycle_multiple_entities_with_starting_components) {
     ASSERT_EQ((world.count<C0>()), NUM_ENTITIES);
     ASSERT_EQ((world.count<C1>()), NUM_ENTITIES);
     ASSERT_EQ((world.count<C0, C1>()), NUM_ENTITIES);
-}
-
-TEST(world, recycle_multiple_entities_no_starting_components_with_existing_views) {
-    struct C0 {};
-    struct C1 {};
-
-    ecfw::world world{};
-    auto c0_view = world.view<C0>();
-    auto c1_view = world.view<C1>();
-
-    std::vector<uint64_t> entities{};
-
-    world.create<C0, C1>(std::back_inserter(entities), NUM_ENTITIES);
-    ASSERT_EQ(world.num_alive(), NUM_ENTITIES);
-    ASSERT_EQ(world.num_entities(), NUM_ENTITIES);
-    ASSERT_EQ(world.num_reusable(), 0);
-    ASSERT_EQ(c0_view.size(), NUM_ENTITIES);
-    ASSERT_EQ(c1_view.size(), NUM_ENTITIES);
-
-    world.destroy(entities.begin(), entities.end());
-    ASSERT_EQ(world.num_alive(), 0);
-    ASSERT_EQ(world.num_entities(), NUM_ENTITIES);
-    ASSERT_EQ(world.num_reusable(), NUM_ENTITIES);
-    ASSERT_EQ(c0_view.size(), 0);
-    ASSERT_EQ(c1_view.size(), 0);
-
-    world.create(NUM_ENTITIES);
-    ASSERT_EQ(world.num_alive(), NUM_ENTITIES);
-    ASSERT_EQ(world.num_entities(), NUM_ENTITIES);
-    ASSERT_EQ(world.num_reusable(), 0);
-    ASSERT_EQ(c0_view.size(), 0);
-    ASSERT_EQ(c1_view.size(), 0);
 }
 
 TEST(world, recycle_multiple_entities_with_starting_components_with_existing_views) {
@@ -1211,10 +1116,15 @@ TEST(world, create_and_store_multiple_clones) {
     ASSERT_EQ(world.num_reusable(), 0);
     ASSERT_TRUE(world.valid(entity));
 
-    std::vector<uint64_t> entities{};
-    world.clone<C0, C1>(entity, std::back_inserter(entities), NUM_ENTITIES);
+    std::vector<uint64_t> entities(NUM_ENTITIES);
+    world.clone<C0, C1>(entity, entities.begin(), entities.end());
     ASSERT_EQ(world.num_alive(), NUM_ENTITIES + 1);
     ASSERT_EQ(world.num_entities(), NUM_ENTITIES + 1);
+    ASSERT_EQ(world.num_reusable(), 0);
+
+    world.clone<C0, C1>(entity, std::back_inserter(entities), NUM_ENTITIES);
+    ASSERT_EQ(world.num_alive(), 2 * NUM_ENTITIES + 1);
+    ASSERT_EQ(world.num_entities(), 2 * NUM_ENTITIES + 1);
     ASSERT_EQ(world.num_reusable(), 0);
 }
 

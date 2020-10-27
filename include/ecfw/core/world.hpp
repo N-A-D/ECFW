@@ -93,13 +93,14 @@ namespace ecfw
 		/**
 		 * @brief Creates n-many entities.
 		 * 
-		 * @tparam Ts Any initial components the entity should start with.
+		 * @tparam T The first component the entity should start with.
+		 * @tparam Ts The other components the entity should start with.
 		 * @param n The number of entities to create.
 		 */
-		template <typename... Ts>
+		template <typename T, typename... Ts>
 		void create(size_t n) {
 			for (size_t i = 0; i < n; ++i)
-				(void)create<Ts...>();
+				(void)create<T, Ts...>();
 		}
 
 		/**
