@@ -118,9 +118,8 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
 		>
 		[[maybe_unused]] OutIt create(OutIt out, size_t n) {
-			for (size_t i = 0; i < n; ++i)
-				*out++ = create<Ts...>();
-			return out;
+			auto generator = [this](){ return create<Ts...>(); };
+			return std::generate_n(out, n, generator);
 		}
 
 		/**
@@ -138,8 +137,8 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<FwdIt>>
 		>
 		void create(FwdIt first, FwdIt last) {
-			for (; first != last; ++first)
-				*first = create<Ts...>();
+			auto generator = [this](){ return create<Ts...>(); };
+			std::generate(first, last, generator);
 		}
 
 		/**
@@ -156,7 +155,11 @@ namespace ecfw
 			static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
 
 			static_assert(
-				std::conjunction_v<dtl::is_copyable<T>, dtl::is_copyable<Ts>...>);
+				std::conjunction_v<
+					dtl::is_copyable<T>, 
+					dtl::is_copyable<Ts>...
+				>
+			);
 
 			uint64_t entity = create();
 			(assign<T>(entity, get<T>(original)), 
@@ -196,9 +199,9 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
 		>
 		[[maybe_unused]] OutIt clone(uint64_t original, OutIt out, size_t n) {
-			for (size_t i = 0; i < n; ++i)
-				*out++ = clone<T, Ts...>(original);
-			return out;
+			auto generator = 
+				[this, original](){ return clone<T, Ts...>(original); };
+			return std::generate_n(out, n, generator);
 		}
 
 		/**
@@ -218,8 +221,9 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<FwdIt>>
 		> 
 		void clone(uint64_t original, FwdIt first, FwdIt last) {
-			for (; first != last; ++first)
-				*first = clone<T, Ts...>(original);
+			auto generator = 
+				[this, original](){ return clone<T, Ts...>(original); };
+			std::generate(first, last, generator);
 		}
 
 		/**
@@ -251,8 +255,8 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
 		>
 		[[nodiscard]] bool valid(InIt first, InIt last) const {
-			return std::all_of(
-				first, last, [this](auto e) { return valid(e); });
+			auto unary_predicate = [this](auto e) { return valid(e); };
+			return std::all_of(first, last, unary_predicate);
 		}
 
 		/**
@@ -300,8 +304,8 @@ namespace ecfw
 			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
 		>
 		void destroy(InIt first, InIt last) {
-			for (; first != last; ++first)
-				destroy(*first);
+			auto unary_function = [this](auto e){ destroy(e); };
+			std::for_each(first, last, unary_function);
 		}
 		
 
@@ -379,8 +383,8 @@ namespace ecfw
 			typename InIt,
 			typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
 		> void remove(InIt first, InIt last) {
-			for (; first != last; ++first)
-				remove<T, Ts...>(*first);
+			auto unary_function = [this](auto e){ remove<T, Ts...>(e); };
+			std::for_each(first, last, unary_function);
 		}
 
 		/**
@@ -452,8 +456,9 @@ namespace ecfw
 			// Check for duplicate component types
 			static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
 
-			for (; first != last; ++first)
-				(assign<T>(*first), ..., assign<Ts>(*first));
+			auto unary_function = 
+				[this](auto e){ (assign<T>(e), ..., assign<Ts>(e)); };
+			std::for_each(first, last, unary_function);
 		}
 
 		/**
@@ -642,8 +647,9 @@ namespace ecfw
 		/**
 		 * @brief Reserves storage space for the given component types.
 		 * 
-		 * @tparam Ts Component types to reserve space for.
-		 * @param n The number of components to allocated space for.
+		 * @tparam T The first component type to reserve space for.
+		 * @tparam Ts The other component types to reserve space for.
+		 * @param n The number of components to allocate space for.
 		 */
 		template <
 			typename T,
