@@ -324,9 +324,8 @@ namespace ecfw
 			if constexpr (sizeof...(Ts) == 0) {
 				accommodate<T>();
 				auto idx = dtl::index(eid);
-				const auto& component_metabuffer = metabuffer<T>();
-				return idx < component_metabuffer.size()
-					&& component_metabuffer.test(idx);
+				const auto& metabuffer = get_metabuffer<T>();
+				return idx < metabuffer.size() && metabuffer.test(idx);
 			}
 			else {
 				// Check for duplicate component types
@@ -349,7 +348,7 @@ namespace ecfw
 				assert(has<T>(eid));
 
 				// Remove component metabuffer for the entity.
-				metabuffer<T>().reset(dtl::index(eid));
+				get_metabuffer<T>().reset(dtl::index(eid));
 
 				// Have the entity leave all groups which no longer
 				// share a common set of components. Only consider
@@ -408,14 +407,14 @@ namespace ecfw
 			auto idx = dtl::index(eid);
 
 			// Retrieve the component metabuffer for the given type.
-			auto& component_metabuffer = metabuffer<T>();
+			auto& metabuffer = get_metabuffer<T>();
 
 			// Ensure there exists component metabuffer for the entity.
-			if (idx >= component_metabuffer.size())
-				component_metabuffer.resize(idx + 1);
+			if (idx >= metabuffer.size())
+				metabuffer.resize(idx + 1);
 
 			// Logically add the component to the entity.
-			component_metabuffer.set(idx);
+			metabuffer.set(idx);
 			
 			// Look for an add the entity to any group which 
 			// shares a common set of compnents. Lead the search
@@ -423,15 +422,14 @@ namespace ecfw
 			join_groups_guided_by<T>(eid);
 
 			// Retrieve the component buffer for the given type.
-			auto& component_buffer = buffer<T>();
+			auto& buffer = get_buffer<T>();
 
 			// Ensure there physically exists memory for the new component
-			if (idx >= component_buffer.size())
-				component_buffer.resize(idx + 1);
+			if (idx >= buffer.size())
+				buffer.resize(idx + 1);
 
 			// Construct and return the component.
-			return construct(
-				component_buffer, idx, std::forward<Args>(args)...);
+			return construct(buffer, idx, std::forward<Args>(args)...);
 		}
 
 		/**
@@ -477,7 +475,8 @@ namespace ecfw
 			}
 			else {
 				auto idx = dtl::index(eid);
-				return construct(buffer<T>(), idx, std::forward<Args>(args)...);
+				return construct(
+					get_buffer<T>(), idx, std::forward<Args>(args)...);
 			}
 		}
 
@@ -493,7 +492,7 @@ namespace ecfw
 		[[nodiscard]] decltype(auto) get(uint64_t eid) {
 			if constexpr (sizeof...(Ts) == 0) {
 				assert(has<T>(eid));
-				return buffer<T>()[dtl::index(eid)];
+				return get_buffer<T>()[dtl::index(eid)];
 			}
 			else {
 				static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
@@ -507,7 +506,7 @@ namespace ecfw
 			if constexpr (sizeof...(Ts) == 0) {
 				static_assert(std::is_const_v<T>);
 				assert(has<T>(eid));
-				return buffer<T>()[dtl::index(eid)];
+				return get_buffer<T>()[dtl::index(eid)];
 			}
 			else {
 				static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
@@ -572,7 +571,7 @@ namespace ecfw
 		template <typename T>
 		[[nodiscard]] size_t max_size() const  {
 			accommodate<T>();
-			return buffer<T>().max_size();
+			return get_buffer<T>().max_size();
 		}
 
 		/**
@@ -584,7 +583,7 @@ namespace ecfw
 		template <typename T>
 		[[nodiscard]] size_t size() const {
 			accommodate<T>();
-			return buffer<T>().size();
+			return get_buffer<T>().size();
 		}
 
 		/**
@@ -597,7 +596,7 @@ namespace ecfw
 		template <typename T>
 		[[nodiscard]] bool empty() const {
 			accommodate<T>();
-			return buffer<T>().empty();
+			return get_buffer<T>().empty();
 		}
 
 		/**
@@ -610,7 +609,7 @@ namespace ecfw
 		template <typename T>
 		[[nodiscard]] size_t capacity() const {
 			accommodate<T>();
-			return buffer<T>().capacity();
+			return get_buffer<T>().capacity();
 		}
 
 		/**
@@ -629,10 +628,10 @@ namespace ecfw
 				accommodate<T>();
 
 				// Request removal of unused capacity from the component buffer.
-				buffer<T>().shrink_to_fit();
+				get_buffer<T>().shrink_to_fit();
 				// Request removal of unused capacity from the component meta
 				// buffer.
-				metabuffer<T>().shrink_to_fit();
+				get_metabuffer<T>().shrink_to_fit();
 			}
 			else {
 				static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
@@ -654,9 +653,9 @@ namespace ecfw
 			if constexpr (sizeof...(Ts) == 0) {
 				accommodate<T>();
 				// Reserve memory in the compnent buffer.
-				buffer<T>().reserve(n);
+				get_buffer<T>().reserve(n);
 				// Reserve memory in the component metabuffer.
-				metabuffer<T>().reserve(n);
+				get_metabuffer<T>().reserve(n);
 			}
 			else {
 				static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
@@ -679,7 +678,7 @@ namespace ecfw
 			accommodate<T, Ts...>();
 
 			return ecfw::view<T, Ts...> { 
-				buffer<T>(), buffer<Ts>()..., group_by<T, Ts...>() 
+				get_buffer<T>(), get_buffer<Ts>()..., group_by<T, Ts...>() 
 			};
 		}
 
@@ -696,7 +695,7 @@ namespace ecfw
 			accommodate<T, Ts...>();
 
 			return ecfw::view<T, Ts...> { 
-				buffer<T>(), buffer<Ts>()..., group_by<T, Ts...>() 
+				get_buffer<T>(), get_buffer<Ts>()..., group_by<T, Ts...>() 
 			};
 		}
 
@@ -784,26 +783,26 @@ namespace ecfw
 		}
 
 		template <typename T>
-		[[nodiscard]] const std::vector<std::decay_t<T>>& buffer() const {
+		[[nodiscard]] const std::vector<std::decay_t<T>>& get_buffer() const {
 			using return_type = const std::vector<std::decay_t<T>>&;
 			return std::any_cast<return_type>(m_buffers[dtl::type_index_v<T>]);
 		}
 
 		template <typename T>
-		[[nodiscard]] std::vector<std::decay_t<T>>& buffer() {
+		[[nodiscard]] std::vector<std::decay_t<T>>& get_buffer() {
 			return const_cast<std::vector<std::decay_t<T>>&>(
-				std::as_const(*this).template buffer<T>());
+				std::as_const(*this).template get_buffer<T>());
 		}
 
 		template <typename T>
-		[[nodiscard]] const dtl::metabuffer_type& metabuffer() const {
+		[[nodiscard]] const dtl::metabuffer_type& get_metabuffer() const {
 			return m_metabuffers[dtl::type_index_v<T>];
 		}
 
 		template <typename T>
-		[[nodiscard]] dtl::metabuffer_type& metabuffer() {
+		[[nodiscard]] dtl::metabuffer_type& get_metabuffer() {
 			return const_cast<dtl::metabuffer_type&>(
-				std::as_const(*this).template metabuffer<T>());
+				std::as_const(*this).template get_metabuffer<T>());
 		}
 
 		template <typename T, typename... Args>
