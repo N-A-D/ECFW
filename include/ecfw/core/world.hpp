@@ -265,31 +265,19 @@ namespace ecfw
 		 * @param eid The entity to destroy.
 		 */
 		void destroy(uint64_t eid) {
-			assert(valid(eid));
+			// Remove all components and leave all groups
+            orphan(eid);
 			
 			// Split the entity into its index and version
 			auto idx = dtl::index(eid);
-			[[maybe_unused]] auto ver = dtl::version(eid);
+			auto ver = dtl::version(eid);
 			
 			// Ensure the entity can still be reused
 			assert(ver < 0xFFFFFFFF);
 
 			// Revise the entity & make it reusable
-			++m_versions[idx];
+			m_versions[idx] = ver + 1u;
 			m_free_list.push(idx);
-
-			// Destroy all of the entity's components
-			for (auto& metabuffer : m_metabuffers) {
-				if (idx < metabuffer.size() && metabuffer.test(idx))
-					metabuffer.reset(idx);
-			}
-
-			// Remove the entity from all groups it's a part of.
-			// No need to check if the group has the entity to
-			// begin with, trying to erase a non existent element
-			// of a sparse set is a no op.
-			for (auto& [_, group] : m_groups)
-				group.erase(eid);
 		}
 
 		/**
@@ -308,6 +296,43 @@ namespace ecfw
 			std::for_each(first, last, unary_function);
 		}
 		
+        /**
+         * @brief Removes all components from an entity.
+         * 
+         * @param eid The entity to orphan.
+         */
+        void orphan(uint64_t eid) {
+            assert(valid(eid));
+
+            auto idx = dtl::index(eid);
+
+            // Remove all components.
+            for (auto& metabuffer : m_metabuffers) {
+                if (idx < metabuffer.size() && metabuffer.test(idx))
+                    metabuffer.reset(idx);
+            }
+
+            // Remove the entity from all component groups.
+            for (auto& [_, group] : m_groups) 
+                group.erase(eid);
+        }
+
+        /**
+         * @brief Removes all components from the entities in the range 
+         * [first, last).
+         * 
+         * @tparam InIt Input iterator type.
+         * @param first Beginning of the range.
+         * @param last One-past the end of the range.
+         */
+        template <
+            typename InIt,
+            typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
+        > 
+        void orphan(InIt first, InIt last) {
+            auto unary_function = [this](auto e) { orphan(e); };
+            std::for_each(first, last, unary_function);
+        }
 
 		/**
 		 * @brief Checks if a given entity has all of the 
