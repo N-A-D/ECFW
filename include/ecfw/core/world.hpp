@@ -379,10 +379,10 @@ namespace ecfw
 				// Remove component metabuffer for the entity.
 				get_metabuffer<T>().reset(dtl::index(eid));
 
-				// Have the entity leave all groups which no longer
-				// share a common set of components. Only consider
-				// groups which require the removed component.
-				leave_groups_guided_by<T>(eid);
+                // Remove the entity from all groups for which it no longer 
+                // shares a common set of components. The search for newly
+                // nonapplicable groups is limited by the remove component.
+				leave_groups_limited_by<T>(eid);
 			}
 			else {
 				// Check for duplicate component types
@@ -444,11 +444,11 @@ namespace ecfw
 
 			// Logically add the component to the entity.
 			metabuffer.set(idx);
-			
-			// Look for an add the entity to any group which 
-			// shares a common set of compnents. Lead the search
-			// using the newly assigned component.
-			join_groups_guided_by<T>(eid);
+
+            // Add the entity to any group which it now shares a common set of 
+            // components with. The search for applicable groups is limited by
+            // by the recently added component.
+			join_groups_limited_by<T>(eid);
 
 			// Retrieve the component buffer for the given type.
 			auto& buffer = get_buffer<T>();
@@ -599,7 +599,7 @@ namespace ecfw
 		 * @return The maximum number of elements.
 		 */
 		template <typename T>
-		[[nodiscard]] size_t max_size() const  {
+		[[nodiscard]] size_t max_size() const noexcept {
 			accommodate<T>();
 			return get_buffer<T>().max_size();
 		}
@@ -733,7 +733,7 @@ namespace ecfw
 	private:
 
 		template <typename T>
-		void join_groups_guided_by(uint64_t eid) {
+		void join_groups_limited_by(uint64_t eid) {
 			auto idx = dtl::index(eid);
 			auto tid = dtl::type_index_v<T>;
 
@@ -771,7 +771,7 @@ namespace ecfw
 		}
 
 		template <typename T>
-		void leave_groups_guided_by(uint64_t eid) {
+		void leave_groups_limited_by(uint64_t eid) {
 			auto tid = dtl::type_index_v<T>;
 
 			// Remove the entity from all groups which require the given 
