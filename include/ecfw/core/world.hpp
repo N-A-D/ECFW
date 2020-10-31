@@ -348,10 +348,12 @@ namespace ecfw
 		 */
 		template <typename T,typename... Ts>
 		[[nodiscard]] bool has(uint64_t eid) const {
-			if (!valid(eid))
-				return false;
 			if constexpr (sizeof...(Ts) == 0) {
-				accommodate<T>();
+                // Any invalid entity will never have a component managed by
+                // *this. Inversely, any valid entity will never own a component
+                // unmanaged by this.
+                if (!valid(eid) || !contains<T>())
+				    return false;
 				auto idx = dtl::index(eid);
 				const auto& metabuffer = get_metabuffer<T>();
 				return idx < metabuffer.size() && metabuffer.test(idx);
@@ -428,8 +430,8 @@ namespace ecfw
 			static_assert(dtl::is_movable_v<T>);
 
 			assert(valid(eid) && "The entity does not belong to *this.");
-			assert(!has<T>(eid) 
-				&& "*this does not associate the component with the entity.");
+			assert(!has<T>(eid) && 
+                "The entity already has the component.");
 
 			accommodate<T>();
 
@@ -600,8 +602,8 @@ namespace ecfw
 		 */
 		template <typename T>
 		[[nodiscard]] size_t max_size() const noexcept {
-			accommodate<T>();
-			return get_buffer<T>().max_size();
+			assert(contains<T>());
+            return get_buffer<T>().max_size();
 		}
 
 		/**
@@ -612,7 +614,7 @@ namespace ecfw
 		 */
 		template <typename T>
 		[[nodiscard]] size_t size() const {
-			accommodate<T>();
+            assert(contains<T>());
 			return get_buffer<T>().size();
 		}
 
@@ -625,7 +627,7 @@ namespace ecfw
 		 */
 		template <typename T>
 		[[nodiscard]] bool empty() const {
-			accommodate<T>();
+			assert(contains<T>());
 			return get_buffer<T>().empty();
 		}
 
@@ -638,7 +640,7 @@ namespace ecfw
 		 */
 		template <typename T>
 		[[nodiscard]] size_t capacity() const {
-			accommodate<T>();
+            assert(contains<T>());
 			return get_buffer<T>().capacity();
 		}
 
@@ -655,13 +657,13 @@ namespace ecfw
 		>
 		void shrink_to_fit() {
 			if constexpr (sizeof...(Ts) == 0) {
-				accommodate<T>();
-
-				// Request removal of unused capacity from the component buffer.
-				get_buffer<T>().shrink_to_fit();
-				// Request removal of unused capacity from the component meta
-				// buffer.
-				get_metabuffer<T>().shrink_to_fit();
+                assert(contains<T>());
+                // Request removal of unused capacity from the component
+                // buffer.
+                get_buffer<T>().shrink_to_fit();
+                // Request removal of unused capacity from the component 
+                // meta buffer.
+                get_metabuffer<T>().shrink_to_fit();
 			}
 			else {
 				static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
@@ -693,6 +695,36 @@ namespace ecfw
 				(reserve<T>(n), ..., reserve<Ts>(n));
 			}
 		}
+
+        /**
+         * @brief Checks if the given types are managed by *this.
+         * 
+         * @tparam T The first component type to check.
+         * @tparam Ts The other component types to check.
+         * @return true If *this manages all of the given types.
+         * @return false If *this does not manage all of the given types.
+         */
+        template <typename T, typename... Ts>
+        [[nodiscard]] bool contains() const {
+            if constexpr (sizeof...(Ts) == 0) {
+                auto tid = dtl::type_index_v<T>;
+                return tid < m_buffers.size() && m_buffers[tid].has_value();
+            }
+            else {
+                static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
+                return (contains<T>() && ... && contains<Ts>());
+            }
+        }
+
+        /**
+         * @brief Returns the number of types that *this manages.
+         * 
+         * @return The number of managed types.
+         */
+        [[nodiscard]] size_t num_contained_types() const {
+            auto predicate = [](const auto& b) { return b.has_value(); };
+            return std::count_if(m_buffers.begin(), m_buffers.end(), predicate);
+        }
 
 		/**
 		 * @brief Returns a view of a given set of components.

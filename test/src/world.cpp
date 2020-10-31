@@ -12,6 +12,53 @@ const size_t NUM_ENTITIES = 100;
 
 namespace dtl = ecfw::detail;
 
+TEST(world, component_management) {
+    struct C0 {};
+    struct C1 {};
+    struct C2 {};
+    struct C3 {};
+
+    ASSERT_EQ(ecfw::detail::type_index_v<C0>, 0);
+    ASSERT_EQ(ecfw::detail::type_index_v<C1>, 1);
+    ASSERT_EQ(ecfw::detail::type_index_v<C2>, 2);
+    ASSERT_EQ(ecfw::detail::type_index_v<C3>, 3);
+
+    ecfw::world world{};
+
+    ASSERT_EQ(world.num_contained_types(), 0);
+    ASSERT_FALSE((world.contains<C0, C1, C2, C3>()));
+
+    world.reserve<C0>(NUM_ENTITIES);
+
+    ASSERT_EQ(world.num_contained_types(), 1);
+    ASSERT_TRUE((world.contains<C0>()));
+    ASSERT_FALSE((world.contains<C1>()));
+    ASSERT_FALSE((world.contains<C2>()));
+    ASSERT_FALSE((world.contains<C3>()));
+
+    auto entity = world.create();
+
+    world.assign<C1>(entity);
+
+    // An entity cannot posses unmanaged components
+    ASSERT_FALSE(world.has<C2>(entity));
+
+    ASSERT_EQ(world.num_contained_types(), 2);
+    ASSERT_TRUE((world.contains<C0, C1>()));
+    ASSERT_FALSE((world.contains<C2>()));
+    ASSERT_FALSE((world.contains<C3>()));
+
+    (void)world.create<C2>();
+
+    ASSERT_EQ(world.num_contained_types(), 3);
+    ASSERT_TRUE((world.contains<C0, C1, C2>()));
+    ASSERT_FALSE((world.contains<C3>()));
+
+    (void)world.view<C0, C1, C2, C3>();
+    ASSERT_EQ(world.num_contained_types(), 4);
+    ASSERT_TRUE((world.contains<C0, C1, C2, C3>()));
+}
+
 TEST(world, create_multiple_entities_with_starting_components) {
     struct C0 {};
     struct C1 {};
