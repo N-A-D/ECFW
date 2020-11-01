@@ -25,17 +25,17 @@ namespace ecfw
     public:
         friend class world;
 
-        using difference_type		 = dtl::sparse_set::difference_type;
-        using size_type				 = dtl::sparse_set::size_type;
-        using value_type			 = dtl::sparse_set::value_type;
-        using const_reference		 = dtl::sparse_set::const_reference;
-        using reference				 = dtl::sparse_set::reference;
-        using const_pointer			 = dtl::sparse_set::const_pointer;
-        using pointer				 = dtl::sparse_set::pointer;
-        using const_iterator		 = dtl::sparse_set::const_iterator;
-        using iterator				 = dtl::sparse_set::iterator;
+        using difference_type        = dtl::sparse_set::difference_type;
+        using size_type              = dtl::sparse_set::size_type;
+        using value_type             = dtl::sparse_set::value_type;
+        using const_reference        = dtl::sparse_set::const_reference;
+        using reference              = dtl::sparse_set::reference;
+        using const_pointer          = dtl::sparse_set::const_pointer;
+        using pointer                = dtl::sparse_set::pointer;
+        using const_iterator         = dtl::sparse_set::const_iterator;
+        using iterator               = dtl::sparse_set::iterator;
         using const_reverse_iterator = dtl::sparse_set::const_reverse_iterator;
-        using reverse_iterator		 = dtl::sparse_set::reverse_iterator;
+        using reverse_iterator       = dtl::sparse_set::reverse_iterator;
 
         /**
          * @brief Default constructor.
@@ -201,17 +201,17 @@ namespace ecfw
     public:
         friend class world;
         
-        using difference_type		 = dtl::sparse_set::difference_type;
-        using size_type				 = dtl::sparse_set::size_type;
-        using value_type			 = dtl::sparse_set::value_type;
-        using const_reference		 = dtl::sparse_set::const_reference;
-        using reference				 = dtl::sparse_set::reference;
-        using const_pointer			 = dtl::sparse_set::const_pointer;
-        using pointer				 = dtl::sparse_set::pointer;
-        using const_iterator		 = dtl::sparse_set::const_iterator;
-        using iterator				 = dtl::sparse_set::iterator;
+        using difference_type        = dtl::sparse_set::difference_type;
+        using size_type              = dtl::sparse_set::size_type;
+        using value_type             = dtl::sparse_set::value_type;
+        using const_reference        = dtl::sparse_set::const_reference;
+        using reference              = dtl::sparse_set::reference;
+        using const_pointer          = dtl::sparse_set::const_pointer;
+        using pointer                = dtl::sparse_set::pointer;
+        using const_iterator         = dtl::sparse_set::const_iterator;
+        using iterator               = dtl::sparse_set::iterator;
         using const_reverse_iterator = dtl::sparse_set::const_reverse_iterator;
-        using reverse_iterator		 = dtl::sparse_set::reverse_iterator;
+        using reverse_iterator       = dtl::sparse_set::reverse_iterator;
 
         /**
          * @brief Default constructor.
