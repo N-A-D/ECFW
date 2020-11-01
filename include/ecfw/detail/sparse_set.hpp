@@ -16,7 +16,7 @@ namespace detail
 
         using difference_type = ptrdiff_t;
         using size_type       = size_t;
-        using value_type	  = uint64_t;
+        using value_type      = uint64_t;
         using const_reference = const value_type&;
         using reference       = const_reference;
         using const_pointer   = const value_type*;
@@ -27,9 +27,9 @@ namespace detail
 
             using iterator_category = std::random_access_iterator_tag;
             using difference_type   = sparse_set::difference_type;
-            using value_type		= sparse_set::value_type;
-            using reference			= sparse_set::reference;
-            using pointer			= sparse_set::pointer;
+            using value_type        = sparse_set::value_type;
+            using reference         = sparse_set::reference;
+            using pointer           = sparse_set::pointer;
             
             iterator() = default;
             
