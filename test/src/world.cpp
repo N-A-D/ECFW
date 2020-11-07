@@ -18,11 +18,6 @@ TEST(world, component_management) {
     struct C2 {};
     struct C3 {};
 
-    ASSERT_EQ(ecfw::detail::type_index_v<C0>, 0);
-    ASSERT_EQ(ecfw::detail::type_index_v<C1>, 1);
-    ASSERT_EQ(ecfw::detail::type_index_v<C2>, 2);
-    ASSERT_EQ(ecfw::detail::type_index_v<C3>, 3);
-
     ecfw::world world{};
 
     ASSERT_EQ(world.num_contained_types(), 0);
