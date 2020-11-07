@@ -838,7 +838,7 @@ namespace ecfw
         template <typename T>
         [[nodiscard]] const std::vector<std::decay_t<T>>& get_buffer() const {
             using return_type = const std::vector<std::decay_t<T>>&;
-            auto type_position = m_type_positions[dtl::type_index<T>()];
+            auto type_position = m_type_positions.at(dtl::type_index<T>());
             return std::any_cast<return_type>(m_buffers[type_position]);
         }
 
@@ -850,7 +850,7 @@ namespace ecfw
 
         template <typename T>
         [[nodiscard]] const dtl::metabuffer_type& get_metabuffer() const {
-            auto type_position = m_type_positions[dtl::type_index<T>()];
+            auto type_position = m_type_positions.at(dtl::type_index<T>());
             return m_metabuffers[type_position];
         }
 
@@ -927,7 +927,7 @@ namespace ecfw
         std::vector<uint32_t> m_versions{};
 
         // A map from type to valid indices within m_buffers and m_metabuffers.
-        mutable std::unordered_map<std::type_index, size_t> m_type_positions{};
+        std::unordered_map<std::type_index, size_t> m_type_positions{};
 
         // Component metabuffer; one bitset for each component type. 
         // A bitset is only allocated for a component when it's first 
@@ -935,17 +935,17 @@ namespace ecfw
         // is reserved for a component1. W.r.t assignment, only enough 
         // space within the bitset is allocated to accommodate at most
         // the entity involved in the assignment. 
-        mutable std::vector<dtl::metabuffer_type> m_metabuffers{};
+        std::vector<dtl::metabuffer_type> m_metabuffers{};
 
         // Component data. Space is allocated similarly to the 
         // metabuffers collection. We use a std::any to hide
         // the buffer type until we're in a context where we can
         // deduce the type of the buffer.
-        mutable std::vector<std::any> m_buffers{};
+        std::vector<std::any> m_buffers{};
 
         // Filtered groups of entities. Each filter represents a common
         // set of components each entity of the group possesses.
-        mutable group_map_type m_groups{};
+        group_map_type m_groups{};
 
     };
 
