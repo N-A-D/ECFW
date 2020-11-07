@@ -2056,11 +2056,6 @@ TEST(world, view_creation) {
     auto view = world.view<C0, const C1, C2>();
 
     ASSERT_EQ(view.size(), 1);
-
-    const ecfw::world& cref = world;
-    auto readonly_view = cref.view<const C0, const C1, const C2>();
-
-    ASSERT_EQ(view.size(), 1);
 }
 
 TEST(world, view_creation_consistency) {
@@ -2260,15 +2255,6 @@ TEST(multi_component_view, component_retrieval) {
     auto&& [bb1, bb2] = view.get<const B1, B2>(entity);
     ASSERT_FALSE(bb1);
     ASSERT_FALSE(bb2);
-
-    const auto& cref = world;
-    auto  const_view = cref.view<const B0, const B1, const B2>();
-    auto&& [cb0, cb1, cb2] = const_view.get(entity);
-    ASSERT_FALSE(cb0);
-    ASSERT_FALSE(cb1);
-    ASSERT_FALSE(cb2);
-    ASSERT_FALSE(const_view.get<const B0>(entity));
-    ASSERT_FALSE(const_view.get<const B1>(entity));
 }
 
 TEST(multi_component_view, sequential_forward_iteration) {

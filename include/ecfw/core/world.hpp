@@ -729,6 +729,8 @@ namespace ecfw
 
         /**
          * @brief Returns a view of a given set of components.
+         * The entities matching the given set of components are cached for
+         * fast subsequent retrieval.
          * 
          * @tparam T The first compnent types to view.
          * @tparam Ts The other component types to view.
@@ -738,23 +740,6 @@ namespace ecfw
         [[nodiscard]] ecfw::view<T, Ts...> view() {
             // Check for duplicate component types
             static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
-
-            accommodate<T, Ts...>();
-
-            return ecfw::view<T, Ts...> { 
-                get_buffer<T>(), get_buffer<Ts>()..., group_by<T, Ts...>() 
-            };
-        }
-
-        /*! @copydoc view */
-        template <typename T, typename... Ts>
-        [[nodiscard]] ecfw::view<T, Ts...> view() const {
-            // Check for duplicate component types
-            static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
-            
-            // Check that all requested types are const
-            static_assert(
-                std::conjunction_v<std::is_const<T>, std::is_const<Ts>...>);
 
             accommodate<T, Ts...>();
 
@@ -825,7 +810,7 @@ namespace ecfw
 
         // Ensures that *this can manage the given component types.
         template <typename T, typename... Ts>
-        void accommodate() const {
+        void accommodate() {
             if constexpr (sizeof...(Ts) == 0) {
                 auto type_index = dtl::type_index<T>();
                 auto iterator = m_type_positions.find(type_index);
@@ -893,7 +878,7 @@ namespace ecfw
         using group_mapped_type = typename group_map_type::mapped_type;
 
         template <typename T, typename... Ts>
-        [[nodiscard]] const dtl::sparse_set& group_by() const {
+        [[nodiscard]] const dtl::sparse_set& group_by() {
             // Find the largest type position. Size of the group id is +1.
             auto type_positions = { 
                 m_type_positions[dtl::type_index<T>()], 
