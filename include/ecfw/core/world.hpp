@@ -753,7 +753,7 @@ namespace ecfw
         template <typename T>
         void join_groups_limited_by(uint64_t eid) {
             auto idx = dtl::index(eid);
-            auto type_position = m_type_positions[dtl::type_index<T>()];
+            auto type_position = m_type_positions.at(dtl::type_index<T>());;
 
             // Add the entity to all newly applicable groups.
             // Each time an entity is assigned a new component, it must
@@ -790,7 +790,7 @@ namespace ecfw
 
         template <typename T>
         void leave_groups_limited_by(uint64_t eid) {
-            auto type_position = m_type_positions[dtl::type_index<T>()];
+            auto type_position = m_type_positions.at(dtl::type_index<T>());
 
             // Remove the entity from all groups which require the given 
             // component type. We can skip trying to check for a common set
@@ -881,8 +881,8 @@ namespace ecfw
         [[nodiscard]] const dtl::sparse_set& group_by() {
             // Find the largest type position. Size of the group id is +1.
             auto type_positions = { 
-                m_type_positions[dtl::type_index<T>()], 
-                m_type_positions[dtl::type_index<Ts>()]... 
+                m_type_positions.at(dtl::type_index<T>()), 
+                m_type_positions.at(dtl::type_index<Ts>())... 
             };
             size_t largest_type_position = std::max(type_positions);
 
