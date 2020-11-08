@@ -878,7 +878,7 @@ namespace ecfw
         using group_mapped_type = typename group_map_type::mapped_type;
 
         template <typename T, typename... Ts>
-        [[nodiscard]] const dtl::sparse_set& group_by() {
+        [[nodiscard]] const group_mapped_type& group_by() {
             // Find the largest type position. Size of the group id is +1.
             auto type_positions = { 
                 m_type_positions.at(dtl::type_index<T>()), 
