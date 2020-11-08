@@ -354,8 +354,9 @@ namespace ecfw
                 // unmanaged by this.
                 if (!valid(eid) || !contains<T>())
                     return false;
+                auto type_position = m_type_positions.at(dtl::type_index<T>());
                 auto idx = dtl::index(eid);
-                const auto& metabuffer = get_metabuffer<T>();
+                const auto& metabuffer = m_metabuffers[type_position];
                 return idx < metabuffer.size() && metabuffer.test(idx);
             }
             else {
@@ -378,13 +379,18 @@ namespace ecfw
                 assert(valid(eid));
                 assert(has<T>(eid));
 
+                auto type_position = m_type_positions[dtl::type_index<T>()];
+
                 // Remove component metabuffer for the entity.
-                get_metabuffer<T>().reset(dtl::index(eid));
+                auto& metabuffer = m_metabuffers[type_position];
+                metabuffer.reset(dtl::index(eid));
 
                 // Remove the entity from all groups for which it no longer 
                 // shares a common set of components. The search for newly
                 // nonapplicable groups is limited by the remove component.
-                leave_groups_limited_by<T>(eid);
+                for (auto& [filter, group] : m_groups)
+                    if (type_position < filter.size() && filter.test(type_position))
+                        group.erase(eid);
             }
             else {
                 // Check for duplicate component types
@@ -433,12 +439,14 @@ namespace ecfw
             assert(!has<T>(eid) && 
                 "The entity already has the component.");
 
-            accommodate<T>();
+            // Retreive the index to the component's buffers.
+            auto type_position = accommodate<T>();
 
+            // Retreive the entity's index to the component's buffers.
             auto idx = dtl::index(eid);
 
             // Retrieve the component metabuffer for the given type.
-            auto& metabuffer = get_metabuffer<T>();
+            auto& metabuffer = m_metabuffers[type_position];
 
             // Ensure there exists component metabuffer for the entity.
             if (idx >= metabuffer.size())
@@ -450,17 +458,49 @@ namespace ecfw
             // Add the entity to any group which it now shares a common set of 
             // components with. The search for applicable groups is limited by
             // by the recently added component.
-            join_groups_limited_by<T>(eid);
+            for (auto& [filter, group] : m_groups) {
+                // Skip groups which already contain this entity.
+                if (group.contains(eid))
+                    continue;
+                // Skip groups which do not include the new component.
+                if (type_position >= filter.size() || !filter.test(type_position))
+                    continue;
+
+                // In order to check if an entity belongs to a group
+                // We must ensure that for all active bits in the group's 
+                // bitset, there exists an active component associated with
+                // the entity we're trying to add.
+                bool has_all = true;
+                size_t i = filter.find_first();
+                for (; i < filter.size(); i = filter.find_next(i)) {
+                    const auto& metabuffer = m_metabuffers[i];
+                    // Check if there is a set bit in the metabuffer at
+                    // the entity's index.
+                    if (idx >= metabuffer.size() || !metabuffer.test(idx)) {
+                        has_all = false;
+                        break;
+                    }
+                }
+                if (has_all)
+                    group.insert(eid);
+            }
 
             // Retrieve the component buffer for the given type.
-            auto& buffer = get_buffer<T>();
+            auto& buffer = 
+                std::any_cast<std::vector<T>&>(m_buffers[type_position]);
 
             // Ensure there physically exists memory for the new component
             if (idx >= buffer.size())
                 buffer.resize(idx + 1);
 
             // Construct and return the component.
-            return construct(buffer, idx, std::forward<Args>(args)...);
+            if constexpr (std::is_aggregate_v<T>)
+                buffer[idx] = T{std::forward<Args>(args)...};
+            else {
+                static_assert(std::is_constructible_v<T, Args...>);
+                buffer[idx] = T(std::forward<Args>(args)...);
+            }
+            return buffer[idx];
         }
 
         /**
@@ -506,9 +546,16 @@ namespace ecfw
                 return assign<T>(eid, std::forward<Args>(args)...);
             }
             else {
-                auto idx = dtl::index(eid);
-                return construct(
-                    get_buffer<T>(), idx, std::forward<Args>(args)...);
+                auto& current = get<T>(eid);
+                if constexpr (std::is_aggregate_v<T>) {
+                    T replacement{std::forward<Args>(args)...};
+                    std::swap(current, replacement);
+                }
+                else {
+                    T replacement(std::forward<Args>(args)...);
+                    std::swap(current, replacement);
+                }
+                return current;
             }
         }
 
@@ -523,8 +570,14 @@ namespace ecfw
         template <typename T, typename... Ts>
         [[nodiscard]] decltype(auto) get(uint64_t eid) {
             if constexpr (sizeof...(Ts) == 0) {
-                assert(has<T>(eid));
-                return get_buffer<T>()[dtl::index(eid)];
+                if constexpr (std::is_const_v<T>) {
+                    return std::as_const(*this).template get<T>(eid);
+                }
+                else {
+                    return const_cast<T&>(
+                        std::as_const(*this)
+                            .template get<std::add_const_t<T>>(eid));
+                }
             }
             else {
                 static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
@@ -538,7 +591,11 @@ namespace ecfw
             if constexpr (sizeof...(Ts) == 0) {
                 static_assert(std::is_const_v<T>);
                 assert(has<T>(eid));
-                return get_buffer<T>()[dtl::index(eid)];
+                auto type_position = m_type_positions.at(dtl::type_index<T>());
+                using buffer_type = const std::vector<std::decay_t<T>>&;
+                const auto& buffer = 
+                    std::any_cast<buffer_type>(m_buffers[type_position]);
+                return buffer[dtl::index(eid)];
             }
             else {
                 static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
@@ -603,7 +660,11 @@ namespace ecfw
         template <typename T>
         [[nodiscard]] size_t max_size() const noexcept {
             assert(contains<T>());
-            return get_buffer<T>().max_size();
+            auto type_position = m_type_positions.at(dtl::type_index<T>());
+            using buffer_type = const std::vector<T>&;
+            const auto& buffer = 
+                std::any_cast<buffer_type>(m_buffers[type_position]);
+            return buffer.max_size();
         }
 
         /**
@@ -613,9 +674,13 @@ namespace ecfw
          * @return The number of elements in the compnent vector.
          */
         template <typename T>
-        [[nodiscard]] size_t size() const {
+        [[nodiscard]] constexpr size_t size() const {
             assert(contains<T>());
-            return get_buffer<T>().size();
+            auto type_position = m_type_positions.at(dtl::type_index<T>());
+            using buffer_type = const std::vector<T>&;
+            const auto& buffer = 
+                std::any_cast<buffer_type>(m_buffers[type_position]);
+            return buffer.size();
         }
 
         /**
@@ -628,7 +693,11 @@ namespace ecfw
         template <typename T>
         [[nodiscard]] bool empty() const {
             assert(contains<T>());
-            return get_buffer<T>().empty();
+            auto type_position = m_type_positions.at(dtl::type_index<T>());
+            using buffer_type = const std::vector<T>&;
+            const auto& buffer = 
+                std::any_cast<buffer_type>(m_buffers[type_position]);
+            return buffer.empty();
         }
 
         /**
@@ -641,7 +710,11 @@ namespace ecfw
         template <typename T>
         [[nodiscard]] size_t capacity() const {
             assert(contains<T>());
-            return get_buffer<T>().capacity();
+            auto type_position = m_type_positions.at(dtl::type_index<T>());
+            using buffer_type = const std::vector<T>&;
+            const auto& buffer = 
+                std::any_cast<buffer_type>(m_buffers[type_position]);
+            return buffer.capacity();
         }
 
         /**
@@ -658,12 +731,17 @@ namespace ecfw
         void shrink_to_fit() {
             if constexpr (sizeof...(Ts) == 0) {
                 assert(contains<T>());
+                auto type_position = m_type_positions[dtl::type_index<T>()];
                 // Request removal of unused capacity from the component
                 // buffer.
-                get_buffer<T>().shrink_to_fit();
+                using buffer_type = std::vector<T>&;
+                auto& buffer = 
+                    std::any_cast<buffer_type>(m_buffers[type_position]);
+                buffer.shrink_to_fit();
                 // Request removal of unused capacity from the component 
                 // meta buffer.
-                get_metabuffer<T>().shrink_to_fit();
+                auto& metabuffer = m_metabuffers[type_position];
+                metabuffer.shrink_to_fit();
             }
             else {
                 static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
@@ -684,11 +762,15 @@ namespace ecfw
         >
         void reserve(size_t n) {
             if constexpr (sizeof...(Ts) == 0) {
-                accommodate<T>();
+                auto type_position = accommodate<T>();
                 // Reserve memory in the compnent buffer.
-                get_buffer<T>().reserve(n);
+                using buffer_type = std::vector<T>&;
+                auto& buffer = 
+                    std::any_cast<buffer_type>(m_buffers[type_position]);
+                buffer.reserve(n);
                 // Reserve memory in the component metabuffer.
-                get_metabuffer<T>().reserve(n);
+                auto& metabuffer = m_metabuffers[type_position];
+                metabuffer.reserve(n);
             }
             else {
                 static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
@@ -741,149 +823,47 @@ namespace ecfw
             // Check for duplicate component types
             static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
 
-            accommodate<T, Ts...>();
+            auto type_positions = 
+                std::make_tuple(accommodate<T>(), accommodate<Ts>()...);
 
-            return ecfw::view<T, Ts...> { 
-                group_by<T, Ts...>(), get_buffer<T>(), get_buffer<Ts>()...
+            auto make_view = [this](auto t, auto... ts) {
+                return ecfw::view<T, Ts...>
+                {
+                    group_by({ t, ts... }),
+                    std::any_cast<dtl::buffer_type<T>&>(m_buffers[t]),
+                    std::any_cast<dtl::buffer_type<Ts>&>(m_buffers[ts])...
+                };
             };
+            return std::apply(make_view, type_positions);
         }
 
     private:
 
-        template <typename T>
-        void join_groups_limited_by(uint64_t eid) {
-            auto idx = dtl::index(eid);
-            auto type_position = m_type_positions.at(dtl::type_index<T>());;
-
-            // Add the entity to all newly applicable groups.
-            // Each time an entity is assigned a new component, it must
-            // be added to any existing group which shares a common set
-            // of components to ensure that the applicable views
-            // automatically pick up the entity.
-            for (auto& [filter, group] : m_groups) {
-                // Skip groups which already contain this entity.
-                if (group.contains(eid))
-                    continue;
-                // Skip groups which do not include the new component.
-                if (type_position >= filter.size() || !filter.test(type_position))
-                    continue;
-
-                // In order to check if an entity belongs to a group
-                // We must ensure that for all active bits in the group's 
-                // bitset, there exists an active component associated with
-                // the entity we're trying to add.
-                bool has_all = true;
-                size_t i = filter.find_first();
-                for (; i < filter.size(); i = filter.find_next(i)) {
-                    const auto& metabuffer = m_metabuffers[i];
-                    // Check if there is a set bit in the metabuffer at
-                    // the entity's index.
-                    if (idx >= metabuffer.size() || !metabuffer.test(idx)) {
-                        has_all = false;
-                        break;
-                    }
-                }
-                if (has_all)
-                    group.insert(eid);
-            }
-        }
-
-        template <typename T>
-        void leave_groups_limited_by(uint64_t eid) {
-            auto type_position = m_type_positions.at(dtl::type_index<T>());
-
-            // Remove the entity from all groups which require the given 
-            // component type. We can skip trying to check for a common set
-            // of components by trying to erase the entity from the group.
-            // If the group does in fact have the entity, then it must have
-            // been a group of entities similar to the given one. Since we're
-            // only going through groups that include the given component, we
-            // only remove the entity from groups it no longer has a common set
-            // of components with. By evicting the entity this way, we do not  
-            // have to iterate over the indices of active bits in the group's
-            // bitset and check if the corresponding meta buffers have a set
-            // bit for the entity.
-            for (auto& [filter, group] : m_groups)
-                if (type_position < filter.size() && filter.test(type_position))
-                    group.erase(eid);
-        }
-
         // Ensures that *this can manage the given component types.
-        template <typename T, typename... Ts>
-        void accommodate() {
-            if constexpr (sizeof...(Ts) == 0) {
-                auto type_index = dtl::type_index<T>();
-                auto iterator = m_type_positions.find(type_index);
-                if (iterator == m_type_positions.end()) {
-                    // Map the new type to an index into both m_buffers and 
-                    // m_metabuffers. This index also serves as a bit position
-                    // in group identifying bitsets
-                    size_t type_position = 
-                        static_cast<size_t>(m_type_positions.size());
-                    m_type_positions.emplace(type_index, type_position);
-                    m_buffers.emplace_back(
-                        std::make_any<std::vector<std::decay_t<T>>>());
-                    m_metabuffers.emplace_back();
-                    assert(m_type_positions.size() == m_buffers.size());
-                    assert(m_type_positions.size() == m_metabuffers.size());
-                }
+        template <typename T>
+        size_t accommodate() {
+            auto type_index = dtl::type_index<T>();
+            auto iterator = m_type_positions.find(type_index);
+            if (iterator == m_type_positions.end()) {
+                // Map the new type to an index into both m_buffers and 
+                // m_metabuffers. This index also serves as a bit position
+                // in group identifying bitsets
+                size_t type_position = 
+                    static_cast<size_t>(m_type_positions.size());
+                m_type_positions.emplace(type_index, type_position);
+                m_buffers.emplace_back(
+                    std::make_any<std::vector<std::decay_t<T>>>());
+                m_metabuffers.emplace_back();
+                assert(m_type_positions.size() == m_buffers.size());
+                assert(m_type_positions.size() == m_metabuffers.size());
+                return type_position;
             }
-            else {
-                // Check for duplicate component types
-                static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
-                (accommodate<T>(), ..., accommodate<Ts>());
-            }
+            return iterator->second;
         }
-
-        template <typename T>
-        [[nodiscard]] const std::vector<std::decay_t<T>>& get_buffer() const {
-            using return_type = const std::vector<std::decay_t<T>>&;
-            auto type_position = m_type_positions.at(dtl::type_index<T>());
-            return std::any_cast<return_type>(m_buffers[type_position]);
-        }
-
-        template <typename T>
-        [[nodiscard]] std::vector<std::decay_t<T>>& get_buffer() {
-            return const_cast<std::vector<std::decay_t<T>>&>(
-                std::as_const(*this).template get_buffer<T>());
-        }
-
-        template <typename T>
-        [[nodiscard]] const dtl::metabuffer_type& get_metabuffer() const {
-            auto type_position = m_type_positions.at(dtl::type_index<T>());
-            return m_metabuffers[type_position];
-        }
-
-        template <typename T>
-        [[nodiscard]] dtl::metabuffer_type& get_metabuffer() {
-            return const_cast<dtl::metabuffer_type&>(
-                std::as_const(*this).template get_metabuffer<T>());
-        }
-
-        template <typename T, typename... Args>
-        [[nodiscard]] 
-        T& construct(std::vector<T>& buffer, uint32_t idx, Args&&... args) {
-            if constexpr (std::is_aggregate_v<T>)
-                buffer[idx] = T{std::forward<Args>(args)...};
-            else {
-                static_assert(std::is_constructible_v<T, Args...>);
-                buffer[idx] = T(std::forward<Args>(args)...);
-            }
-            return buffer[idx];
-        }
-
-        using group_map_type = 
-            std::unordered_map<boost::dynamic_bitset<>, dtl::sparse_set>;
-        using group_key_type = typename group_map_type::key_type;
-        using group_mapped_type = typename group_map_type::mapped_type;
-
-        template <typename T, typename... Ts>
-        [[nodiscard]] const group_mapped_type& group_by() {
+        
+        [[nodiscard]] const dtl::sparse_set& 
+        group_by(const std::initializer_list<size_t>& type_positions) {
             // Find the largest type position. Size of the group id is +1.
-            auto type_positions = { 
-                m_type_positions.at(dtl::type_index<T>()), 
-                m_type_positions.at(dtl::type_index<Ts>())... 
-            };
             size_t largest_type_position = std::max(type_positions);
 
             // Ensure we're not working with any unknown components.
@@ -896,7 +876,7 @@ namespace ecfw
 
             // Build the filter in order to find an existing 
             // group or to create one.
-            group_key_type filter(largest_type_position + 1);
+            boost::dynamic_bitset<> filter(largest_type_position + 1);
             for (auto type_position : type_positions)
                 filter.set(type_position);
 
@@ -907,13 +887,21 @@ namespace ecfw
                 return it->second;
 
             // Build the initial group of entities.
-            group_mapped_type group{};
-            auto unary_function = [i = 0,this,&group](auto v) mutable {
-                auto entity = dtl::make_entity(v, i++);
-                if (has<T, Ts...>(entity))
+            dtl::sparse_set group{};
+            uint32_t index = 0;
+            for (auto version : m_versions) {
+                bool has_all = true;
+                for (auto type_position : type_positions) {
+                    const auto& metabuffer = m_metabuffers[type_position];
+                    if (index >= metabuffer.size() || !metabuffer.test(index)) {
+                        has_all = false;
+                        break;
+                    }
+                }
+                auto entity = dtl::make_entity(version, index++);
+                if (has_all)
                     group.insert(entity);
-            };
-            std::for_each(m_versions.begin(), m_versions.end(), unary_function);
+            }
             it = m_groups.emplace_hint(it, filter, std::move(group));
             return it->second;
         }
@@ -945,7 +933,7 @@ namespace ecfw
 
         // Filtered groups of entities. Each filter represents a common
         // set of components each entity of the group possesses.
-        group_map_type m_groups{};
+        std::unordered_map<boost::dynamic_bitset<>, dtl::sparse_set> m_groups{};
 
     };
 
