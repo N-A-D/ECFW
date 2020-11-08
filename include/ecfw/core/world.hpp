@@ -744,7 +744,7 @@ namespace ecfw
             accommodate<T, Ts...>();
 
             return ecfw::view<T, Ts...> { 
-                get_buffer<T>(), get_buffer<Ts>()..., group_by<T, Ts...>() 
+                group_by<T, Ts...>(), get_buffer<T>(), get_buffer<Ts>()...
             };
         }
 
