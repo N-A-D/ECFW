@@ -381,7 +381,7 @@ namespace ecfw
 
                 auto type_position = m_type_positions.at(dtl::type_index<T>());
 
-                // Remove component metabuffer for the entity.
+                // Disable the component for the entity.
                 auto& metabuffer = m_metabuffers[type_position];
                 metabuffer.reset(dtl::index(eid));
 
