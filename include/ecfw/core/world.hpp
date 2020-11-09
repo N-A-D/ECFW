@@ -379,7 +379,7 @@ namespace ecfw
                 assert(valid(eid));
                 assert(has<T>(eid));
 
-                auto type_position = m_type_positions[dtl::type_index<T>()];
+                auto type_position = m_type_positions.at(dtl::type_index<T>());
 
                 // Remove component metabuffer for the entity.
                 auto& metabuffer = m_metabuffers[type_position];
@@ -731,7 +731,7 @@ namespace ecfw
         void shrink_to_fit() {
             if constexpr (sizeof...(Ts) == 0) {
                 assert(contains<T>());
-                auto type_position = m_type_positions[dtl::type_index<T>()];
+                auto type_position = m_type_positions.at(dtl::type_index<T>());
                 // Request removal of unused capacity from the component
                 // buffer.
                 using buffer_type = std::vector<T>&;
