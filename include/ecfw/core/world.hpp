@@ -20,6 +20,15 @@
 
 namespace ecfw 
 {
+namespace detail
+{
+    template <typename Block, typename Allocator>
+    bool contains(
+        const boost::dynamic_bitset<Block, Allocator>& bitset, size_t position)
+    {
+        return position < bitset.size() && bitset.test(position);
+    }
+}
 
     /**
      * @brief Entity manager.
@@ -448,7 +457,7 @@ namespace ecfw
             // Retrieve the component metabuffer for the given type.
             auto& metabuffer = m_metabuffers[type_position];
 
-            // Ensure there exists component metabuffer for the entity.
+            // Ensure there exists component metadata for the entity.
             if (idx >= metabuffer.size())
                 metabuffer.resize(idx + 1);
 
@@ -463,7 +472,7 @@ namespace ecfw
                 if (group.contains(eid))
                     continue;
                 // Skip groups which do not include the new component.
-                if (type_position >= filter.size() || !filter.test(type_position))
+                if (!dtl::contains(filter, type_position))
                     continue;
 
                 // In order to check if an entity belongs to a group
@@ -476,7 +485,7 @@ namespace ecfw
                     const auto& metabuffer = m_metabuffers[i];
                     // Check if there is a set bit in the metabuffer at
                     // the entity's index.
-                    if (idx >= metabuffer.size() || !metabuffer.test(idx)) {
+                    if (!dtl::contains(metabuffer, idx)) {
                         has_all = false;
                         break;
                     }
@@ -893,7 +902,7 @@ namespace ecfw
                 bool has_all = true;
                 for (auto type_position : type_positions) {
                     const auto& metabuffer = m_metabuffers[type_position];
-                    if (index >= metabuffer.size() || !metabuffer.test(index)) {
+                    if (!dtl::contains(metabuffer, index)) {
                         has_all = false;
                         break;
                     }
