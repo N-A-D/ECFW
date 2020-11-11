@@ -482,10 +482,9 @@ namespace detail
                 bool has_all = true;
                 size_t i = filter.find_first();
                 for (; i < filter.size(); i = filter.find_next(i)) {
-                    const auto& metabuffer = m_metabuffers[i];
                     // Check if there is a set bit in the metabuffer at
                     // the entity's index.
-                    if (!dtl::contains(metabuffer, idx)) {
+                    if (!dtl::contains(m_metabuffers[i], idx)) {
                         has_all = false;
                         break;
                     }
