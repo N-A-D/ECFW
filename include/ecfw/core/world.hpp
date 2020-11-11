@@ -317,7 +317,7 @@ namespace detail
 
             // Remove all components.
             for (auto& metabuffer : m_metabuffers) {
-                if (idx < metabuffer.size() && metabuffer.test(idx))
+                if (dtl::contains(metabuffer, idx))
                     metabuffer.reset(idx);
             }
 
@@ -366,7 +366,7 @@ namespace detail
                 auto type_position = m_type_positions.at(dtl::type_index<T>());
                 auto idx = dtl::index(eid);
                 const auto& metabuffer = m_metabuffers[type_position];
-                return idx < metabuffer.size() && metabuffer.test(idx);
+                return dtl::contains(metabuffer, idx);
             }
             else {
                 // Check for duplicate component types
@@ -398,7 +398,7 @@ namespace detail
                 // shares a common set of components. The search for newly
                 // nonapplicable groups is limited by the remove component.
                 for (auto& [filter, group] : m_groups)
-                    if (type_position < filter.size() && filter.test(type_position))
+                    if (dtl::contains(filter, type_position))
                         group.erase(eid);
             }
             else {
