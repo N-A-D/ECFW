@@ -97,8 +97,8 @@ TEST(world, create_single_entity_no_starting_components) {
     auto entity = world.create();
     
     // Ensure the entity's index & version are both 0
-    auto index = dtl::index(entity);
-    auto version = dtl::version(entity);
+    auto index = dtl::index_from_entity(entity);
+    auto version = dtl::version_from_entity(entity);
     ASSERT_EQ(index, 0);
     ASSERT_EQ(version, 0);
     ASSERT_EQ(world.num_alive(), 1);
@@ -114,8 +114,8 @@ TEST(world, create_and_store_multiple_entities_no_starting_components) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -132,8 +132,8 @@ TEST(world, create_batch_no_starting_components) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -151,8 +151,8 @@ TEST(world, create_single_entity_with_starting_components) {
     auto entity = world.create<C0, C1>();
 
     // Ensure the entity's index & version are both 0
-    auto index = dtl::index(entity);
-    auto version = dtl::version(entity);
+    auto index = dtl::index_from_entity(entity);
+    auto version = dtl::version_from_entity(entity);
     ASSERT_EQ(index, 0);
     ASSERT_EQ(version, 0);
     ASSERT_EQ(world.num_alive(), 1);
@@ -179,8 +179,8 @@ TEST(world, create_and_store_multiple_entities_with_starting_components) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -203,8 +203,8 @@ TEST(world, create_batch_with_starting_components) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -227,8 +227,8 @@ TEST(world, create_single_entity_with_existing_views) {
     auto entity = world.create<C0, C1>();
 
     // Ensure the entity's index & version are both 0
-    auto index = dtl::index(entity);
-    auto version = dtl::version(entity);
+    auto index = dtl::index_from_entity(entity);
+    auto version = dtl::version_from_entity(entity);
     ASSERT_EQ(index, 0);
     ASSERT_EQ(version, 0);
     ASSERT_EQ(world.num_alive(), 1);
@@ -248,8 +248,8 @@ TEST(world, create_single_entity_with_existing_views) {
     ASSERT_EQ(v1.size(), 1);
     ASSERT_EQ(v2.size(), 1);
     auto entity1 = world.create<C0, C1>();
-    index = dtl::index(entity1);
-    version = dtl::version(entity1);
+    index = dtl::index_from_entity(entity1);
+    version = dtl::version_from_entity(entity1);
     ASSERT_EQ(index, 1);
     ASSERT_EQ(version, 0);
     ASSERT_EQ(v0.size(), 2);
@@ -278,8 +278,8 @@ TEST(world, create_and_store_multiple_entities_with_existing_views) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -321,8 +321,8 @@ TEST(world, create_batch_with_existing_views) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -352,8 +352,8 @@ TEST(world, recycle_single_entity_no_starting_components) {
     auto entity = world.create();
 
     // Ensure the entity's index & version are both 0
-    auto index = dtl::index(entity);
-    auto version = dtl::version(entity);
+    auto index = dtl::index_from_entity(entity);
+    auto version = dtl::version_from_entity(entity);
     ASSERT_EQ(index, 0);
     ASSERT_EQ(version, 0);
     ASSERT_EQ(world.num_alive(), 1);
@@ -368,8 +368,8 @@ TEST(world, recycle_single_entity_no_starting_components) {
     ASSERT_FALSE(world.valid(entity));
 
     entity = world.create();
-    index = dtl::index(entity);
-    version = dtl::version(entity);
+    index = dtl::index_from_entity(entity);
+    version = dtl::version_from_entity(entity);
     ASSERT_EQ(index, 0);
     ASSERT_EQ(version, 1);
     ASSERT_EQ(world.num_alive(), 1);
@@ -385,8 +385,8 @@ TEST(world, recycle_and_store_multiple_entities_no_starting_components) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -403,7 +403,7 @@ TEST(world, recycle_and_store_multiple_entities_no_starting_components) {
 
     world.create(std::begin(entities), NUM_ENTITIES);
     for (auto entity : entities) {
-        auto version = dtl::version(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(version, 1);
         ASSERT_TRUE(world.valid(entity));
     }
@@ -419,8 +419,8 @@ TEST(world, recycle_batch_no_starting_components) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -437,7 +437,7 @@ TEST(world, recycle_batch_no_starting_components) {
 
     world.create(entities.begin(), entities.end());
     for (auto entity : entities) {
-        auto version = dtl::version(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(version, 1);
         ASSERT_TRUE(world.valid(entity));
     }
@@ -452,8 +452,8 @@ TEST(world, recycle_single_entity_with_starting_components) {
     auto entity = world.create<C0, C1>();
 
     // Ensure the entity's index & version are both 0
-    auto index = dtl::index(entity);
-    auto version = dtl::version(entity);
+    auto index = dtl::index_from_entity(entity);
+    auto version = dtl::version_from_entity(entity);
     ASSERT_EQ(index, 0);
     ASSERT_EQ(version, 0);
     ASSERT_EQ(world.num_alive(), 1);
@@ -488,7 +488,7 @@ TEST(world, recycle_single_entity_with_starting_components) {
 
     // Ensure that it's valid & has version # 1
     ASSERT_TRUE(world.valid(entity));
-    ASSERT_EQ(dtl::version(entity), 1);
+    ASSERT_EQ(dtl::version_from_entity(entity), 1);
 
     // Ensure that no components were reconstructed
     ASSERT_EQ((world.count<C0>()), 0);
@@ -504,7 +504,7 @@ TEST(world, recycle_single_entity_with_starting_components) {
 
     entity = world.create<C0, C1>();
     ASSERT_TRUE(world.valid(entity));
-    ASSERT_EQ(dtl::version(entity), 2);
+    ASSERT_EQ(dtl::version_from_entity(entity), 2);
 
     // Ensure that the components were created successfully
     ASSERT_EQ((world.count<C0>()), 1);
@@ -525,8 +525,8 @@ TEST(world, recycle_and_store_multiple_entities_with_starting_components) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -561,7 +561,7 @@ TEST(world, recycle_and_store_multiple_entities_with_starting_components) {
 
     // Ensure that each entity now has version # 1
     ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [](auto e){ 
-        return dtl::version(e) == 1; 
+        return dtl::version_from_entity(e) == 1; 
     }));
 
     // Ensure that no components were reconstructed
@@ -591,7 +591,7 @@ TEST(world, recycle_and_store_multiple_entities_with_starting_components) {
 
     // Ensure that the recycled entities have version #2
     ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [](auto e){
-        return dtl::version(e) == 2;
+        return dtl::version_from_entity(e) == 2;
     }));
 
     // Ensure that only std::size(entities) components were
@@ -614,8 +614,8 @@ TEST(world, recycle_batch_with_starting_components) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -650,7 +650,7 @@ TEST(world, recycle_batch_with_starting_components) {
 
     // Ensure that each entity now has version # 1
     ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [](auto e){ 
-        return dtl::version(e) == 1; 
+        return dtl::version_from_entity(e) == 1; 
     }));
 
     // Ensure that no components were reconstructed
@@ -680,7 +680,7 @@ TEST(world, recycle_batch_with_starting_components) {
 
     // Ensure that the recycled entities have version #2
     ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [](auto e){
-        return dtl::version(e) == 2;
+        return dtl::version_from_entity(e) == 2;
     }));
 
     // Ensure that only std::size(entities) components were
@@ -703,8 +703,8 @@ TEST(world, recycle_single_entity_with_existing_views) {
     auto entity = world.create<C0, C1>();
 
     // Ensure the entity's index & version are both 0
-    auto index = dtl::index(entity);
-    auto version = dtl::version(entity);
+    auto index = dtl::index_from_entity(entity);
+    auto version = dtl::version_from_entity(entity);
     ASSERT_EQ(index, 0);
     ASSERT_EQ(version, 0);
     ASSERT_EQ(world.num_alive(), 1);
@@ -731,8 +731,8 @@ TEST(world, recycle_single_entity_with_existing_views) {
     ASSERT_EQ(world.num_entities(), 2);
     ASSERT_EQ(world.num_reusable(), 0);
 
-    index = dtl::index(entity1);
-    version = dtl::version(entity1);
+    index = dtl::index_from_entity(entity1);
+    version = dtl::version_from_entity(entity1);
     ASSERT_EQ(index, 1);
     ASSERT_EQ(version, 0);
 
@@ -771,7 +771,7 @@ TEST(world, recycle_single_entity_with_existing_views) {
     ASSERT_TRUE(world.valid(entity));
 
     // Ensure the entity has been reused. i.e., version is 1
-    ASSERT_EQ(dtl::version(entity), 1);
+    ASSERT_EQ(dtl::version_from_entity(entity), 1);
 
     // Ensure that there is only one entity with the starting components
     ASSERT_EQ((world.count<C0>()), 1);
@@ -799,7 +799,7 @@ TEST(world, recycle_single_entity_with_existing_views) {
     ASSERT_TRUE(world.valid(entity));
 
     // Ensure the entity has been reused. i.e., version is 2
-    ASSERT_EQ(dtl::version(entity), 2);
+    ASSERT_EQ(dtl::version_from_entity(entity), 2);
 
     // Ensure that there is now two entities with the starting components
     ASSERT_EQ((world.count<C0>()), 2);
@@ -828,8 +828,8 @@ TEST(world, recycle_and_store_multiple_entities_with_existing_views) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -892,7 +892,7 @@ TEST(world, recycle_and_store_multiple_entities_with_existing_views) {
 
     // Ensure they all have version # 1
     ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [](auto e){
-        return dtl::version(e) == 1;
+        return dtl::version_from_entity(e) == 1;
     }));
 
     // Ensure that components have not be reconstructed
@@ -927,7 +927,7 @@ TEST(world, recycle_and_store_multiple_entities_with_existing_views) {
 
     // Ensure they all have version # 2
     ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [](auto e){
-        return dtl::version(e) == 2;
+        return dtl::version_from_entity(e) == 2;
     }));
 
     // Ensure that the components have been created
@@ -959,8 +959,8 @@ TEST(world, recycle_batch_with_existing_views) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -1006,7 +1006,7 @@ TEST(world, recycle_batch_with_existing_views) {
 
     // Ensure they all have version # 1
     ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [](auto e){
-        return dtl::version(e) == 1;
+        return dtl::version_from_entity(e) == 1;
     }));
 
     // Ensure that components have not be reconstructed
@@ -1041,7 +1041,7 @@ TEST(world, recycle_batch_with_existing_views) {
 
     // Ensure they all have version # 2
     ASSERT_TRUE(std::all_of(entities.begin(), entities.end(), [](auto e){
-        return dtl::version(e) == 2;
+        return dtl::version_from_entity(e) == 2;
     }));
 
     // Ensure that the components have been created
@@ -1120,8 +1120,8 @@ TEST(world, create_single_clone) {
     auto entity = world.create<C0, C1>();
 
     // Ensure the entity's index & version are both 0
-    auto index = dtl::index(entity);
-    auto version = dtl::version(entity);
+    auto index = dtl::index_from_entity(entity);
+    auto version = dtl::version_from_entity(entity);
     ASSERT_EQ(index, 0);
     ASSERT_EQ(version, 0);
     ASSERT_EQ(world.num_alive(), 1);
@@ -1131,8 +1131,8 @@ TEST(world, create_single_clone) {
 
     auto clone = world.clone<C0, C1>(entity);
 
-    index = dtl::index(clone);
-    version = dtl::version(clone);
+    index = dtl::index_from_entity(clone);
+    version = dtl::version_from_entity(clone);
     ASSERT_EQ(index, 1);
     ASSERT_EQ(version, 0);
     ASSERT_EQ(world.num_alive(), 2);
@@ -1149,8 +1149,8 @@ TEST(world, create_and_store_multiple_clones) {
     auto entity = world.create<C0, C1>();
 
     // Ensure the entity's index & version are both 0
-    auto index = dtl::index(entity);
-    auto version = dtl::version(entity);
+    auto index = dtl::index_from_entity(entity);
+    auto version = dtl::version_from_entity(entity);
     ASSERT_EQ(index, 0);
     ASSERT_EQ(version, 0);
     ASSERT_EQ(world.num_alive(), 1);
@@ -1179,8 +1179,8 @@ TEST(world, destroy_single_entity_no_components) {
     auto entity = world.create();
 
     // Ensure the entity's index & version are both 0
-    auto index = dtl::index(entity);
-    auto version = dtl::version(entity);
+    auto index = dtl::index_from_entity(entity);
+    auto version = dtl::version_from_entity(entity);
     ASSERT_EQ(index, 0);
     ASSERT_EQ(version, 0);
     ASSERT_EQ(world.num_alive(), 1);
@@ -1202,8 +1202,8 @@ TEST(world, destroy_multiple_entities_no_components) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -1226,8 +1226,8 @@ TEST(world, destroy_batch_no_components) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -1251,8 +1251,8 @@ TEST(world, destroy_single_entities_with_components) {
     auto entity = world.create<C0, C1>();
 
     // Ensure the entity's index & version are both 0
-    auto index = dtl::index(entity);
-    auto version = dtl::version(entity);
+    auto index = dtl::index_from_entity(entity);
+    auto version = dtl::version_from_entity(entity);
     ASSERT_EQ(index, 0);
     ASSERT_EQ(version, 0);
     ASSERT_EQ(world.num_alive(), 1);
@@ -1284,8 +1284,8 @@ TEST(world, destroy_multiple_entities_with_components) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -1320,8 +1320,8 @@ TEST(world, destroy_batch_with_components) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -1356,8 +1356,8 @@ TEST(world, destroy_single_entity_with_existing_views) {
     auto entity = world.create<C0, C1>();
 
     // Ensure the entity's index & version are both 0
-    auto index = dtl::index(entity);
-    auto version = dtl::version(entity);
+    auto index = dtl::index_from_entity(entity);
+    auto version = dtl::version_from_entity(entity);
     ASSERT_EQ(index, 0);
     ASSERT_EQ(version, 0);
     ASSERT_EQ(world.num_alive(), 1);
@@ -1378,8 +1378,8 @@ TEST(world, destroy_single_entity_with_existing_views) {
     ASSERT_EQ(v2.size(), 1);
 
     auto entity1 = world.create<C0, C1>();
-    index = dtl::index(entity1);
-    version = dtl::version(entity1);
+    index = dtl::index_from_entity(entity1);
+    version = dtl::version_from_entity(entity1);
     ASSERT_EQ(index, 1);
     ASSERT_EQ(version, 0);
 
@@ -1431,8 +1431,8 @@ TEST(world, destroy_multiple_entities_with_existing_views) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));
@@ -1494,8 +1494,8 @@ TEST(world, destroy_batch_with_existing_views) {
     uint32_t size = static_cast<uint32_t>(entities.size());
     for (uint32_t i = 0; i != size; ++i) {
         auto entity = entities[i];
-        auto index = dtl::index(entity);
-        auto version = dtl::version(entity);
+        auto index = dtl::index_from_entity(entity);
+        auto version = dtl::version_from_entity(entity);
         ASSERT_EQ(index, i);
         ASSERT_EQ(version, 0);
         ASSERT_TRUE(world.valid(entity));

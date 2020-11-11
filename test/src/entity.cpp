@@ -11,6 +11,6 @@ TEST(integers, packing_and_unpacking)
 	uint32_t version = dist(gen);
 	uint32_t index = dist(gen);
 	uint64_t entity = dtl::make_entity(version, index);
-	ASSERT_EQ(version, dtl::version(entity));
-	ASSERT_EQ(index, dtl::index(entity));
+	ASSERT_EQ(version, dtl::version_from_entity(entity));
+	ASSERT_EQ(index, dtl::index_from_entity(entity));
 }

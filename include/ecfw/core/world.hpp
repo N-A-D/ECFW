@@ -243,8 +243,8 @@ namespace detail
          * @return false If the entity does not belong to *this.
          */
         [[nodiscard]] bool valid(uint64_t eid) const {
-            auto idx = dtl::index(eid);
-            auto ver = dtl::version(eid);
+            auto idx = dtl::index_from_entity(eid);
+            auto ver = dtl::version_from_entity(eid);
             return idx < m_versions.size()
                 && m_versions[idx] == ver;
         }
@@ -278,8 +278,8 @@ namespace detail
             orphan(eid);
             
             // Split the entity into its index and version
-            auto idx = dtl::index(eid);
-            auto ver = dtl::version(eid);
+            auto idx = dtl::index_from_entity(eid);
+            auto ver = dtl::version_from_entity(eid);
             
             // Ensure the entity can still be reused
             assert(ver < 0xFFFFFFFF);
@@ -313,7 +313,7 @@ namespace detail
         void orphan(uint64_t eid) {
             assert(valid(eid));
 
-            auto idx = dtl::index(eid);
+            auto idx = dtl::index_from_entity(eid);
 
             // Remove all components.
             for (auto& metabuffer : m_metabuffers) {
@@ -364,7 +364,7 @@ namespace detail
                 if (!valid(eid) || !contains<T>())
                     return false;
                 auto type_position = m_type_positions.at(dtl::type_index<T>());
-                auto idx = dtl::index(eid);
+                auto idx = dtl::index_from_entity(eid);
                 const auto& metabuffer = m_metabuffers[type_position];
                 return dtl::contains(metabuffer, idx);
             }
@@ -392,7 +392,7 @@ namespace detail
 
                 // Disable the component for the entity.
                 auto& metabuffer = m_metabuffers[type_position];
-                metabuffer.reset(dtl::index(eid));
+                metabuffer.reset(dtl::index_from_entity(eid));
 
                 // Remove the entity from all groups for which it no longer 
                 // shares a common set of components. The search for newly
@@ -452,7 +452,7 @@ namespace detail
             auto type_position = accommodate<T>();
 
             // Retreive the entity's index to the component's buffers.
-            auto idx = dtl::index(eid);
+            auto idx = dtl::index_from_entity(eid);
 
             // Retrieve the component metabuffer for the given type.
             auto& metabuffer = m_metabuffers[type_position];
@@ -604,7 +604,7 @@ namespace detail
                 using buffer_type = const std::vector<std::decay_t<T>>&;
                 const auto& buffer = 
                     std::any_cast<buffer_type>(m_buffers[type_position]);
-                return buffer[dtl::index(eid)];
+                return buffer[dtl::index_from_entity(eid)];
             }
             else {
                 static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
@@ -667,7 +667,7 @@ namespace detail
          * @return The maximum number of elements.
          */
         template <typename T>
-        [[nodiscard]] size_t max_size() const noexcept {
+        [[nodiscard]] size_t max_size() const {
             assert(contains<T>());
             auto type_position = m_type_positions.at(dtl::type_index<T>());
             using buffer_type = const std::vector<T>&;

@@ -160,7 +160,7 @@ namespace ecfw
             static_assert(is_subset(requested, viewed));
 
             assert(contains(eid));
-            auto idx = dtl::index(eid);
+            auto idx = dtl::index_from_entity(eid);
             return unchecked_get<Cs...>(idx);
         }
 
@@ -324,7 +324,7 @@ namespace ecfw
          */
         [[nodiscard]] T& get(uint64_t eid) const {
             assert(contains(eid));
-            auto idx = dtl::index(eid);
+            auto idx = dtl::index_from_entity(eid);
             return (*m_buffer)[idx];
         }
 

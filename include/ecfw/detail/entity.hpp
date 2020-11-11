@@ -13,12 +13,12 @@ namespace detail
     }
 
     [[nodiscard]] 
-    constexpr uint32_t version(uint64_t entity) noexcept {
+    constexpr uint32_t version_from_entity(uint64_t entity) noexcept {
         return static_cast<uint32_t>(entity >> 32);
     }
 
     [[nodiscard]] 
-    constexpr uint32_t index(uint64_t entity) noexcept {
+    constexpr uint32_t index_from_entity(uint64_t entity) noexcept {
         return static_cast<uint32_t>(entity & 0xFFFFFFFF);
     }
 
