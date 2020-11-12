@@ -812,9 +812,8 @@ namespace detail
          * 
          * @return The number of managed types.
          */
-        [[nodiscard]] size_t num_contained_types() const {
-            auto predicate = [](const auto& b) { return b.has_value(); };
-            return std::count_if(m_buffers.begin(), m_buffers.end(), predicate);
+        [[nodiscard]] size_t num_contained_types() const noexcept {
+            return static_cast<size_t>(m_type_positions.size());
         }
 
         /**
