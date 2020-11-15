@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include <boost/dynamic_bitset.hpp>
-#include <ecfw/core/view.hpp>
+#include <ecfw/view.hpp>
 #include <ecfw/detail/buffer.hpp>
 #include <ecfw/detail/entity.hpp>
 #include <ecfw/detail/sparse_set.hpp>

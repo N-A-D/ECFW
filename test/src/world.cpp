@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <execution>
 #include <gtest/gtest.h>
-#include <ecfw/core/world.hpp>
+#include <ecfw/world.hpp>
 #include <ecfw/detail/entity.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 
