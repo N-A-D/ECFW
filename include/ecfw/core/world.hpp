@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <type_traits>
 #include <unordered_map>
-#include <boost/hana.hpp>
 #include <boost/dynamic_bitset.hpp>
 #include <ecfw/core/view.hpp>
 #include <ecfw/detail/buffer.hpp>
