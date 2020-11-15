@@ -848,7 +848,7 @@ namespace detail
 
         // Ensures that *this can manage the given component types.
         template <typename T>
-        size_t accommodate() {
+        [[nodiscard]] size_t accommodate() {
             auto type_index = dtl::type_index<T>();
             auto iterator = m_type_positions.find(type_index);
             if (iterator == m_type_positions.end()) {
