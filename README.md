@@ -11,6 +11,8 @@
 ## ecfw
 `ecfw` is a header-only C++17 entity component system.
 
+[![Coverage Status](https://coveralls.io/repos/github/N-A-D/ecfw/badge.svg?branch=master)](https://coveralls.io/github/N-A-D/ecfw?branch=master)
+
 ## License
 `ecfw` is licensed under the [MIT License](https://opensource.org/licenses/MIT):   
 
