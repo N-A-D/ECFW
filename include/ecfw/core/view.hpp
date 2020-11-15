@@ -2,7 +2,9 @@
 
 #include <tuple>		  // tuple, forward_as_tuple
 #include <type_traits>	  // is_const, conditional, conditional_t
-#include <boost/hana.hpp> // equal, unique, is_subset
+#include <boost/hana/equal.hpp>
+#include <boost/hana/unique.hpp>
+#include <boost/hana/is_subset.hpp>
 #include <ecfw/detail/buffer.hpp>
 #include <ecfw/detail/entity.hpp>
 #include <ecfw/detail/sparse_set.hpp>

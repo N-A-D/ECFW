@@ -1,6 +1,13 @@
 #pragma once
 
-#include <boost/hana.hpp> // basic_type, tuple
+#include <boost/hana/set.hpp>
+#include <boost/hana/type.hpp>
+#include <boost/hana/size.hpp>
+#include <boost/hana/minus.hpp>
+#include <boost/hana/tuple.hpp>
+#include <boost/hana/not_equal.hpp>
+#include <boost/hana/drop_while.hpp>
+#include <boost/hana/integral_constant.hpp>
 
 namespace ecfw {
 namespace detail {
