@@ -12,48 +12,6 @@ const size_t NUM_ENTITIES = 100;
 
 namespace dtl = ecfw::detail;
 
-TEST(world, component_management) {
-    struct C0 {};
-    struct C1 {};
-    struct C2 {};
-    struct C3 {};
-
-    ecfw::world world{};
-
-    ASSERT_EQ(world.num_contained_types(), 0);
-    ASSERT_FALSE((world.contains<C0, C1, C2, C3>()));
-
-    world.reserve<C0>(NUM_ENTITIES);
-
-    ASSERT_EQ(world.num_contained_types(), 1);
-    ASSERT_TRUE((world.contains<C0>()));
-    ASSERT_FALSE((world.contains<C1>()));
-    ASSERT_FALSE((world.contains<C2>()));
-    ASSERT_FALSE((world.contains<C3>()));
-
-    auto entity = world.create();
-
-    world.assign<C1>(entity);
-
-    // An entity cannot posses unmanaged components
-    ASSERT_FALSE(world.has<C2>(entity));
-
-    ASSERT_EQ(world.num_contained_types(), 2);
-    ASSERT_TRUE((world.contains<C0, C1>()));
-    ASSERT_FALSE((world.contains<C2>()));
-    ASSERT_FALSE((world.contains<C3>()));
-
-    (void)world.create<C2>();
-
-    ASSERT_EQ(world.num_contained_types(), 3);
-    ASSERT_TRUE((world.contains<C0, C1, C2>()));
-    ASSERT_FALSE((world.contains<C3>()));
-
-    (void)world.view<C0, C1, C2, C3>();
-    ASSERT_EQ(world.num_contained_types(), 4);
-    ASSERT_TRUE((world.contains<C0, C1, C2, C3>()));
-}
-
 TEST(world, create_multiple_entities_with_starting_components) {
     struct C0 {};
     struct C1 {};
@@ -1170,9 +1128,43 @@ TEST(world, create_and_store_multiple_clones) {
     ASSERT_EQ(world.num_reusable(), 0);
 }
 
-TEST(world, create_multiple_clones_with_no_starting_views) {}
+TEST(world, create_multiple_clones_with_starting_views) {
+    struct C0 {};
+    struct C1 {};
 
-TEST(world, create_multiple_clones_with_starting_views) {}
+    ecfw::world world{};
+    auto c0_view = world.view<C0>();
+    auto c1_view = world.view<C1>();
+    auto c0c1_view = world.view<C0, C1>();
+    auto entity = world.create<C0, C1>();
+
+    // Ensure the entity's index & version are both 0
+    auto index = dtl::index_from_entity(entity);
+    auto version = dtl::version_from_entity(entity);
+    ASSERT_EQ(index, 0);
+    ASSERT_EQ(version, 0);
+    ASSERT_EQ(world.num_alive(), 1);
+    ASSERT_EQ(world.num_entities(), 1);
+    ASSERT_EQ(world.num_reusable(), 0);
+    ASSERT_TRUE(world.valid(entity));
+
+    std::vector<uint64_t> entities(NUM_ENTITIES);
+    world.clone<C0, C1>(entity, entities.begin(), entities.end());
+    ASSERT_EQ((world.count<C0>()), NUM_ENTITIES + 1);
+    ASSERT_EQ((world.count<C1>()), NUM_ENTITIES + 1);
+    ASSERT_EQ((world.count<C0, C1>()), NUM_ENTITIES + 1);
+    ASSERT_EQ(world.num_alive(), NUM_ENTITIES + 1);
+    ASSERT_EQ(world.num_entities(), NUM_ENTITIES + 1);
+    ASSERT_EQ(world.num_reusable(), 0);
+
+    world.clone<C0, C1>(entity, std::back_inserter(entities), NUM_ENTITIES);
+    ASSERT_EQ((world.count<C0>()), 2 * NUM_ENTITIES + 1);
+    ASSERT_EQ((world.count<C1>()), 2 * NUM_ENTITIES + 1);
+    ASSERT_EQ((world.count<C0, C1>()), 2 * NUM_ENTITIES + 1);
+    ASSERT_EQ(world.num_alive(), 2 * NUM_ENTITIES + 1);
+    ASSERT_EQ(world.num_entities(), 2 * NUM_ENTITIES + 1);
+    ASSERT_EQ(world.num_reusable(), 0);
+}
 
 TEST(world, destroy_single_entity_no_components) {
     ecfw::world world{};
@@ -1687,6 +1679,48 @@ TEST(world, component_assignment_existing_views) {
     ASSERT_EQ(v4.size(), 2 * NUM_ENTITIES);   
     ASSERT_EQ(v5.size(), 2 * NUM_ENTITIES);   
     ASSERT_EQ(v6.size(), 2 * NUM_ENTITIES);
+}
+
+TEST(world, component_management) {
+    struct C0 {};
+    struct C1 {};
+    struct C2 {};
+    struct C3 {};
+
+    ecfw::world world{};
+
+    ASSERT_EQ(world.num_contained_types(), 0);
+    ASSERT_FALSE((world.contains<C0, C1, C2, C3>()));
+
+    world.reserve<C0>(NUM_ENTITIES);
+
+    ASSERT_EQ(world.num_contained_types(), 1);
+    ASSERT_TRUE((world.contains<C0>()));
+    ASSERT_FALSE((world.contains<C1>()));
+    ASSERT_FALSE((world.contains<C2>()));
+    ASSERT_FALSE((world.contains<C3>()));
+
+    auto entity = world.create();
+
+    world.assign<C1>(entity);
+
+    // An entity cannot posses unmanaged components
+    ASSERT_FALSE(world.has<C2>(entity));
+
+    ASSERT_EQ(world.num_contained_types(), 2);
+    ASSERT_TRUE((world.contains<C0, C1>()));
+    ASSERT_FALSE((world.contains<C2>()));
+    ASSERT_FALSE((world.contains<C3>()));
+
+    (void)world.create<C2>();
+
+    ASSERT_EQ(world.num_contained_types(), 3);
+    ASSERT_TRUE((world.contains<C0, C1, C2>()));
+    ASSERT_FALSE((world.contains<C3>()));
+
+    (void)world.view<C0, C1, C2, C3>();
+    ASSERT_EQ(world.num_contained_types(), 4);
+    ASSERT_TRUE((world.contains<C0, C1, C2, C3>()));
 }
 
 TEST(world, component_retrieval) {
