@@ -178,9 +178,9 @@ namespace ecfw
                 return (*buffer)[idx];
             }
             else if constexpr (sizeof...(Cs) > 1)
-                return forward_as_tuple(get<Cs>(idx)...);
+                return forward_as_tuple(unchecked_get<Cs>(idx)...);
             else 
-                return forward_as_tuple(get<Ts>(idx)...);
+                return forward_as_tuple(unchecked_get<Ts>(idx)...);
         }
 
         view(const dtl::sparse_set& entities, dtl::buffer_type<Ts>&... buffers)
