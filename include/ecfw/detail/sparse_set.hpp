@@ -4,6 +4,7 @@
 #include <memory>   // unique_ptr
 #include <cassert>  // assert
 #include <iterator> // reverse_iterator, random_access_iterator_tag
+#include <boost/iterator/iterator_facade.hpp>
 #include <ecfw/detail/entity.hpp>
 
 namespace ecfw
@@ -22,122 +23,68 @@ namespace detail
         using const_pointer   = const value_type*;
         using pointer         = const_pointer;
         
-        class iterator {
-        public:
+        struct iterator 
+            : boost::iterator_facade<
+                iterator, 
+                const value_type, 
+                std::random_access_iterator_tag, 
+                const_reference, 
+                difference_type
+            > 
+        {
+            iterator () = default;
 
-            using iterator_category = std::random_access_iterator_tag;
-            using difference_type   = sparse_set::difference_type;
-            using value_type        = sparse_set::value_type;
-            using reference         = sparse_set::reference;
-            using pointer           = sparse_set::pointer;
-            
-            iterator() = default;
-            
-            iterator(pointer it, const sparse_set& parent)
-                : m_it(it)
-                , m_parent(std::addressof(parent))
+            iterator(const_pointer it, const sparse_set& parent)
+                : m_it{it}
+                , m_parent{std::addressof(parent)}
             {}
 
-            [[nodiscard]] difference_type operator-(const iterator& rhs) const noexcept {
-                assert(is_valid() && rhs.is_valid());
-                assert(is_compatible_with(rhs));
-                return m_it - rhs.m_it;
-            }
-
-            [[nodiscard]] reference operator[](difference_type n) const {
-                return *(*this + n);
-            }
-
-            [[nodiscard]] pointer operator->() const {
-                assert(is_valid());
-                return m_it;
-            }
-
-            [[nodiscard]] reference operator*() const {
-                return *(operator->());
-            }
-
-            [[maybe_unused]] iterator& operator++() {
-                assert(is_valid());
-                ++m_it;
-                return *this;
-            }
-
-            [[maybe_unused]] iterator operator++(int) {
-                iterator copy(*this);
-                ++* this;
-                return copy;
-            }
-
-            [[maybe_unused]] iterator& operator+=(difference_type n) {
-                assert(is_valid());
-                m_it += n;
-                return *this;
-            }
-
-            [[maybe_unused]] iterator operator+(difference_type n) const {
-                return iterator(*this) += n;
-            }
-
-            [[maybe_unused]] iterator& operator--() {
-                assert(is_valid());
-                --m_it;
-                return *this;
-            }
-
-            [[maybe_unused]] iterator operator--(int) {
-                iterator copy(*this);
-                --* this;
-                return copy;
-            }
-
-            [[maybe_unused]] iterator& operator-=(difference_type n) {
-                assert(is_valid());
-                m_it -= n;
-                return *this;
-            }
-
-            [[maybe_unused]] iterator operator-(difference_type n) const {
-                return iterator(*this) -= n;
-            }
-
-            [[nodiscard]] bool operator==(const iterator& rhs) const noexcept {
-                assert(is_compatible_with(rhs));
-                return m_it == rhs.m_it;
-            }
-
-            [[nodiscard]] bool operator!=(const iterator& rhs) const noexcept {
-                return !(*this == rhs);
-            }
-
-            [[nodiscard]] bool operator<(const iterator& rhs) const noexcept {
-                return m_it < rhs.m_it;
-            }
-
-            [[nodiscard]] bool operator<=(const iterator& rhs) const noexcept {
-                return *this < rhs || *this == rhs;
-            }
-
-            [[nodiscard]] bool operator>(const iterator& rhs) const noexcept {
-                return rhs < *this;
-            }
-
-            [[nodiscard]] bool operator>=(const iterator& rhs) const noexcept {
-                return *this > rhs || *this == rhs;
-            }
-
         private:
+            friend class boost::iterator_core_access;
 
-            [[nodiscard]] bool is_valid() const noexcept {
-                return m_it && m_parent;
+            [[nodiscard]] const_reference dereference() const noexcept {
+                return *m_it;
             }
 
-            [[nodiscard]] bool is_compatible_with(const iterator& rhs) const noexcept {
-                return m_parent == rhs.m_parent;
+            [[nodiscard]] bool equal(const iterator& other) const noexcept {
+                assert(valid());
+                assert(other.valid());
+                return m_parent == other.m_parent && m_it == other.m_it;
             }
 
-            pointer m_it{};
-            const sparse_set* m_parent{};
+            void increment() noexcept {
+                assert(valid());
+                ++m_it;
+            }
+
+            void decrement() noexcept {
+                assert(valid());
+                --m_it;
+            }
+
+            void advance(difference_type n) noexcept {
+                assert(valid());
+                m_it += n;
+            }
+
+            [[nodiscard]] difference_type 
+            distance_to(const iterator& other) const noexcept {
+                assert(valid());
+                assert(compatible_with(other));
+                return other.m_it - m_it;
+            }
+
+            [[nodiscard]] bool valid() const noexcept {
+                return m_parent != nullptr && m_it != nullptr;
+            }
+
+            [[nodiscard]] bool 
+            compatible_with(const iterator& other) const noexcept {
+                return m_parent == other.m_parent;
+            }
+
+            const_pointer m_it{nullptr};
+            const sparse_set* m_parent{nullptr};
         };
 
         using const_iterator         = iterator;
@@ -266,7 +213,7 @@ namespace detail
 
     private:
 
-        static constexpr size_type block_size = 65536;
+        static constexpr size_type block_size = 4096;
 
         // The number of elements stored in the set
         // The value may or may not be equivalent to 
@@ -277,10 +224,6 @@ namespace detail
         std::vector<value_type> m_packed{};
 
         // Collection of arrays
-        // Each array contains 2^16 entries which
-        // serve as pointers into the packed vector
-        // By storing arrays instead of actual values,
-        // we can save on space
         std::vector<std::unique_ptr<uint32_t[]>> m_sparse{};
 
     };
