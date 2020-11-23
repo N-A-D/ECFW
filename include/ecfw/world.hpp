@@ -438,7 +438,7 @@ namespace detail
          * @return Reference to the constructed component.
          */
         template <typename T, typename... Args>
-        [[maybe_unused]] T& assign(uint64_t eid, Args&&... args) {
+        [[maybe_unused]] decltype(auto) assign(uint64_t eid, Args&&... args) {
             static_assert(std::is_default_constructible_v<T>);
 
             static_assert(dtl::is_movable_v<T>);
@@ -547,7 +547,8 @@ namespace detail
          * @return A reference to the newly constructed component.
          */
         template <typename T, typename... Args>
-        [[maybe_unused]] T& assign_or_replace(uint64_t eid, Args&&... args) {
+        [[maybe_unused]] decltype(auto) 
+        assign_or_replace(uint64_t eid, Args&&... args) {
             assert(valid(eid) && "The entity does not belong to *this.");
             if (!has<T>(eid)) {
                 return assign<T>(eid, std::forward<Args>(args)...);
@@ -581,9 +582,13 @@ namespace detail
                     return std::as_const(*this).template get<T>(eid);
                 }
                 else {
-                    return const_cast<T&>(
-                        std::as_const(*this)
-                            .template get<std::add_const_t<T>>(eid));
+                    assert(has<T>(eid));
+                    auto type_position = 
+                        m_type_positions.at(dtl::type_index<T>());
+                    using buffer_type = std::vector<std::decay_t<T>>&;
+                    auto& buffer = 
+                        std::any_cast<buffer_type>(m_buffers[type_position]);
+                    return buffer[dtl::index_from_entity(eid)];
                 }
             }
             else {
@@ -675,7 +680,7 @@ namespace detail
         }
 
         /**
-         * @brief Returns the number of constructed elements of the given type.
+         * @brief Returns the number of in-use elements of the given type.
          * 
          * @tparam T Component type of the component vector.
          * @return The number of elements in the compnent vector.
@@ -684,14 +689,11 @@ namespace detail
         [[nodiscard]] constexpr size_t size() const {
             assert(contains<T>());
             auto type_position = m_type_positions.at(dtl::type_index<T>());
-            using buffer_type = const std::vector<T>&;
-            const auto& buffer = 
-                std::any_cast<buffer_type>(m_buffers[type_position]);
-            return buffer.size();
+            return m_metabuffers[type_position].count();
         }
 
         /**
-         * @brief Checks if there are any constructed elements of the given type.
+         * @brief Checks if there are any in-use elements of the given type.
          * 
          * @tparam T Component type of the component vector.
          * @return true if the component vector is empty.
@@ -701,10 +703,7 @@ namespace detail
         [[nodiscard]] bool empty() const {
             assert(contains<T>());
             auto type_position = m_type_positions.at(dtl::type_index<T>());
-            using buffer_type = const std::vector<T>&;
-            const auto& buffer = 
-                std::any_cast<buffer_type>(m_buffers[type_position]);
-            return buffer.empty();
+            return m_metabuffers[type_position].none();
         }
 
         /**
