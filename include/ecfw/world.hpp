@@ -126,8 +126,8 @@ namespace detail
             typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
         >
         [[maybe_unused]] OutIt create(OutIt out, size_t n) {
-            auto generator = [this](){ return create<Ts...>(); };
-            return std::generate_n(out, n, generator);
+            auto generate_entity = [this](){ return create<Ts...>(); };
+            return std::generate_n(out, n, generate_entity);
         }
 
         /**
@@ -145,8 +145,8 @@ namespace detail
             typename = std::enable_if_t<dtl::is_iterator_v<FwdIt>>
         >
         void create(FwdIt first, FwdIt last) {
-            auto generator = [this](){ return create<Ts...>(); };
-            std::generate(first, last, generator);
+            auto generate_entity = [this](){ return create<Ts...>(); };
+            std::generate(first, last, generate_entity);
         }
 
         /**
@@ -207,9 +207,9 @@ namespace detail
             typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
         >
         [[maybe_unused]] OutIt clone(uint64_t original, OutIt out, size_t n) {
-            auto generator = 
+            auto generate_clone = 
                 [this, original](){ return clone<T, Ts...>(original); };
-            return std::generate_n(out, n, generator);
+            return std::generate_n(out, n, generate_clone);
         }
 
         /**
@@ -229,9 +229,9 @@ namespace detail
             typename = std::enable_if_t<dtl::is_iterator_v<FwdIt>>
         > 
         void clone(uint64_t original, FwdIt first, FwdIt last) {
-            auto generator = 
+            auto generate_clone = 
                 [this, original](){ return clone<T, Ts...>(original); };
-            std::generate(first, last, generator);
+            std::generate(first, last, generate_clone);
         }
 
         /**
@@ -244,8 +244,7 @@ namespace detail
         [[nodiscard]] bool valid(uint64_t eid) const {
             auto idx = dtl::index_from_entity(eid);
             auto ver = dtl::version_from_entity(eid);
-            return idx < m_versions.size()
-                && m_versions[idx] == ver;
+            return idx < m_versions.size() && m_versions[idx] == ver;
         }
 
         /**
@@ -263,8 +262,8 @@ namespace detail
             typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
         >
         [[nodiscard]] bool valid(InIt first, InIt last) const {
-            auto unary_predicate = [this](auto e) { return valid(e); };
-            return std::all_of(first, last, unary_predicate);
+            auto is_valid = [this](auto e) { return valid(e); };
+            return std::all_of(first, last, is_valid);
         }
 
         /**
@@ -300,8 +299,8 @@ namespace detail
             typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
         >
         void destroy(InIt first, InIt last) {
-            auto unary_function = [this](auto e){ destroy(e); };
-            std::for_each(first, last, unary_function);
+            auto destroy_entity = [this](auto e){ destroy(e); };
+            std::for_each(first, last, destroy_entity);
         }
         
         /**
@@ -338,8 +337,8 @@ namespace detail
             typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
         > 
         void orphan(InIt first, InIt last) {
-            auto unary_function = [this](auto e) { orphan(e); };
-            std::for_each(first, last, unary_function);
+            auto orphan_entity = [this](auto e) { orphan(e); };
+            std::for_each(first, last, orphan_entity);
         }
 
         /**
@@ -424,8 +423,8 @@ namespace detail
             typename InIt,
             typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
         > void remove(InIt first, InIt last) {
-            auto unary_function = [this](auto e){ remove<T, Ts...>(e); };
-            std::for_each(first, last, unary_function);
+            auto remove_components = [this](auto e){ remove<T, Ts...>(e); };
+            std::for_each(first, last, remove_components);
         }
 
         /**
@@ -530,9 +529,9 @@ namespace detail
             // Check for duplicate component types
             static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
 
-            auto unary_function = 
+            auto assign_components = 
                 [this](auto e){ (assign<T>(e), ..., assign<Ts>(e)); };
-            std::for_each(first, last, unary_function);
+            std::for_each(first, last, assign_components);
         }
 
         /**
@@ -652,12 +651,12 @@ namespace detail
          */
         template <typename T, typename... Ts>
         [[nodiscard]] size_t count() const { // rename to count
-            auto unary_predicate = [i = 0,this](auto v) mutable { 
+            auto has_components = [i = 0,this](auto v) mutable { 
                 auto entity = dtl::make_entity(v, i++);
                 return has<T, Ts...>(entity); 
             };
             auto ret = std::count_if(
-                m_versions.begin(), m_versions.end(), unary_predicate);
+                m_versions.begin(), m_versions.end(), has_components);
             return static_cast<size_t>(ret);
         }
 
