@@ -682,7 +682,7 @@ namespace ecfw
          * @return The number of elements in the compnent vector.
          */
         template <typename T>
-        [[nodiscard]] constexpr size_t size() const {
+        [[nodiscard]] size_t size() const {
             assert(contains<T>());
             auto buffer_index = m_buffer_indices.at(dtl::type_index<T>());
             return m_metabuffers[buffer_index].count();
