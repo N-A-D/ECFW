@@ -477,7 +477,7 @@ namespace ecfw
                     // Check if there is a set bit in the metabuffer at
                     // the entity's index.
                     if (idx >= m_metabuffers[i].size()
-                            || m_metabuffers[i].test(idx))
+                            || !m_metabuffers[i].test(idx))
                     {
                         has_all = false;
                         break;
