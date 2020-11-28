@@ -324,7 +324,7 @@ namespace ecfw
          * @param eid The entity to fetch for.
          * @return Reference to the component. 
          */
-        [[nodiscard]] T& get(uint64_t eid) const {
+        [[nodiscard]] decltype(auto) get(uint64_t eid) const {
             assert(contains(eid));
             auto idx = dtl::index_from_entity(eid);
             return (*m_buffer)[idx];
