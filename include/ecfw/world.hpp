@@ -19,15 +19,6 @@
 
 namespace ecfw 
 {
-namespace detail
-{
-    template <typename Block, typename Allocator>
-    bool contains(
-        const boost::dynamic_bitset<Block, Allocator>& bitset, size_t position)
-    {
-        return position < bitset.size() && bitset.test(position);
-    }
-}
 
     /**
      * @brief Entity manager.
@@ -315,7 +306,7 @@ namespace detail
 
             // Remove all components.
             for (auto& metabuffer : m_metabuffers) {
-                if (dtl::contains(metabuffer, idx))
+                if (idx < metabuffer.size() && metabuffer.test(idx))
                     metabuffer.reset(idx);
             }
 
@@ -361,10 +352,10 @@ namespace detail
                 // unmanaged by this.
                 if (!valid(eid) || !contains<T>())
                     return false;
-                auto type_position = m_type_positions.at(dtl::type_index<T>());
+                auto buffer_index = m_buffer_indices.at(dtl::type_index<T>());
                 auto idx = dtl::index_from_entity(eid);
-                const auto& metabuffer = m_metabuffers[type_position];
-                return dtl::contains(metabuffer, idx);
+                const auto& metabuffer = m_metabuffers[buffer_index];
+                return idx < metabuffer.size() && metabuffer.test(idx);
             }
             else {
                 // Check for duplicate component types
@@ -386,17 +377,18 @@ namespace detail
                 assert(valid(eid));
                 assert(has<T>(eid));
 
-                auto type_position = m_type_positions.at(dtl::type_index<T>());
+                auto buffer_index = m_buffer_indices.at(dtl::type_index<T>());
 
                 // Disable the component for the entity.
-                auto& metabuffer = m_metabuffers[type_position];
+                auto& metabuffer = m_metabuffers[buffer_index];
                 metabuffer.reset(dtl::index_from_entity(eid));
 
                 // Remove the entity from all groups for which it no longer 
                 // shares a common set of components. The search for newly
                 // nonapplicable groups is limited by the remove component.
                 for (auto& [filter, group] : m_groups)
-                    if (dtl::contains(filter, type_position))
+                    if (buffer_index < filter.size() 
+                            && filter.test(buffer_index))
                         group.erase(eid);
             }
             else {
@@ -422,7 +414,8 @@ namespace detail
             typename... Ts,
             typename InIt,
             typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
-        > void remove(InIt first, InIt last) {
+        > 
+        void remove(InIt first, InIt last) {
             auto remove_components = [this](auto e){ remove<T, Ts...>(e); };
             std::for_each(first, last, remove_components);
         }
@@ -447,13 +440,13 @@ namespace detail
                 "The entity already has the component.");
 
             // Retreive the index to the component's buffers.
-            auto type_position = accommodate<T>();
+            auto buffer_index = accommodate<T>();
 
             // Retreive the entity's index to the component's buffers.
             auto idx = dtl::index_from_entity(eid);
 
             // Retrieve the component metabuffer for the given type.
-            auto& metabuffer = m_metabuffers[type_position];
+            auto& metabuffer = m_metabuffers[buffer_index];
 
             // Ensure there exists component metadata for the entity.
             if (idx >= metabuffer.size())
@@ -470,7 +463,8 @@ namespace detail
                 if (group.contains(eid))
                     continue;
                 // Skip groups which do not include the new component.
-                if (!dtl::contains(filter, type_position))
+                if (buffer_index >= filter.size()
+                        || !filter.test(buffer_index))
                     continue;
 
                 // In order to check if an entity belongs to a group
@@ -482,7 +476,9 @@ namespace detail
                 for (; i < filter.size(); i = filter.find_next(i)) {
                     // Check if there is a set bit in the metabuffer at
                     // the entity's index.
-                    if (!dtl::contains(m_metabuffers[i], idx)) {
+                    if (idx >= m_metabuffers[i].size()
+                            || m_metabuffers[i].test(idx))
+                    {
                         has_all = false;
                         break;
                     }
@@ -493,7 +489,7 @@ namespace detail
 
             // Retrieve the component buffer for the given type.
             auto& buffer = 
-                std::any_cast<std::vector<T>&>(m_buffers[type_position]);
+                std::any_cast<std::vector<T>&>(m_buffers[buffer_index]);
 
             // Ensure there physically exists memory for the new component
             if (idx >= buffer.size())
@@ -525,7 +521,8 @@ namespace detail
             typename... Ts,
             typename InIt,
             typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
-        > void assign(InIt first, InIt last) {
+        > 
+        void assign(InIt first, InIt last) {
             // Check for duplicate component types
             static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
 
@@ -582,11 +579,11 @@ namespace detail
                 }
                 else {
                     assert(has<T>(eid));
-                    auto type_position = 
-                        m_type_positions.at(dtl::type_index<T>());
+                    auto buffer_index = 
+                        m_buffer_indices.at(dtl::type_index<T>());
                     using buffer_type = std::vector<std::decay_t<T>>&;
                     auto& buffer = 
-                        std::any_cast<buffer_type>(m_buffers[type_position]);
+                        std::any_cast<buffer_type>(m_buffers[buffer_index]);
                     return buffer[dtl::index_from_entity(eid)];
                 }
             }
@@ -602,10 +599,10 @@ namespace detail
             if constexpr (sizeof...(Ts) == 0) {
                 static_assert(std::is_const_v<T>);
                 assert(has<T>(eid));
-                auto type_position = m_type_positions.at(dtl::type_index<T>());
+                auto buffer_index = m_buffer_indices.at(dtl::type_index<T>());
                 using buffer_type = const std::vector<std::decay_t<T>>&;
                 const auto& buffer = 
-                    std::any_cast<buffer_type>(m_buffers[type_position]);
+                    std::any_cast<buffer_type>(m_buffers[buffer_index]);
                 return buffer[dtl::index_from_entity(eid)];
             }
             else {
@@ -671,10 +668,10 @@ namespace detail
         template <typename T>
         [[nodiscard]] size_t max_size() const {
             assert(contains<T>());
-            auto type_position = m_type_positions.at(dtl::type_index<T>());
+            auto buffer_index = m_buffer_indices.at(dtl::type_index<T>());
             using buffer_type = const std::vector<T>&;
             const auto& buffer = 
-                std::any_cast<buffer_type>(m_buffers[type_position]);
+                std::any_cast<buffer_type>(m_buffers[buffer_index]);
             return buffer.max_size();
         }
 
@@ -687,8 +684,8 @@ namespace detail
         template <typename T>
         [[nodiscard]] constexpr size_t size() const {
             assert(contains<T>());
-            auto type_position = m_type_positions.at(dtl::type_index<T>());
-            return m_metabuffers[type_position].count();
+            auto buffer_index = m_buffer_indices.at(dtl::type_index<T>());
+            return m_metabuffers[buffer_index].count();
         }
 
         /**
@@ -701,8 +698,8 @@ namespace detail
         template <typename T>
         [[nodiscard]] bool empty() const {
             assert(contains<T>());
-            auto type_position = m_type_positions.at(dtl::type_index<T>());
-            return m_metabuffers[type_position].none();
+            auto buffer_index = m_buffer_indices.at(dtl::type_index<T>());
+            return m_metabuffers[buffer_index].none();
         }
 
         /**
@@ -715,10 +712,10 @@ namespace detail
         template <typename T>
         [[nodiscard]] size_t capacity() const {
             assert(contains<T>());
-            auto type_position = m_type_positions.at(dtl::type_index<T>());
+            auto buffer_index = m_buffer_indices.at(dtl::type_index<T>());
             using buffer_type = const std::vector<T>&;
             const auto& buffer = 
-                std::any_cast<buffer_type>(m_buffers[type_position]);
+                std::any_cast<buffer_type>(m_buffers[buffer_index]);
             return buffer.capacity();
         }
 
@@ -729,23 +726,20 @@ namespace detail
          * @tparam T The first component type to remove unused capacity for.
          * @tparam Ts The other component types to remove unused capacity for.
          */
-        template <
-            typename T,
-            typename... Ts
-        >
+        template <typename T, typename... Ts>
         void shrink_to_fit() {
             if constexpr (sizeof...(Ts) == 0) {
                 assert(contains<T>());
-                auto type_position = m_type_positions.at(dtl::type_index<T>());
+                auto buffer_index = m_buffer_indices.at(dtl::type_index<T>());
                 // Request removal of unused capacity from the component
                 // buffer.
                 using buffer_type = std::vector<T>&;
                 auto& buffer = 
-                    std::any_cast<buffer_type>(m_buffers[type_position]);
+                    std::any_cast<buffer_type>(m_buffers[buffer_index]);
                 buffer.shrink_to_fit();
                 // Request removal of unused capacity from the component 
                 // meta buffer.
-                auto& metabuffer = m_metabuffers[type_position];
+                auto& metabuffer = m_metabuffers[buffer_index];
                 metabuffer.shrink_to_fit();
             }
             else {
@@ -761,20 +755,17 @@ namespace detail
          * @tparam Ts The other component types to reserve space for.
          * @param n The number of components to allocate space for.
          */
-        template <
-            typename T,
-            typename... Ts
-        >
+        template <typename T, typename... Ts>
         void reserve(size_t n) {
             if constexpr (sizeof...(Ts) == 0) {
-                auto type_position = accommodate<T>();
+                auto buffer_index = accommodate<T>();
                 // Reserve memory in the compnent buffer.
                 using buffer_type = std::vector<T>&;
                 auto& buffer = 
-                    std::any_cast<buffer_type>(m_buffers[type_position]);
+                    std::any_cast<buffer_type>(m_buffers[buffer_index]);
                 buffer.reserve(n);
                 // Reserve memory in the component metabuffer.
-                auto& metabuffer = m_metabuffers[type_position];
+                auto& metabuffer = m_metabuffers[buffer_index];
                 metabuffer.reserve(n);
             }
             else {
@@ -795,8 +786,8 @@ namespace detail
         [[nodiscard]] bool contains() const {
             if constexpr (sizeof...(Ts) == 0) {
                 auto type_index = dtl::type_index<T>();
-                auto iterator = m_type_positions.find(type_index);
-                return iterator != m_type_positions.end();
+                auto iterator = m_buffer_indices.find(type_index);
+                return iterator != m_buffer_indices.end();
             }
             else {
                 static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
@@ -810,7 +801,7 @@ namespace detail
          * @return The number of managed types.
          */
         [[nodiscard]] size_t num_contained_types() const noexcept {
-            return static_cast<size_t>(m_type_positions.size());
+            return static_cast<size_t>(m_buffer_indices.size());
         }
 
         /**
@@ -827,7 +818,7 @@ namespace detail
             // Check for duplicate component types
             static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
 
-            auto type_positions = 
+            auto buffer_indices = 
                 std::make_tuple(accommodate<T>(), accommodate<Ts>()...);
 
             auto make_view = [this](auto t, auto... ts) {
@@ -838,7 +829,7 @@ namespace detail
                     std::any_cast<dtl::buffer_type<Ts>&>(m_buffers[ts])...
                 };
             };
-            return std::apply(make_view, type_positions);
+            return std::apply(make_view, buffer_indices);
         }
 
     private:
@@ -847,42 +838,42 @@ namespace detail
         template <typename T>
         [[nodiscard]] size_t accommodate() {
             auto type_index = dtl::type_index<T>();
-            auto iterator = m_type_positions.find(type_index);
-            if (iterator == m_type_positions.end()) {
+            auto iterator = m_buffer_indices.find(type_index);
+            if (iterator == m_buffer_indices.end()) {
                 // Map the new type to an index into both m_buffers and 
                 // m_metabuffers. This index also serves as a bit position
                 // in group identifying bitsets
-                size_t type_position = 
-                    static_cast<size_t>(m_type_positions.size());
-                m_type_positions.emplace(type_index, type_position);
+                size_t buffer_index = 
+                    static_cast<size_t>(m_buffer_indices.size());
+                m_buffer_indices.emplace(type_index, buffer_index);
                 m_buffers.emplace_back(
                     std::make_any<std::vector<std::decay_t<T>>>());
                 m_metabuffers.emplace_back();
-                assert(m_type_positions.size() == m_buffers.size());
-                assert(m_type_positions.size() == m_metabuffers.size());
-                return type_position;
+                assert(m_buffer_indices.size() == m_buffers.size());
+                assert(m_buffer_indices.size() == m_metabuffers.size());
+                return buffer_index;
             }
             return iterator->second;
         }
         
         [[nodiscard]] const dtl::sparse_set& 
-        group_by(const std::initializer_list<size_t>& type_positions) {
+        group_by(const std::initializer_list<size_t>& buffer_indices) {
             // Find the largest type position. Size of the group id is +1.
-            size_t largest_type_position = std::max(type_positions);
+            size_t largest_buffer_index = std::max(buffer_indices);
 
             // Ensure we're not working with any unknown components.
             // Type indices are created in sequential order upon 
             // discovery by any world either by assignment, view
             // creation, or storage reservation.
-            assert(largest_type_position < m_type_positions.size());
-            assert(largest_type_position < m_metabuffers.size());
-            assert(largest_type_position < m_buffers.size());
+            assert(largest_buffer_index < m_buffer_indices.size());
+            assert(largest_buffer_index < m_metabuffers.size());
+            assert(largest_buffer_index < m_buffers.size());
 
             // Build the filter in order to find an existing 
             // group or to create one.
-            boost::dynamic_bitset<> filter(largest_type_position + 1);
-            for (auto type_position : type_positions)
-                filter.set(type_position);
+            boost::dynamic_bitset<> filter(largest_buffer_index + 1);
+            for (auto buffer_index : buffer_indices)
+                filter.set(buffer_index);
 
             // Check if there exists a group identified by our filter.
             // If so, return it to the caller.
@@ -895,9 +886,11 @@ namespace detail
             uint32_t index = 0;
             for (auto version : m_versions) {
                 bool has_all = true;
-                for (auto type_position : type_positions) {
-                    const auto& metabuffer = m_metabuffers[type_position];
-                    if (!dtl::contains(metabuffer, index)) {
+                for (auto buffer_index : buffer_indices) {
+                    const auto& metabuffer = m_metabuffers[buffer_index];
+                    if (index >= metabuffer.size() 
+                            || !metabuffer.test(index))
+                    {
                         has_all = false;
                         break;
                     }
@@ -919,7 +912,7 @@ namespace detail
         std::vector<uint32_t> m_versions{};
 
         // A map from type to valid indices within m_buffers and m_metabuffers.
-        std::unordered_map<std::type_index, size_t> m_type_positions{};
+        std::unordered_map<std::type_index, size_t> m_buffer_indices{};
 
         // Component metabuffer; one bitset for each component type. 
         // A bitset is only allocated for a component when it's first 
