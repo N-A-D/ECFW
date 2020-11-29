@@ -5,10 +5,12 @@
 #include <stack>
 #include <vector>
 #include <cassert>
+#include <concepts>
 #include <algorithm>
 #include <type_traits>
 #include <unordered_map>
 #include <boost/dynamic_bitset.hpp>
+#include <boost/range/adaptor/indexed.hpp>
 #include <ecfw/view.hpp>
 #include <ecfw/detail/buffer.hpp>
 #include <ecfw/detail/entity.hpp>
@@ -59,6 +61,7 @@ namespace ecfw
          * @return An entity identifier.
          */
         template <typename... Ts>
+            requires (std::default_initializable<Ts> && ...)
         [[nodiscard]] uint64_t create() {
             // Check for duplicate component types
             static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
@@ -97,6 +100,8 @@ namespace ecfw
          * @param n The number of entities to create.
          */
         template <typename T, typename... Ts>
+            requires (std::default_initializable<T> 
+                && ... && std::default_initializable<Ts>)
         void create(size_t n) {
             for (size_t i = 0; i < n; ++i)
                 (void)create<T, Ts...>();
@@ -111,11 +116,10 @@ namespace ecfw
          * @param out An output iterator.
          * @param n The number of entities to construct.
          */
-        template <
-            typename... Ts, 
-            typename OutIt, 
-            typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
-        >
+        template <typename... Ts, typename OutIt>
+            requires (std::default_initializable<Ts> && ...)
+                && std::output_iterator<OutIt, uint64_t>
+                && std::same_as<std::iter_value_t<OutIt>, uint64_t>
         [[maybe_unused]] OutIt create(OutIt out, size_t n) {
             auto generate_entity = [this](){ return create<Ts...>(); };
             return std::generate_n(out, n, generate_entity);
@@ -130,11 +134,10 @@ namespace ecfw
          * @param first Beginning of the range of elements to generate.
          * @param last One-past the end of the range of elements to generate.
          */
-        template <
-            typename... Ts,
-            typename FwdIt,
-            typename = std::enable_if_t<dtl::is_iterator_v<FwdIt>>
-        >
+        template <typename... Ts, typename FwdIt>
+            requires (std::default_initializable<Ts> && ...)
+                && std::forward_iterator<FwdIt>
+                && std::same_as<std::iter_value_t<FwdIt>, uint64_t>
         void create(FwdIt first, FwdIt last) {
             auto generate_entity = [this](){ return create<Ts...>(); };
             std::generate(first, last, generate_entity);
@@ -149,17 +152,10 @@ namespace ecfw
          * @return An entity identiter.
          */
         template <typename T,typename... Ts>
+            requires (std::copyable<T> && ... && std::copyable<Ts>)
         [[nodiscard]] uint64_t clone(uint64_t original) {
             // Check for duplicate component types.
             static_assert(dtl::is_unique(dtl::type_list_v<T, Ts...>));
-
-            static_assert(
-                std::conjunction_v<
-                    dtl::is_copyable<T>, 
-                    dtl::is_copyable<Ts>...
-                >
-            );
-
             uint64_t entity = create();
             (assign<T>(entity, get<T>(original)), 
                 ..., assign<Ts>(entity, get<Ts>(original)));
@@ -174,7 +170,8 @@ namespace ecfw
          * @param original The entity to copy from.
          * @param n The number of clones to create.
          */
-        template <typename T,typename... Ts> 
+        template <typename T,typename... Ts>
+            requires (std::copyable<T> && ... && std::copyable<Ts>)
         void clone(uint64_t original, size_t n) {
             for (size_t i = 0; i < n; ++i)
                 (void)clone<T, Ts...>(original);
@@ -191,12 +188,10 @@ namespace ecfw
          * @param out An output iterator type.
          * @param n The number of entities to construct.
          */
-        template <
-            typename T,
-            typename... Ts, 
-            typename OutIt, 
-            typename = std::enable_if_t<dtl::is_iterator_v<OutIt>>
-        >
+        template <typename T, typename... Ts, typename OutIt>
+            requires (std::copyable<T> && ... && std::copyable<Ts>)
+                && std::output_iterator<OutIt, uint64_t>
+                && std::same_as<std::iter_value_t<OutIt>, uint64_t>
         [[maybe_unused]] OutIt clone(uint64_t original, OutIt out, size_t n) {
             auto generate_clone = 
                 [this, original](){ return clone<T, Ts...>(original); };
@@ -213,12 +208,10 @@ namespace ecfw
          * @param first Beginning of the range of elements to generate.
          * @param last One-past the end of the range of elements to generate.
          */
-        template <
-            typename T,
-            typename... Ts,
-            typename FwdIt,
-            typename = std::enable_if_t<dtl::is_iterator_v<FwdIt>>
-        > 
+        template <typename T, typename... Ts, typename FwdIt>
+            requires (std::copyable<T> && ... && std::copyable<Ts>)
+                && std::forward_iterator<FwdIt>
+                && std::same_as<std::iter_value_t<FwdIt>, uint64_t>
         void clone(uint64_t original, FwdIt first, FwdIt last) {
             auto generate_clone = 
                 [this, original](){ return clone<T, Ts...>(original); };
@@ -248,10 +241,9 @@ namespace ecfw
          * @return false If there exists one or more elements which do not
          * belong to this
          */
-        template <
-            typename InIt, 
-            typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
-        >
+        template <typename InIt>
+            requires std::input_iterator<InIt>
+                && std::same_as<std::iter_value_t<InIt>, uint64_t>
         [[nodiscard]] bool valid(InIt first, InIt last) const {
             auto is_valid = [this](auto e) { return valid(e); };
             return std::all_of(first, last, is_valid);
@@ -285,10 +277,9 @@ namespace ecfw
          * @param first An iterator to the beginning of a range.
          * @param last An iterator to one-past the end of a range.
          */
-        template <
-            typename InIt, 
-            typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
-        >
+        template <typename InIt>
+            requires std::input_iterator<InIt>
+                && std::same_as<std::iter_value_t<InIt>, uint64_t>
         void destroy(InIt first, InIt last) {
             auto destroy_entity = [this](auto e){ destroy(e); };
             std::for_each(first, last, destroy_entity);
@@ -323,10 +314,9 @@ namespace ecfw
          * @param first Beginning of the range.
          * @param last One-past the end of the range.
          */
-        template <
-            typename InIt,
-            typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
-        > 
+        template <typename InIt>
+            requires std::input_iterator<InIt>
+                && std::same_as<std::iter_value_t<InIt>, uint64_t>
         void orphan(InIt first, InIt last) {
             auto orphan_entity = [this](auto e) { orphan(e); };
             std::for_each(first, last, orphan_entity);
@@ -371,7 +361,7 @@ namespace ecfw
          * @tparam Ts The other component types to remove.
          * @param eid The entity to remove from.
          */
-        template <typename T,typename... Ts>
+        template <typename T, typename... Ts>
         void remove(uint64_t eid) {
             if constexpr (sizeof...(Ts) == 0) {
                 assert(valid(eid));
@@ -409,12 +399,9 @@ namespace ecfw
          * @param last One-past the end of the range of entities to 
          * remove components from.
          */
-        template <
-            typename T,
-            typename... Ts,
-            typename InIt,
-            typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
-        > 
+        template <typename T, typename... Ts, typename InIt>
+            requires std::input_iterator<InIt>
+                && std::same_as<std::iter_value_t<InIt>, uint64_t>
         void remove(InIt first, InIt last) {
             auto remove_components = [this](auto e){ remove<T, Ts...>(e); };
             std::for_each(first, last, remove_components);
@@ -430,11 +417,8 @@ namespace ecfw
          * @return Reference to the constructed component.
          */
         template <typename T, typename... Args>
+            requires std::movable<T> && std::constructible_from<T, Args...>
         [[maybe_unused]] decltype(auto) assign(uint64_t eid, Args&&... args) {
-            static_assert(std::is_default_constructible_v<T>);
-
-            static_assert(dtl::is_movable_v<T>);
-
             assert(valid(eid) && "The entity does not belong to *this.");
             assert(!has<T>(eid) && 
                 "The entity already has the component.");
@@ -498,10 +482,8 @@ namespace ecfw
             // Construct and return the component.
             if constexpr (std::is_aggregate_v<T>)
                 buffer[idx] = T{std::forward<Args>(args)...};
-            else {
-                static_assert(std::is_constructible_v<T, Args...>);
+            else
                 buffer[idx] = T(std::forward<Args>(args)...);
-            }
             return buffer[idx];
         }
 
@@ -516,12 +498,12 @@ namespace ecfw
          * @param last One-past the end of the range of entities to 
          * assign components to.
          */
-        template <
-            typename T,
-            typename... Ts,
-            typename InIt,
-            typename = std::enable_if_t<dtl::is_iterator_v<InIt>>
-        > 
+        template <typename T, typename... Ts, typename InIt>
+            requires (std::movable<T> && ... && std::movable<Ts>)
+                && (std::default_initializable<T> 
+                        && ... && std::default_initializable<Ts>)
+                && std::input_iterator<InIt>
+                && std::same_as<std::iter_value_t<InIt>, uint64_t>
         void assign(InIt first, InIt last) {
             // Check for duplicate component types
             static_assert(dtl::is_unique(dtl::type_list_v<Ts...>));
@@ -543,8 +525,9 @@ namespace ecfw
          * @return A reference to the newly constructed component.
          */
         template <typename T, typename... Args>
-        [[maybe_unused]] decltype(auto) 
-        assign_or_replace(uint64_t eid, Args&&... args) {
+            requires std::movable<T> && std::constructible_from<T, Args...>
+        [[maybe_unused]] 
+        decltype(auto) assign_or_replace(uint64_t eid, Args&&... args) {
             assert(valid(eid) && "The entity does not belong to *this.");
             if (!has<T>(eid)) {
                 return assign<T>(eid, std::forward<Args>(args)...);
@@ -647,13 +630,13 @@ namespace ecfw
          * @return The number of entities which have the components.
          */
         template <typename T, typename... Ts>
-        [[nodiscard]] size_t count() const { // rename to count
-            auto has_components = [i = 0,this](auto v) mutable { 
-                auto entity = dtl::make_entity(v, i++);
+        [[nodiscard]] size_t count() const {
+            auto entities = m_versions | boost::adaptors::indexed();
+            auto has_components = [this](const auto& el)  { 
+                auto entity = dtl::make_entity(el.value(), el.index());
                 return has<T, Ts...>(entity); 
             };
-            auto ret = std::count_if(
-                m_versions.begin(), m_versions.end(), has_components);
+            auto ret = std::ranges::count_if(entities, has_components);
             return static_cast<size_t>(ret);
         }
 
@@ -839,7 +822,7 @@ namespace ecfw
         [[nodiscard]] size_t accommodate() {
             auto type_index = dtl::type_index<T>();
             auto iterator = m_buffer_indices.find(type_index);
-            if (iterator == m_buffer_indices.end()) {
+            if (iterator == m_buffer_indices.end()) [[unlikely]] {
                 // Map the new type to an index into both m_buffers and 
                 // m_metabuffers. This index also serves as a bit position
                 // in group identifying bitsets
@@ -878,7 +861,7 @@ namespace ecfw
             // Check if there exists a group identified by our filter.
             // If so, return it to the caller.
             auto it = m_groups.find(filter);
-            if (it != m_groups.end())
+            if (it != m_groups.end()) [[likely]]
                 return it->second;
 
             // Build the initial group of entities.
