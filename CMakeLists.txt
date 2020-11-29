@@ -18,7 +18,7 @@ target_include_directories(
     $<INSTALL_INTERFACE:include>
 )
 
-find_package(Boost 1.73.0 REQUIRED)
+find_package(Boost 1.74.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} INTERFACE Boost::headers)
 cmake_policy(SET CMP0074 NEW)
 
