@@ -30,7 +30,6 @@ package_add_test(detail_entity ${DETAIL_SOURCE_DIR}/entity.cpp)
 package_add_test(detail_sparse_set ${DETAIL_SOURCE_DIR}/sparse_set.cpp)
 package_add_test(detail_type_index ${DETAIL_SOURCE_DIR}/type_index.cpp)
 package_add_test(detail_type_list ${DETAIL_SOURCE_DIR}/type_list.cpp)
-package_add_test(detail_type_traits ${DETAIL_SOURCE_DIR}/type_traits.cpp)
 
 set(WORLD_SOURCE_DIR ${TEST_SOURCE_DIR}/world)
 package_add_test(world_create ${WORLD_SOURCE_DIR}/create.cpp)
