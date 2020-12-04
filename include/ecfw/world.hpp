@@ -16,7 +16,6 @@
 #include <ecfw/detail/entity.hpp>
 #include <ecfw/detail/sparse_set.hpp>
 #include <ecfw/detail/type_index.hpp>
-#include <ecfw/detail/type_traits.hpp>
 #include <ecfw/detail/type_list.hpp>
 
 namespace ecfw 
