@@ -12,7 +12,7 @@ namespace ecfw
 namespace detail
 {
 
-    class sparse_set {
+    class sparse_set final {
     public:
 
         using difference_type = ptrdiff_t;
@@ -23,8 +23,8 @@ namespace detail
         using const_pointer   = const value_type*;
         using pointer         = const_pointer;
         
-        struct iterator 
-            : boost::iterator_facade<
+        struct iterator final
+            : public boost::iterator_facade<
                 iterator, 
                 const value_type, 
                 std::random_access_iterator_tag, 
@@ -100,7 +100,7 @@ namespace detail
         {}
 
         sparse_set& operator=(sparse_set&& rhs) noexcept {
-            if (this != std::addressof(rhs)) {
+            if (this != std::addressof(rhs)) [[likely]] {
                 m_size = std::exchange(rhs.m_size, 0);
                 m_packed = std::move(rhs.m_packed);
                 m_sparse = std::move(rhs.m_sparse);
