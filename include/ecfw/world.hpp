@@ -640,7 +640,7 @@ namespace ecfw
         }
 
         /**
-         * @brief Returns the number of in-use elements of the given type.
+         * @brief Returns the number of elements allocated for a given type.
          * 
          * @tparam T Component type of the component vector.
          * @return The number of elements in the compnent vector.
@@ -649,11 +649,14 @@ namespace ecfw
         [[nodiscard]] size_t size() const {
             assert(contains<T>());
             auto buffer_index = m_buffer_indices.at(dtl::type_index<T>());
-            return m_metabuffers[buffer_index].count();
+            using buffer_type = const std::vector<T>&;
+            const auto& buffer = 
+                std::any_cast<buffer_type>(m_buffers[buffer_index]);
+            return buffer.size();
         }
 
         /**
-         * @brief Checks if there are any in-use elements of the given type.
+         * @brief Checks if there are any elements allocated for a given type.
          * 
          * @tparam T Component type of the component vector.
          * @return true if the component vector is empty.
@@ -663,7 +666,10 @@ namespace ecfw
         [[nodiscard]] bool empty() const {
             assert(contains<T>());
             auto buffer_index = m_buffer_indices.at(dtl::type_index<T>());
-            return m_metabuffers[buffer_index].none();
+            using buffer_type = const std::vector<T>&;
+            const auto& buffer = 
+                std::any_cast<buffer_type>(m_buffers[buffer_index]);
+            return buffer.empty();
         }
 
         /**

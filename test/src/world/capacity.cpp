@@ -12,7 +12,9 @@ TEST(world, size)
 
     world.orphan(entity);
 
-    ASSERT_EQ(world.size<int>(), 0);
+    // While the entity no longer has the component, the component itself is
+    // not deallocated and remains to be reused.
+    ASSERT_EQ(world.size<int>(), 1);
 }
 
 TEST(world, empty)
@@ -25,7 +27,9 @@ TEST(world, empty)
 
     world.orphan(entity);
 
-    ASSERT_TRUE(world.empty<int>());
+    // While the entity no longer has the component, the component itself is
+    // not deallocated and remains to be reused.
+    ASSERT_FALSE(world.empty<int>());
 }
 
 TEST(world, shrink_to_fit)
