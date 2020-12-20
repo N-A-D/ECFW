@@ -2,17 +2,6 @@
 #include <gtest/gtest.h>
 #include <ecfw/world.hpp>
 
-TEST(world, max_size)
-{
-    ecfw::world world{};
-    
-    // We need to create entity here because the world
-    // does not yet have vector storage for type int
-    (void) world.create<int>();
-
-    ASSERT_EQ(world.max_size<int>(), std::vector<int>{}.max_size());
-}
-
 TEST(world, size)
 {
     ecfw::world world{};

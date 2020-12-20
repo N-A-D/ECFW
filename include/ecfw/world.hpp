@@ -640,24 +640,6 @@ namespace ecfw
         }
 
         /**
-         * @brief Returns the maximum number of elements of the given type that
-         * *this is able to hold due to system or library implementation 
-         * limitations.
-         * 
-         * @tparam T Component type to check.
-         * @return The maximum number of elements.
-         */
-        template <typename T>
-        [[nodiscard]] size_t max_size() const {
-            assert(contains<T>());
-            auto buffer_index = m_buffer_indices.at(dtl::type_index<T>());
-            using buffer_type = const std::vector<T>&;
-            const auto& buffer = 
-                std::any_cast<buffer_type>(m_buffers[buffer_index]);
-            return buffer.max_size();
-        }
-
-        /**
          * @brief Returns the number of in-use elements of the given type.
          * 
          * @tparam T Component type of the component vector.
