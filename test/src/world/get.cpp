@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <ecfw/world.hpp>
+#include <boost/container/vector.hpp>
 
 TEST(world, get)
 {
@@ -9,4 +10,9 @@ TEST(world, get)
 
     ASSERT_EQ(world.get<int>(entity), 0);
     ASSERT_FALSE((world.get<bool>(entity)));
+
+    auto [i, b] = world.get<int, bool>(entity);
+
+    ASSERT_EQ(i, 0);
+    ASSERT_FALSE(b);
 }

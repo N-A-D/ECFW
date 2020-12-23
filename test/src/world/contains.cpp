@@ -26,6 +26,7 @@ TEST(world, uniqueness_between_worlds)
 
     ASSERT_TRUE(w0.contains<int>());
     ASSERT_TRUE(w0.contains<char>());
+    ASSERT_TRUE((w0.contains<int, char>()));
 
     ASSERT_EQ(w0.num_contained_types(), 2);
 
@@ -33,5 +34,6 @@ TEST(world, uniqueness_between_worlds)
     
     ASSERT_FALSE(w1.contains<int>());
     ASSERT_FALSE(w1.contains<char>());
+    ASSERT_FALSE((w1.contains<int, char>()));
     ASSERT_EQ(w1.num_contained_types(), 0);
 }
