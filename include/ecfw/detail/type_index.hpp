@@ -1,18 +1,26 @@
 #pragma once
 
-#include <typeinfo>
-#include <typeindex>
-#include <type_traits>
+#include <cstddef>
+#include <functional>
+#include <boost/type_index/ctti_type_index.hpp>
 
 namespace ecfw
 {
 namespace detail
 {
 
-    template <typename T>
-    std::type_index type_index() noexcept {
-        return std::type_index{typeid(std::decay_t<T>)};
-    }
+    using type_index = boost::typeindex::ctti_type_index;
 
 } // namespace detail
-} // namespace 
+} // namespace ecfw
+
+namespace std
+{
+    template <>
+    struct hash<boost::typeindex::ctti_type_index> {
+        std::size_t 
+        operator()(const boost::typeindex::ctti_type_index& t) const noexcept {
+            return t.hash_code();
+        }
+    };
+} // namespace std

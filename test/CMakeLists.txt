@@ -26,9 +26,9 @@ endmacro()
 set(TEST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 set(DETAIL_SOURCE_DIR ${TEST_SOURCE_DIR}/detail)
-package_add_test(detail_entity ${DETAIL_SOURCE_DIR}/entity.cpp)
 package_add_test(detail_sparse_set ${DETAIL_SOURCE_DIR}/sparse_set.cpp)
 package_add_test(detail_type_index ${DETAIL_SOURCE_DIR}/type_index.cpp)
+package_add_test(detail_buffer ${DETAIL_SOURCE_DIR}/buffer.cpp)
 package_add_test(detail_type_list ${DETAIL_SOURCE_DIR}/type_list.cpp)
 
 set(WORLD_SOURCE_DIR ${TEST_SOURCE_DIR}/world)
@@ -51,3 +51,6 @@ package_add_test(view_capacity ${VIEW_SOURCE_DIR}/capacity.cpp)
 package_add_test(view_get ${VIEW_SOURCE_DIR}/get.cpp)
 package_add_test(view_iterate ${VIEW_SOURCE_DIR}/iterate.cpp)
 package_add_test(view_lookup ${VIEW_SOURCE_DIR}/lookup.cpp)
+
+set(ENTITY_SOURCE_DIR ${TEST_SOURCE_DIR}/entity)
+package_add_test(entity_traits ${ENTITY_SOURCE_DIR}/traits.cpp)

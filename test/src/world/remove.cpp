@@ -46,6 +46,7 @@ TEST(world, range_remove)
             has_component
         )
     );
+    ASSERT_EQ(applicable.size(), std::size(entities));
     ASSERT_TRUE(
         std::all_of(
             std::begin(entities), 

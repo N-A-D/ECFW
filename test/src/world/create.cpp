@@ -9,12 +9,12 @@ TEST(world, create)
     auto nonapplicable = world.view<char>();
     
     auto e0 = world.create();
-    ASSERT_TRUE(world.valid(e0));
+    ASSERT_TRUE(world.is_valid(e0));
     ASSERT_EQ(applicable.size(), 0);
     ASSERT_EQ(nonapplicable.size(), 0);
 
     auto e1 = world.create<int>();
-    ASSERT_TRUE(world.valid(e1));
+    ASSERT_TRUE(world.is_valid(e1));
     ASSERT_EQ(applicable.size(), 1);
     ASSERT_EQ(nonapplicable.size(), 0);
     ASSERT_EQ(world.num_entities(), 2);

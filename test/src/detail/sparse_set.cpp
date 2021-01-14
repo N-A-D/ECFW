@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <ecfw/detail/sparse_set.hpp>
 
-using sparse_set = ecfw::detail::sparse_set;
+using sparse_set = ecfw::detail::sparse_set<std::uint32_t>;
 
 struct SparseSetTest : public ::testing::Test {
     void SetUp() override {

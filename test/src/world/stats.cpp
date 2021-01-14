@@ -11,13 +11,13 @@ TEST(world, entity_stats)
 
     ASSERT_EQ(world.num_entities(), std::size(entities));
     ASSERT_EQ(world.num_alive(), std::size(entities));
-    ASSERT_EQ(world.num_reusable(), 0);
+    ASSERT_EQ(world.num_inactive(), 0);
 
     world.destroy(std::begin(entities), std::end(entities));
 
     ASSERT_EQ(world.num_entities(), std::size(entities));
     ASSERT_EQ(world.num_alive(), 0);
-    ASSERT_EQ(world.num_reusable(), std::size(entities));
+    ASSERT_EQ(world.num_inactive(), std::size(entities));
 }
 
 TEST(world, component_stats)

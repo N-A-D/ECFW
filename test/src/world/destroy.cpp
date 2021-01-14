@@ -30,7 +30,7 @@ TEST(world, destroy_from_range)
 
     world.create<int>(std::begin(entities), std::end(entities));
 
-    auto is_valid = [&world](auto e) { return world.valid(e); };
+    auto is_valid = [&world](auto e) { return world.is_valid(e); };
     auto is_in_applicable_group = 
         [&applicable](auto e){ return applicable.contains(e); };
     auto is_in_nonapplicable_group = 

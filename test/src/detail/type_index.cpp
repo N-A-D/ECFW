@@ -5,8 +5,8 @@ using namespace ecfw::detail;
 
 TEST(type_index, equal) 
 {
-    ASSERT_EQ(type_index<int>(), type_index<const int>());
-    ASSERT_EQ(type_index<int>(), type_index<int&>());
-    ASSERT_EQ(type_index<int>(), type_index<const int&>());
-    ASSERT_EQ(type_index<int>(), type_index<int&&>());
+    ASSERT_EQ(type_index::type_id<int>(), type_index::type_id<const int>());
+    ASSERT_EQ(type_index::type_id<int>(), type_index::type_id<int&>());
+    ASSERT_EQ(type_index::type_id<int>(), type_index::type_id<const int&>());
+    ASSERT_EQ(type_index::type_id<int>(), type_index::type_id<int&&>());
 }

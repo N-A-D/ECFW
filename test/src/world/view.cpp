@@ -10,9 +10,19 @@ TEST(world, construction_consistency)
     ecfw::view<int, const char> v2 = world.view<int, const char>();
     ecfw::view<const int, const char> v3 = world.view<const int, const char>();
 
-    world.create<int, char>(2);
+    auto e1 = world.create<int, char>();
+    auto e2 = world.create<int, char>();
+    
+    ASSERT_TRUE(v0.contains(e1));
+    ASSERT_TRUE(v0.contains(e2));
 
-    ASSERT_TRUE(std::equal(v0.begin(), v0.end(), v1.begin(), v1.end()));
-    ASSERT_TRUE(std::equal(v1.begin(), v1.end(), v2.begin(), v2.end()));
-    ASSERT_TRUE(std::equal(v2.begin(), v2.end(), v3.begin(), v3.end()));
+    ASSERT_TRUE(v1.contains(e1));
+    ASSERT_TRUE(v1.contains(e2));
+
+    ASSERT_TRUE(v2.contains(e1));
+    ASSERT_TRUE(v2.contains(e2));
+
+    ASSERT_TRUE(v3.contains(e1));
+    ASSERT_TRUE(v3.contains(e2));
+
 }
