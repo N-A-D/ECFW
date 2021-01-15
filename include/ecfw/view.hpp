@@ -309,6 +309,6 @@ namespace ecfw
     };
 
     template <typename... Ts>
-    using view = basic_view<std::uint64_t, entity_traits<std::uint64_t>, Ts...>;
+    using view = basic_view<std::uint32_t, entity_traits<std::uint32_t>, Ts...>;
 
 } // namespace ecfw

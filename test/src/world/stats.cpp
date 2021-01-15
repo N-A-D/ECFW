@@ -5,7 +5,7 @@
 TEST(world, entity_stats)
 {
     ecfw::world world{};
-    uint64_t entities[10];
+    uint32_t entities[10];
 
     world.create(std::begin(entities), std::end(entities));
 

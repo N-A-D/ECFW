@@ -944,6 +944,6 @@ namespace ecfw
 
     };
 
-    using world = basic_world<std::uint64_t>;
+    using world = basic_world<std::uint32_t>;
 
 } // namespace ecfw

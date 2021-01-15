@@ -30,7 +30,7 @@ TEST(world, orphan_from_range)
     auto applicable = world.view<int, char>();
     auto nonapplicable = world.view<float>();
 
-    uint64_t entities[10];
+    uint32_t entities[10];
 
     world.create<int, char>(std::begin(entities), std::end(entities));
 

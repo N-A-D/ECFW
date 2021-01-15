@@ -16,7 +16,7 @@ struct SparseSetTest : public ::testing::Test {
     }
 protected:
     sparse_set set{};
-    std::array<uint64_t, 16384> data{};
+    std::array<uint32_t, 16384> data{};
 };
 
 TEST_F(SparseSetTest, move_constructor)
@@ -36,8 +36,8 @@ TEST_F(SparseSetTest, move_assignment)
 }
 
 TEST_F(SparseSetTest, insert_new_elements) {
-    std::array<uint64_t, 16384> new_data{};
-    std::iota(new_data.begin(), new_data.end(), uint64_t(data.size()));
+    std::array<uint32_t, 16384> new_data{};
+    std::iota(new_data.begin(), new_data.end(), uint32_t(data.size()));
     auto contained_by_set = [this](auto i) { return set.contains(i); };
     ASSERT_TRUE(
         std::none_of(new_data.begin(), new_data.end(), contained_by_set));
@@ -69,8 +69,8 @@ TEST_F(SparseSetTest, remove_existing_elements)
 
 TEST_F(SparseSetTest, remove_nonexisting_elements)
 {
-    std::array<uint64_t, 16384> new_data{};
-    std::iota(new_data.begin(), new_data.end(), uint64_t(data.size()));
+    std::array<uint32_t, 16384> new_data{};
+    std::iota(new_data.begin(), new_data.end(), uint32_t(data.size()));
     auto contained_by_set = [this](auto i) { return set.contains(i); };
     ASSERT_TRUE(
         std::none_of(new_data.begin(), new_data.end(), contained_by_set));

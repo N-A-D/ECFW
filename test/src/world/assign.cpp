@@ -38,7 +38,7 @@ TEST(world, range_assign) {
     ASSERT_EQ(applicable.size(), 0);
     ASSERT_EQ(nonapplicable.size(), 0);
 
-    uint64_t entities[10];
+    uint32_t entities[10];
     world.create(std::begin(entities), std::end(entities));
     for (auto entity : entities) {
         ASSERT_FALSE(applicable.contains(entity));

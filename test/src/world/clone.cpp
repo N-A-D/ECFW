@@ -50,7 +50,7 @@ TEST(world, first_n_of_range_clone)
     auto progenitor = world.create<int>();
     ASSERT_TRUE(applicable.contains(progenitor));
     ASSERT_FALSE(nonapplicable.contains(progenitor));
-    uint64_t entities[10];
+    uint32_t entities[10];
     world.clone<int>(progenitor, std::begin(entities), std::size(entities));
     ASSERT_TRUE(
         std::all_of(
@@ -85,7 +85,7 @@ TEST(world, range_clone)
     ASSERT_TRUE(applicable.contains(progenitor));
     ASSERT_FALSE(nonapplicable.contains(progenitor));
     
-    uint64_t entities[10];
+    uint32_t entities[10];
     world.clone<int>(progenitor, std::begin(entities), std::end(entities));
     ASSERT_TRUE(
         std::all_of(

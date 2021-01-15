@@ -30,7 +30,7 @@ TEST(world, range_remove)
     auto applicable = world.view<int>();
     auto nonapplicable = world.view<char>();
 
-    uint64_t entities[10];
+    uint32_t entities[10];
 
     world.create<int>(std::begin(entities), std::end(entities));
 

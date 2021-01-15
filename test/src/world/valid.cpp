@@ -9,7 +9,7 @@ TEST(world, is_valid)
 
     ASSERT_TRUE(world.is_valid(valid_entity));
 
-    uint64_t invalid_entity = 0xDEADBEEF;
+    uint32_t invalid_entity = 0xDEADBEEF;
 
     ASSERT_FALSE(world.is_valid(invalid_entity));
 }

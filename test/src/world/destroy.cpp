@@ -23,7 +23,7 @@ TEST(world, destroy)
 TEST(world, destroy_from_range)
 {
     ecfw::world world{};
-    uint64_t entities[10];
+    uint32_t entities[10];
 
     auto applicable = world.view<int>();
     auto nonapplicable = world.view<char>();

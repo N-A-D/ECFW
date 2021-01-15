@@ -46,7 +46,7 @@ TEST(world, first_n_of_range_clone)
     auto is_in_nonapplicable_group = 
         [&nonapplicable](auto e){ return nonapplicable.contains(e); };
 
-    uint64_t entities[10];
+    uint32_t entities[10];
     world.create<int>(std::begin(entities), std::size(entities));
     ASSERT_EQ(world.num_entities(), std::size(entities));
     ASSERT_TRUE(
@@ -76,7 +76,7 @@ TEST(world, range_clone)
     auto is_in_nonapplicable_group = 
         [&nonapplicable](auto e){ return nonapplicable.contains(e); };
 
-    uint64_t entities[10];
+    uint32_t entities[10];
     world.create<int>(std::begin(entities), std::end(entities));
     ASSERT_EQ(world.num_entities(), std::size(entities));
     ASSERT_TRUE(
