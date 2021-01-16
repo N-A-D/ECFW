@@ -608,6 +608,7 @@ namespace ecfw
             return std::apply(make_view, bids);
         }
 
+        /*! @copydoc view */
         template <typename T, typename... Ts>
             requires std::conjunction_v<std::is_const<T>, std::is_const<Ts>...>
         [[nodiscard]] ecfw::basic_view<E, Traits, T, Ts...> view() const {
