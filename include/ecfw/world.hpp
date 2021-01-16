@@ -881,7 +881,7 @@ namespace ecfw
                 return it->second;
             
             detail::sparse_set<entity_type, traits_type> group{};
-            for (auto entity : m_entities) {
+            for (auto entity : boost::adaptors::reverse(m_entities)) {
                 auto eid = traits_type::index(entity);
                 bool satisfied = true;
                 for (auto bid : bids) {
