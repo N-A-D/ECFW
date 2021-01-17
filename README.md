@@ -33,9 +33,6 @@ using Entity = std::uint16_t;
 // perform on an entity's representation throughout the lifetime of an entity.
 using EntityTraits = ecfw::entity_traits<Entity>;
 
-// ecfw::basic_world is the entity management class. It is used to create and
-// manipulate entities.
-
 // The class template ecfw::basic_world stores and manipulates entities and
 // their components.
 using World = ecfw::basic_world<Entity, EntityTraits>;
