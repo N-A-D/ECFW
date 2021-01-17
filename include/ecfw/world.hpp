@@ -35,10 +35,10 @@ namespace ecfw
         requires std::same_as<E, typename Traits::entity_type>
     class basic_world : private boost::noncopyable {
 
-        // Used in basic_world::internal_get to select the right buffer type 
-        // based on whether or not the requested component type is const.
-        // When the type is known to be const or non const, explicit usage
-        // of detail::buffer<T> is required.
+        // Used to select the appropriate buffer type when given a either const
+        // or non const component type. In situations where it is known 
+        // whether a component type is const or non const, explicit usage of 
+        // template alias detail::buffer must be used.
         template <typename T>
         using buffer_type = std::conditional_t<
             std::is_const_v<T>, 
@@ -51,9 +51,6 @@ namespace ecfw
         using traits_type = Traits;
         using entity_type = typename traits_type::entity_type;
         
-        template <typename T, typename... Ts>
-        using view_type = basic_view<entity_type, traits_type, T, Ts...>;
-
         /**
          * @brief Default constructor.
          * 
