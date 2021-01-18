@@ -87,13 +87,15 @@ int main() {
 
 ## Dependencies
 - Boost 1.74.
-- Google Test (only for the tests).
-- Google Benchmark (only for the benchmarks).
-
+- Google Test (tests only).
+- Google Benchmark (benchmarks only).
 
 ## Build
-`ecfw` is a header-only library. It does include tests and benchmarks.
-```
+`ecfw` is a header-only library. It includes tests and benchmarks that can be
+compiled as well, should you choose to do so.
+
+To compile the tests and/or the benchmarks:
+```sh
 mkdir build
 cd build
 cmake -DBOOST_ROOT=/path/to/boost -DBUILD_ECFW_TESTS=True -DBUILD_ECFW_BENCHMARKS=True ..
