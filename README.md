@@ -54,7 +54,7 @@ int main() {
 
     // To obtain only the entities with a particular set of components, 
     // construct an instance of ecfw::basic_view using ecfw::basic_world::view.
-    auto entities = world.view<Position, Direction>();
+    auto entities = world.view<Position, Velocity>();
 
     // ecfw does not provide a concrete definition of what a system is. So long
     // as it can transform an entity's components, it can be called a system. To 
@@ -78,7 +78,7 @@ int main() {
 
     // To remove components from an entity, use template member function 
     // ecfw::basic_world::remove.
-    world.remove<Position, Direction>(entity);
+    world.remove<Position, Velocity>(entity);
 
     // To destroy an entity, use ecfw::basic_world::destroy.
     world.destroy(entity);
