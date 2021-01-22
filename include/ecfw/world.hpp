@@ -9,7 +9,6 @@
 #include <type_traits>
 #include <boost/core/noncopyable.hpp>
 #include <boost/container/vector.hpp>
-#include <boost/container/flat_set.hpp>
 #include <boost/dynamic_bitset.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include <ecfw/entity.hpp>
