@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <type_traits>
 #include <ecfw/entity.hpp>
 #include <ecfw/detail/buffer.hpp>
