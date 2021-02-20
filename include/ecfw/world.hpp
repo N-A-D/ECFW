@@ -32,7 +32,7 @@ namespace ecfw
      */
     template <Entity E, typename Traits = entity_traits<E>>
         requires std::same_as<E, typename Traits::entity_type>
-    class basic_world : private boost::noncopyable {
+    class basic_world final : private boost::noncopyable {
 
         // Used to select the appropriate buffer type when given a either const
         // or non const component type. In situations where it is known 
