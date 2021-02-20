@@ -175,10 +175,10 @@ namespace ecfw
     template <Entity E, typename Traits, typename T>
         requires std::same_as<E, typename Traits::entity_type>
     class basic_view<E, Traits, T> final {
-
-        template <typename T>
+        
+        template <typename C>
         using buffer_type = std::conditional_t<
-            std::is_const_v<T>, const detail::buffer<T>, detail::buffer<T>>;
+            std::is_const_v<C>, const detail::buffer<C>, detail::buffer<C>>;
 
     public:
         using traits_type = Traits;
